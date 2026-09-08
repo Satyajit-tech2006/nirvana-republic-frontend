@@ -93,7 +93,6 @@ function createBowlGeometry(): THREE.LatheGeometry {
     new THREE.Vector2(1.58, 0.75), new THREE.Vector2(1.5, 0.73), new THREE.Vector2(1.4, 0.69),
     new THREE.Vector2(1.32, 0.63),
   ];
-  // Optimized from 128 to 48: Indistinguishable at screen scale, saves vertex overhead.
   const geometry = new THREE.LatheGeometry(points, 48); 
   geometry.computeVertexNormals();
   return geometry;
@@ -125,7 +124,6 @@ function createContactShadowTexture(): THREE.CanvasTexture {
   return texture;
 }
 
-// Optimized tiled fleck generation
 function createStonewareFleckTexture(): THREE.CanvasTexture {
   const size = 128; 
   const canvas = document.createElement("canvas");
@@ -289,8 +287,6 @@ async function buildSceneAsync(container: HTMLDivElement, width: number, height:
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   container.appendChild(renderer.domElement);
 
-  await new Promise(r => setTimeout(r, 0)); // Yield to FCP
-
   const hemiLight = new THREE.HemisphereLight(new THREE.Color("#ffffff"), new THREE.Color("#443322"), 0.6);
   scene.add(hemiLight);
   const ambientLight = new THREE.AmbientLight(new THREE.Color(COLORS.ambient), 0.2);
@@ -344,13 +340,10 @@ async function buildSceneAsync(container: HTMLDivElement, width: number, height:
   bowlInnerMesh.scale.setScalar(0.94);
   scene.add(bowlInnerMesh);
 
-  await new Promise(r => setTimeout(r, 0)); // Yield before bag build
-
   const packetPivot = new THREE.Group();
   packetPivot.position.set(PACKET_PIVOT[0], PACKET_PIVOT[1], PACKET_PIVOT[2]);
   packetPivot.rotation.z = REST_TILT_RADIANS;
   
-  // Asynchronous execution prevents massive blocking
   const bagMeshGroup = await createBagMeshAsync(geometries, materials, textures);
   packetPivot.add(bagMeshGroup);
   scene.add(packetPivot);
@@ -384,9 +377,6 @@ async function buildSceneAsync(container: HTMLDivElement, width: number, height:
   const seedMesh = new THREE.InstancedMesh(seedGeometry, seedMaterial, SEED_COUNT);
   seedMesh.frustumCulled = false;
   scene.add(seedMesh);
-
-  // Precompile materials to avoid stutter on first render
-  renderer.compile(scene, camera);
 
   return {
     renderer, scene, camera, packetPivot, seedMesh, seedInstances, contactShadowPacket, contactShadowBowl,
@@ -428,6 +418,9 @@ export function SeedScrollScene() {
 
   useEffect(() => {
     let isCancelled = false;
+    let idleCallbackId: number;
+    let timeoutId: NodeJS.Timeout;
+    
     const container = containerRef.current;
     if (!container) return;
     if (!isWebGLAvailable()) { setWebglSupported(false); return; }
@@ -497,10 +490,18 @@ export function SeedScrollScene() {
       }
     };
 
-    initScene();
+    // CRITICAL FIX: Ensure browser paints HTML before we begin heavy ThreeJS tasks
+    const start = () => { if (!isCancelled) initScene(); };
+    if ('requestIdleCallback' in window) {
+      idleCallbackId = window.requestIdleCallback(start, { timeout: 2000 });
+    } else {
+      timeoutId = setTimeout(start, 400); // Fallback for Safari
+    }
 
     return () => {
       isCancelled = true;
+      if (idleCallbackId) window.cancelIdleCallback(idleCallbackId);
+      if (timeoutId) clearTimeout(timeoutId);
       if (rafId !== null) cancelAnimationFrame(rafId);
       if (intersectionObserver) intersectionObserver.disconnect();
       if (resizeObserver) resizeObserver.disconnect();
@@ -518,7 +519,6 @@ export function SeedScrollScene() {
       <a href={HERO_COPY.ctaHref} className="mt-8 inline-flex items-center justify-center rounded-full border border-[#2b2620] px-7 py-3 text-sm font-medium uppercase tracking-[0.14em] text-[#2b2620] transition-colors duration-300 hover:bg-[#2b2620] hover:text-[#fffcf7]">
         {HERO_COPY.ctaLabel}
       </a>
-      {/* Retained floating indicator requirement */}
       <div className={`absolute bottom-[-60px] left-0 flex items-center gap-3 transition-opacity duration-700 ${isLoaded ? "opacity-100" : "opacity-0"}`}>
          <div className="h-8 w-[1px] bg-[#2b2620]/30 animate-pulse"></div>
          <span className="text-[10px] font-medium uppercase tracking-widest text-[#2b2620]/50">Scroll to witness the ritual</span>

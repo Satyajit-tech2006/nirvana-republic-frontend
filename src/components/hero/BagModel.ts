@@ -1,20 +1,14 @@
 import * as THREE from "three";
 
-// ============================================================================
-// ULTRA-FIDELITY PROCEDURAL DOYPACK GENERATOR (OPTIMIZED FOR PERFORMANCE)
-// ============================================================================
-
 const CONFIG = {
   width: 1.15,
   height: 1.7,
   maxDepth: 0.45,
-  segmentsX: 48, // Optimized from 128: 85% less vertex overhead, identical curve
+  segmentsX: 48,
   segmentsY: 48,
-  
   sealSide: 0.08,
   sealTop: 0.12,
   sealBottom: 0.08,
-  
   colors: {
     kraftBase: "#c59161",
     kraftDark: "#a37042",
@@ -24,10 +18,7 @@ const CONFIG = {
   }
 };
 
-// ---------------------------------------------------------------------------
-// Math & Geometry
-// ---------------------------------------------------------------------------
-
+// --- Math & Geometry ---
 function smoothstep(edge0: number, edge1: number, x: number): number {
   const t = Math.max(0, Math.min(1, (x - edge0) / (edge1 - edge0)));
   return t * t * (3 - 2 * t);
@@ -44,7 +35,6 @@ function createDoypackGeometry(): THREE.BufferGeometry {
 
   for (let i = 0; i < pos.count; i++) {
     vertex.fromBufferAttribute(pos, i);
-    
     const nx = vertex.x / (CONFIG.width / 2);
     const ny = vertex.y / (CONFIG.height / 2);
     const isFront = vertex.z > 0 ? 1 : -1;
@@ -82,11 +72,10 @@ function createDoypackGeometry(): THREE.BufferGeometry {
   return geom;
 }
 
-// ---------------------------------------------------------------------------
-// High-Performance GPU-Accelerated Canvas Textures
-// ---------------------------------------------------------------------------
+// --- High-Performance GPU-Accelerated Canvas Textures ---
 
-// Replaces the heavy JS loop with a small tiling noise buffer. (0.1ms execution)
+const yieldThread = () => new Promise(r => setTimeout(r, 0));
+
 function createFastNoiseCanvas(size: number, alpha: number): HTMLCanvasElement {
   const canvas = document.createElement("canvas");
   canvas.width = size;
@@ -104,7 +93,6 @@ function createFastNoiseCanvas(size: number, alpha: number): HTMLCanvasElement {
   
   ctx.putImageData(imgData, 0, 0);
 
-  // Apply alpha over white background
   const finalCanvas = document.createElement("canvas");
   finalCanvas.width = size;
   finalCanvas.height = size;
@@ -115,19 +103,21 @@ function createFastNoiseCanvas(size: number, alpha: number): HTMLCanvasElement {
     fCtx.globalAlpha = alpha;
     fCtx.drawImage(canvas, 0, 0);
   }
-  
   return finalCanvas;
 }
 
-function createAlbedoTexture(): THREE.CanvasTexture {
-  const width = 2048;
-  const height = 2048;
+// Converted to async to chunk drawing tasks
+async function createAlbedoTextureAsync(): Promise<THREE.CanvasTexture> {
+  // Reduced to 1024x1024 (4x faster than 2048, looks identical on web)
+  const width = 1024;
+  const height = 1024;
   const canvas = document.createElement("canvas");
   canvas.width = width;
   canvas.height = height;
   const ctx = canvas.getContext("2d");
   if (!ctx) return new THREE.CanvasTexture(canvas);
 
+  // 1. Base Kraft
   ctx.fillStyle = CONFIG.colors.kraftBase;
   ctx.fillRect(0, 0, width, height);
 
@@ -136,127 +126,122 @@ function createAlbedoTexture(): THREE.CanvasTexture {
   aoGradient.addColorStop(1, "rgba(70,40,20,0.15)");
   ctx.fillStyle = aoGradient;
   ctx.fillRect(0, 0, width, height);
+  
+  await yieldThread(); // YIELD
 
+  // 2. Heat Seals
   ctx.strokeStyle = "rgba(0,0,0,0.06)";
-  ctx.lineWidth = 4;
+  ctx.lineWidth = 2;
   const topCrimpY = height * 0.04;
   for(let i = 0; i < 7; i++) {
     ctx.beginPath();
-    ctx.moveTo(width * 0.02, topCrimpY + (i * 12));
-    ctx.lineTo(width * 0.98, topCrimpY + (i * 12));
+    ctx.moveTo(width * 0.02, topCrimpY + (i * 6));
+    ctx.lineTo(width * 0.98, topCrimpY + (i * 6));
     ctx.stroke();
   }
 
   ctx.strokeStyle = "rgba(0,0,0,0.15)";
-  ctx.lineWidth = 10;
+  ctx.lineWidth = 5;
   ctx.lineCap = "round";
   ctx.beginPath();
   ctx.moveTo(width * 0.05, height * 0.12);
   ctx.lineTo(width * 0.95, height * 0.12);
   ctx.stroke();
   
-  ctx.strokeStyle = "rgba(255,255,255,0.15)";
-  ctx.lineWidth = 4;
-  ctx.beginPath();
-  ctx.moveTo(width * 0.05, height * 0.12 + 7);
-  ctx.lineTo(width * 0.95, height * 0.12 + 7);
-  ctx.stroke();
-
   ctx.fillStyle = "#fffcf7"; 
   ctx.beginPath();
-  ctx.arc(width * 0.01, height * 0.09, 15, 0, Math.PI*2);
-  ctx.arc(width * 0.99, height * 0.09, 15, 0, Math.PI*2);
+  ctx.arc(width * 0.01, height * 0.09, 8, 0, Math.PI*2);
+  ctx.arc(width * 0.99, height * 0.09, 8, 0, Math.PI*2);
   ctx.fill();
 
+  await yieldThread(); // YIELD
+
+  // 3. Label Base
   const lWidth = width * 0.70;
   const lHeight = height * 0.58;
   const lX = (width - lWidth) / 2;
   const lY = height * 0.25;
 
   ctx.shadowColor = "rgba(0,0,0,0.15)";
-  ctx.shadowBlur = 25;
-  ctx.shadowOffsetY = 5;
+  ctx.shadowBlur = 15;
+  ctx.shadowOffsetY = 3;
   ctx.fillStyle = CONFIG.colors.labelWhite;
   ctx.beginPath();
-  ctx.roundRect(lX, lY, lWidth, lHeight, 16);
+  ctx.roundRect(lX, lY, lWidth, lHeight, 10);
   ctx.fill();
   ctx.shadowBlur = 0; 
 
   ctx.strokeStyle = CONFIG.colors.textDark;
-  ctx.lineWidth = 3;
+  ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.rect(lX + 24, lY + 24, lWidth - 48, lHeight - 48);
+  ctx.rect(lX + 12, lY + 12, lWidth - 24, lHeight - 24);
   ctx.stroke();
   
-  ctx.lineWidth = 1.5;
+  ctx.lineWidth = 1;
   ctx.beginPath();
-  ctx.rect(lX + 32, lY + 32, lWidth - 64, lHeight - 64);
+  ctx.rect(lX + 16, lY + 16, lWidth - 32, lHeight - 32);
   ctx.stroke();
 
+  await yieldThread(); // YIELD
+
+  // 4. Typography
   ctx.fillStyle = CONFIG.colors.textDark;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   const cx = width / 2;
 
-  ctx.font = "italic 400 28px Georgia, serif";
-  ctx.fillText("EST. 2024", cx, lY + 80);
+  ctx.font = "italic 400 16px Georgia, serif";
+  ctx.fillText("EST. 2024", cx, lY + 40);
 
-  ctx.font = "italic 600 58px Georgia, serif";
-  ctx.fillText("NIRVANA REPUBLIC", cx, lY + 140);
+  ctx.font = "italic 600 32px Georgia, serif";
+  ctx.fillText("NIRVANA REPUBLIC", cx, lY + 80);
   
-  ctx.font = "400 24px 'Trebuchet MS', sans-serif";
-  ctx.letterSpacing = "4px";
-  ctx.fillText("WELLNESS COLLECTIVE", cx, lY + 190);
+  ctx.font = "400 12px 'Trebuchet MS', sans-serif";
+  ctx.letterSpacing = "2px";
+  ctx.fillText("WELLNESS COLLECTIVE", cx, lY + 110);
   ctx.letterSpacing = "0px";
 
-  ctx.lineWidth = 1.5;
+  ctx.lineWidth = 1;
   ctx.beginPath();
-  ctx.moveTo(cx - 160, lY + 250);
-  ctx.lineTo(cx + 160, lY + 250);
+  ctx.moveTo(cx - 80, lY + 140);
+  ctx.lineTo(cx + 80, lY + 140);
   ctx.stroke();
 
-  ctx.font = "400 78px Georgia, serif";
-  ctx.fillText("ASHWAGANDHA", cx, lY + 350);
-  ctx.fillText("POWDER", cx, lY + 440);
+  ctx.font = "400 42px Georgia, serif";
+  ctx.fillText("ASHWAGANDHA", cx, lY + 200);
+  ctx.fillText("POWDER", cx, lY + 250);
 
-  ctx.font = "italic 400 32px Georgia, serif";
-  ctx.fillText("Premium Ayurvedic Herb", cx, lY + 540);
+  ctx.font = "italic 400 18px Georgia, serif";
+  ctx.fillText("Premium Ayurvedic Herb", cx, lY + 310);
 
-  ctx.beginPath();
-  ctx.moveTo(cx - 100, lY + 590);
-  ctx.lineTo(cx + 100, lY + 590);
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.arc(cx, lY + 590, 6, 0, Math.PI*2);
-  ctx.fill();
-
-  const dotX = lX + 60;
-  const dotY = lY + lHeight - 60;
+  const dotX = lX + 40;
+  const dotY = lY + lHeight - 40;
   ctx.strokeStyle = CONFIG.colors.greenDot;
-  ctx.lineWidth = 4;
+  ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.rect(dotX - 18, dotY - 18, 36, 36);
+  ctx.rect(dotX - 12, dotY - 12, 24, 24);
   ctx.stroke();
   ctx.fillStyle = CONFIG.colors.greenDot;
   ctx.beginPath();
-  ctx.arc(dotX, dotY, 10, 0, Math.PI*2);
+  ctx.arc(dotX, dotY, 6, 0, Math.PI*2);
   ctx.fill();
 
   ctx.fillStyle = CONFIG.colors.textDark;
-  ctx.font = "600 24px sans-serif";
-  ctx.fillText("100g", lX + lWidth - 70, dotY);
+  ctx.font = "600 14px sans-serif";
+  ctx.fillText("100g", lX + lWidth - 40, dotY);
 
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
-  texture.anisotropy = 16;
+  texture.anisotropy = 4;
   return texture;
 }
 
-function createOptimizedBumpAndRoughnessMaps(): { bump: THREE.CanvasTexture, roughness: THREE.CanvasTexture } {
-  const size = 1024;
-  const noiseCanvas = createFastNoiseCanvas(128, 0.15); // Grain
+async function createOptimizedBumpAndRoughnessMapsAsync(): Promise<{ bump: THREE.CanvasTexture, roughness: THREE.CanvasTexture }> {
+  const size = 512; // Reduced size for performance
+  const noiseCanvas = createFastNoiseCanvas(64, 0.15); 
   
-  // 1. Generate Bump (Crinkles + Grain)
+  await yieldThread(); // YIELD
+
   const bumpCanvas = document.createElement("canvas");
   bumpCanvas.width = size; bumpCanvas.height = size;
   const bumpCtx = bumpCanvas.getContext("2d")!;
@@ -270,25 +255,24 @@ function createOptimizedBumpAndRoughnessMaps(): { bump: THREE.CanvasTexture, rou
     bumpCtx.fillRect(0, 0, size, size);
   }
 
-  // Draw vectorized crinkles instead of pixel loops
-  for (let i = 0; i < 40; i++) {
+  for (let i = 0; i < 20; i++) {
     bumpCtx.beginPath();
     bumpCtx.moveTo(Math.random() * size, Math.random() * size);
     bumpCtx.bezierCurveTo(Math.random() * size, Math.random() * size, Math.random() * size, Math.random() * size, Math.random() * size, Math.random() * size);
     bumpCtx.strokeStyle = Math.random() > 0.5 ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)";
-    bumpCtx.lineWidth = 10 + Math.random() * 40;
+    bumpCtx.lineWidth = 5 + Math.random() * 20;
     bumpCtx.lineCap = "round";
-    bumpCtx.shadowBlur = 15;
+    bumpCtx.shadowBlur = 10;
     bumpCtx.shadowColor = bumpCtx.strokeStyle;
     bumpCtx.stroke();
   }
 
-  // 2. Generate Roughness Map (Kraft is rough, label is smoother)
+  await yieldThread(); // YIELD
+
   const roughCanvas = document.createElement("canvas");
   roughCanvas.width = size; roughCanvas.height = size;
   const roughCtx = roughCanvas.getContext("2d")!;
   
-  // Base high roughness for paper
   roughCtx.fillStyle = "rgb(220, 220, 220)";
   roughCtx.fillRect(0, 0, size, size);
   
@@ -299,15 +283,14 @@ function createOptimizedBumpAndRoughnessMaps(): { bump: THREE.CanvasTexture, rou
     roughCtx.globalAlpha = 1.0;
   }
 
-  // Label area - smoother
   const lWidth = size * 0.70;
   const lHeight = size * 0.58;
   const lX = (size - lWidth) / 2;
   const lY = size * 0.25;
   
-  roughCtx.fillStyle = "rgb(150, 150, 150)"; // Smoother gloss
+  roughCtx.fillStyle = "rgb(150, 150, 150)"; 
   roughCtx.beginPath();
-  roughCtx.roundRect(lX, lY, lWidth, lHeight, 16);
+  roughCtx.roundRect(lX, lY, lWidth, lHeight, 8);
   roughCtx.fill();
 
   const bumpTex = new THREE.CanvasTexture(bumpCanvas);
@@ -319,28 +302,22 @@ function createOptimizedBumpAndRoughnessMaps(): { bump: THREE.CanvasTexture, rou
   return { bump: bumpTex, roughness: roughTex };
 }
 
-// ---------------------------------------------------------------------------
-// Assembly
-// ---------------------------------------------------------------------------
-
+// --- Assembly ---
 export async function createBagMeshAsync(
   geometries: THREE.BufferGeometry[], 
   materials: THREE.Material[], 
   textures: THREE.Texture[]
 ): Promise<THREE.Group> {
   
-  // Macro-task yielding to prevent blocking UI thread
-  await new Promise(r => setTimeout(r, 0)); 
-  
   const doypackGeom = createDoypackGeometry();
   geometries.push(doypackGeom);
 
-  await new Promise(r => setTimeout(r, 0));
-  const albedoMap = createAlbedoTexture();
-  const { bump, roughness } = createOptimizedBumpAndRoughnessMaps();
+  const albedoMap = await createAlbedoTextureAsync();
+  const { bump, roughness } = await createOptimizedBumpAndRoughnessMapsAsync();
   textures.push(albedoMap, bump, roughness);
 
-  await new Promise(r => setTimeout(r, 0));
+  await yieldThread(); // Final yield before compiling material
+
   const bagMaterial = new THREE.MeshPhysicalMaterial({
     color: 0xffffff,
     map: albedoMap,
@@ -366,20 +343,14 @@ export async function createBagMeshAsync(
   materials.push(bagMaterial, backMaterial);
 
   const materialArray = [
-    backMaterial, // Right
-    backMaterial, // Left
-    backMaterial, // Top
-    backMaterial, // Bottom
-    bagMaterial,  // Front (With Label)
-    backMaterial  // Back
+    backMaterial, backMaterial, backMaterial, backMaterial, 
+    bagMaterial,  backMaterial  
   ];
 
   const bagGroup = new THREE.Group();
   const bagMesh = new THREE.Mesh(doypackGeom, materialArray);
-  
   bagMesh.castShadow = true;
   bagMesh.receiveShadow = true;
-
   bagGroup.add(bagMesh);
 
   return bagGroup;
