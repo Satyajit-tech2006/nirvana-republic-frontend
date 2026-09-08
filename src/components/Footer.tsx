@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link } from "react-router-dom";
 import { Instagram, Facebook, Youtube } from "lucide-react";
 import { categories } from "@/data/products";
 
@@ -31,7 +31,7 @@ export function Footer() {
           <ul className="mt-5 space-y-3 text-sm text-primary-foreground/80">
             {categories.map((c) => (
               <li key={c.id}>
-                <Link to="/shop" search={{ category: c.id }} className="link-underline">
+                <Link to={`/shop?category=${c.id}`} className="link-underline">
                   {c.name}
                 </Link>
               </li>

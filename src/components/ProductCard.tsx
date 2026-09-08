@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link } from "react-router-dom";
 import { Heart, Plus } from "lucide-react";
 import { toast } from "sonner";
 import type { Product } from "@/data/products";
@@ -14,7 +14,7 @@ export function ProductCard({ product }: { product: Product }) {
   return (
     <article className="group relative flex flex-col">
       <div className="relative overflow-hidden rounded-sm bg-secondary">
-        <Link to="/product/$slug" params={{ slug: product.slug }} className="block">
+        <Link to={`/product/${product.slug}`} className="block">
           <img
             src={product.images[0]}
             alt={product.name}
@@ -64,7 +64,7 @@ export function ProductCard({ product }: { product: Product }) {
           <span className="ml-auto">{product.weight}</span>
         </div>
         <h3 className="mt-2 font-display text-[1.0625rem] leading-snug">
-          <Link to="/product/$slug" params={{ slug: product.slug }} className="link-underline">
+          <Link to={`/product/${product.slug}`} className="link-underline">
             {product.name}
           </Link>
         </h3>

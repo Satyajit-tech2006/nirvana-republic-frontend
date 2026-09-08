@@ -1,4 +1,4 @@
-import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Heart, Menu, Search, ShoppingBag, User, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import logo from "@/assets/logo-mark.png";
@@ -6,9 +6,9 @@ import { categories } from "@/data/products";
 import { useStore } from "@/lib/store";
 
 const navLinks = [
-  { label: "Shop all", to: "/shop" as const },
-  { label: "Journal", to: "/journal" as const },
-  { label: "Our story", to: "/about" as const },
+  { label: "Shop all", to: "/shop" },
+  { label: "Journal", to: "/journal" },
+  { label: "Our story", to: "/about" },
 ];
 
 export function Header() {
@@ -17,7 +17,7 @@ export function Header() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [term, setTerm] = useState("");
   const navigate = useNavigate();
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const { pathname } = useLocation();
 
   useEffect(() => {
     setMenuOpen(false);
@@ -26,7 +26,7 @@ export function Header() {
 
   const submitSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    navigate({ to: "/shop", search: { q: term || undefined } });
+    navigate(term ? `/shop?q=${encodeURIComponent(term)}` : "/shop");
     setSearchOpen(false);
   };
 
@@ -56,8 +56,7 @@ export function Header() {
           {categories.map((c) => (
             <Link
               key={c.id}
-              to="/shop"
-              search={{ category: c.id }}
+              to={`/shop?category=${c.id}`}
               className="link-underline text-foreground/80 transition-colors hover:text-primary"
             >
               {c.name}
@@ -126,7 +125,6 @@ export function Header() {
         </div>
       )}
 
-      {/* Mobile navigation */}
       <div
         className={`fixed inset-0 z-50 md:hidden ${menuOpen ? "" : "pointer-events-none"}`}
         aria-hidden={!menuOpen}
@@ -151,8 +149,7 @@ export function Header() {
             {categories.map((c) => (
               <Link
                 key={c.id}
-                to="/shop"
-                search={{ category: c.id }}
+                to={`/shop?category=${c.id}`}
                 className="block border-b border-border/60 py-3.5 font-display text-xl"
               >
                 {c.name}

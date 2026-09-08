@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link } from "react-router-dom";
 import { X, ShoppingBag } from "lucide-react";
 import { useEffect } from "react";
 import { inr } from "@/lib/format";
@@ -57,7 +57,7 @@ export function CartDrawer() {
             <div className="flex-1 space-y-6 overflow-y-auto px-6 py-6">
               {cartItems.map(({ product, qty }) => (
                 <div key={product.id} className="flex gap-4">
-                  <Link to="/product/$slug" params={{ slug: product.slug }} onClick={() => setCartOpen(false)}>
+                  <Link to={`/product/${product.slug}`} onClick={() => setCartOpen(false)}>
                     <img
                       src={product.images[0]}
                       alt={product.name}

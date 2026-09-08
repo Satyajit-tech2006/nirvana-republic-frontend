@@ -1,31 +1,13 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { Link } from "react-router-dom";
 import { ArrowRight, Leaf, ShieldCheck, Sprout, Timer } from "lucide-react";
-import hero from "@/assets/hero.jpg";
 import editorial from "@/assets/editorial-ritual.jpg";
 import { ProductCard } from "@/components/ProductCard";
 import { SectionHead } from "@/components/SectionHead";
 import { Newsletter } from "@/components/Newsletter";
+import { SeedScrollScene } from "@/components/hero/SeedScrollScene";
+import { SEO } from "@/components/SEO";
 import { categories, products } from "@/data/products";
 import { journal } from "@/data/journal";
-
-export const Route = createFileRoute("/")({
-  head: () => ({
-    meta: [
-      { title: "Nirvana Republic — Better food. Made simple." },
-      {
-        name: "description",
-        content:
-          "Clean seeds, powders and pantry essentials from an Indian wellness collective. Single-origin, lab tested, and simple enough to keep up with every day.",
-      },
-      { property: "og:title", content: "Nirvana Republic — Better food. Made simple." },
-      {
-        property: "og:description",
-        content: "Clean seeds, powders and pantry essentials from an Indian wellness collective.",
-      },
-    ],
-  }),
-  component: Home,
-});
 
 const promises = [
   { icon: Leaf, title: "Single origin", copy: "Each batch traced to one farm cluster, named on the pack." },
@@ -34,68 +16,48 @@ const promises = [
   { icon: Sprout, title: "Nothing added", copy: "No fillers, no sulphur, no flavourings. Ever." },
 ];
 
-function Home() {
+export default function Home() {
   const featured = products.filter((p) => p.featured).slice(0, 4);
   const bestSellers = products.filter((p) => p.bestSeller).slice(0, 4);
 
+  const homeSchema = [
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      name: "Nirvana Republic",
+      url: "https://nirvanarepublic.in",
+      logo: "https://nirvanarepublic.in/logo.png",
+      description:
+        "Clean, single-origin everyday wellness staples, ceremonial seeds, and superfoods sourced from Indian farms.",
+      address: {
+        "@type": "PostalAddress",
+        addressLocality: "Bengaluru",
+        addressRegion: "Karnataka",
+        addressCountry: "IN",
+      },
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      name: "Nirvana Republic",
+      url: "https://nirvanarepublic.in",
+    },
+  ];
+
   return (
     <>
-      {/* Hero */}
-      <section className="container-page pt-8 md:pt-14">
-        <div className="grid items-center gap-10 md:grid-cols-[0.9fr_1.1fr] md:gap-16">
-          <div className="rise-in">
-            <p className="eyebrow">Wellness collective · Est. Bengaluru</p>
-            <h1 className="mt-6 text-balance text-[2.9rem] leading-[1.02] md:text-[4.6rem]">
-              Better food.
-              <br />
-              Made simple.
-            </h1>
-            <p className="mt-6 max-w-md text-[0.95rem] leading-relaxed text-muted-foreground">
-              Healthy eating doesn't have to be complicated. We source clean seeds, powders and pantry
-              staples from Indian farms, and keep the instructions to one line.
-            </p>
-            <div className="mt-9 flex flex-wrap items-center gap-3">
-              <Link to="/shop" className="btn-base btn-primary px-7">
-                Shop Collection
-              </Link>
-              <Link to="/about" className="btn-base btn-outline px-7">
-                Our story
-              </Link>
-            </div>
-            <dl className="mt-12 grid max-w-md grid-cols-3 gap-6 border-t border-border pt-7 text-sm">
-              {[
-                ["48,000+", "households served"],
-                ["37", "partner farms"],
-                ["4.8★", "average rating"],
-              ].map(([value, label]) => (
-                <div key={label}>
-                  <dt className="font-display text-2xl">{value}</dt>
-                  <dd className="mt-1 text-xs leading-snug text-muted-foreground">{label}</dd>
-                </div>
-              ))}
-            </dl>
-          </div>
+      <SEO
+        title="Better food. Made simple."
+        description="Single-origin ceremonial seeds, lab-tested pantry staples, and simple daily wellness rituals."
+        canonical="/"
+        schema={homeSchema}
+      />
 
-          <div className="relative">
-            <img
-              src={hero}
-              alt="Kraft pouch of superfood powder beside a bowl of chia seeds on cream linen"
-              width={1600}
-              height={1104}
-              className="aspect-[4/3] w-full rounded-sm object-cover shadow-soft md:aspect-[5/4]"
-            />
-            <div className="absolute -bottom-6 left-6 hidden max-w-[15rem] rounded-sm bg-card p-5 shadow-lift md:block">
-              <p className="font-display text-lg leading-snug">One spoon. Warm milk. Done.</p>
-              <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-                Our best-selling ashwagandha, in the time it takes to boil water.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* Scroll-Driven 3D Hero */}
+      <SeedScrollScene />
 
       {/* Promise strip */}
-      <section className="container-page mt-20 md:mt-28">
+      <section className="container-page mt-12 md:mt-16">
         <div className="grid gap-8 border-y border-border py-10 sm:grid-cols-2 lg:grid-cols-4">
           {promises.map(({ icon: Icon, title, copy }) => (
             <div key={title} className="flex gap-4">
@@ -109,7 +71,7 @@ function Home() {
         </div>
       </section>
 
-      {/* Featured */}
+      {/* Featured Products */}
       <section className="container-page py-20 md:py-28">
         <SectionHead
           eyebrow="Featured"
@@ -125,7 +87,7 @@ function Home() {
         </div>
       </section>
 
-      {/* Categories */}
+      {/* Categories Shelf */}
       <section className="bg-secondary/70 py-20 md:py-28">
         <div className="container-page">
           <SectionHead eyebrow="Shop by category" title="Find your shelf" />
@@ -133,8 +95,7 @@ function Home() {
             {categories.map((c) => (
               <Link
                 key={c.id}
-                to="/shop"
-                search={{ category: c.id }}
+                to={`/shop?category=${c.id}`}
                 className="group relative overflow-hidden rounded-sm bg-card"
               >
                 <img
@@ -155,7 +116,7 @@ function Home() {
         </div>
       </section>
 
-      {/* Why */}
+      {/* Brand Value Pillars */}
       <section className="container-page py-20 md:py-28">
         <div className="grid gap-12 md:grid-cols-2 md:gap-20">
           <div>
@@ -198,7 +159,7 @@ function Home() {
         </div>
       </section>
 
-      {/* Best sellers */}
+      {/* Best Sellers */}
       <section className="container-page pb-20 md:pb-28">
         <SectionHead
           eyebrow="Best sellers"
@@ -213,7 +174,7 @@ function Home() {
         </div>
       </section>
 
-      {/* Educational */}
+      {/* Educational Ritual */}
       <section className="bg-primary text-primary-foreground">
         <div className="container-page grid items-center gap-12 py-20 md:grid-cols-2 md:gap-20 md:py-28">
           <img
@@ -255,7 +216,7 @@ function Home() {
         </div>
       </section>
 
-      {/* Journal */}
+      {/* Community Journal */}
       <section className="container-page py-20 md:py-28">
         <SectionHead
           eyebrow="From the community"
