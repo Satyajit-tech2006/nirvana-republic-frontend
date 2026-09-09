@@ -7,6 +7,8 @@ import { AuthPage } from "@/pages/AuthPage";
 import ShopPage from "@/pages/ShopPage";
 import ProductDetailPage from "@/pages/ProductDetailPage";
 import AccountPage from "@/pages/AccountPage";
+import JournalPage from "@/pages/JournalPage";
+import JournalDetailPage from "@/pages/JournalDetailPage";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import { AdminRoute } from "@/components/AdminRoute";
 
@@ -24,6 +26,10 @@ export function App() {
           <Route path="/login" element={<AuthPage />} />
           <Route path="/register" element={<AuthPage />} />
 
+          {/* Editorial Journal & Ritual Chronicles */}
+          <Route path="/journal" element={<JournalPage />} />
+          <Route path="/journal/:slug" element={<JournalDetailPage />} />
+
           {/* Customer Sanctuary & Orders */}
           <Route path="/account" element={<AccountPage />} />
           <Route path="/orders" element={<AccountPage />} />
@@ -34,6 +40,7 @@ export function App() {
             <Route path="/admin/products/new" element={<AdminDashboard />} />
             <Route path="/admin/inventory" element={<AdminDashboard />} />
             <Route path="/admin/orders" element={<AdminDashboard />} />
+            <Route path="/admin/journal" element={<AdminDashboard />} />
           </Route>
         </Routes>
       </main>
