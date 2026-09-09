@@ -3,14 +3,10 @@ import api from "@/lib/axios";
 import ENDPOINTS from "@/lib/endpoints";
 import {
   BookOpen,
-  Plus,
   Trash2,
   CheckCircle,
   AlertCircle,
   Image as ImageIcon,
-  Clock,
-  Tag,
-  ExternalLink,
 } from "lucide-react";
 
 interface JournalArticle {
@@ -18,9 +14,10 @@ interface JournalArticle {
   title: string;
   slug: string;
   category: string;
-  readTime: string;
+  readTimeMinutes: number;
   excerpt: string;
-  image: string;
+  coverImage: string;
+  isPublished: boolean;
   createdAt: string;
 }
 
@@ -31,33 +28,32 @@ export default function AdminJournalPage() {
   const [successMsg, setSuccessMsg] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
 
-  // Form State
+  // Form State aligned with backend Schema
   const [formData, setFormData] = useState({
     title: "",
     slug: "",
-    category: "Farm Provenance",
-    readTime: "3 min read",
+    category: "Farm Stories",
+    readTimeMinutes: "4",
     excerpt: "",
     content: "",
     authorName: "Nirvana Editorial",
-    authorRole: "Botanical Research",
-    isFeatured: false,
+    authorRole: "Botanical Research Lead",
+    isPublished: true,
   });
 
   const [tags, setTags] = useState<string[]>(["Single Origin", "Harvest Log"]);
   const [newTagInput, setNewTagInput] = useState("");
   const [coverImage, setCoverImage] = useState<File | null>(null);
 
-  // Fetch Existing Articles
   const fetchArticles = async () => {
     setLoadingList(true);
     try {
       const { data } = await api.get(ENDPOINTS.JOURNAL.GET_ARTICLES);
-      if (data?.data) {
-        setArticles(data.data);
-      }
+      const rawArticles = data?.data?.articles || data?.data || [];
+      setArticles(Array.isArray(rawArticles) ? rawArticles : []);
     } catch (err) {
       console.error("Failed to load journal articles:", err);
+      setArticles([]);
     } finally {
       setLoadingList(false);
     }
@@ -67,7 +63,6 @@ export default function AdminJournalPage() {
     fetchArticles();
   }, []);
 
-  // Title -> Slug auto-generator
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     const generatedSlug = val
@@ -114,7 +109,7 @@ export default function AdminJournalPage() {
     setErrorMsg("");
 
     if (!coverImage) {
-      setErrorMsg("Please upload a cover editorial image.");
+      setErrorMsg("Please upload a cover image.");
       setSubmitting(false);
       return;
     }
@@ -124,9 +119,10 @@ export default function AdminJournalPage() {
       payload.append("title", formData.title);
       payload.append("slug", formData.slug);
       payload.append("category", formData.category);
-      payload.append("readTime", formData.readTime);
+      payload.append("readTimeMinutes", formData.readTimeMinutes);
       payload.append("excerpt", formData.excerpt);
       payload.append("content", formData.content);
+      payload.append("isPublished", String(formData.isPublished));
       payload.append("tags", JSON.stringify(tags));
       payload.append(
         "author",
@@ -135,24 +131,24 @@ export default function AdminJournalPage() {
           role: formData.authorRole,
         })
       );
-      payload.append("isFeatured", String(formData.isFeatured));
-      payload.append("image", coverImage);
+      // Field name matches backend multer upload.single("coverImage")
+      payload.append("coverImage", coverImage);
 
       await api.post(ENDPOINTS.JOURNAL.CREATE, payload, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      setSuccessMsg(`Article "${formData.title}" published to the Journal!`);
+      setSuccessMsg(`Article "${formData.title}" published successfully!`);
       setFormData({
         title: "",
         slug: "",
-        category: "Farm Provenance",
-        readTime: "3 min read",
+        category: "Farm Stories",
+        readTimeMinutes: "4",
         excerpt: "",
         content: "",
         authorName: "Nirvana Editorial",
-        authorRole: "Botanical Research",
-        isFeatured: false,
+        authorRole: "Botanical Research Lead",
+        isPublished: true,
       });
       setCoverImage(null);
       fetchArticles();
@@ -176,12 +172,11 @@ export default function AdminJournalPage() {
 
   return (
     <div className="space-y-12">
-      {/* Top Header */}
       <div className="border-b border-border pb-6">
         <p className="text-xs uppercase tracking-widest font-mono text-moss">Editorial & Journal Desk</p>
         <h1 className="text-3xl font-serif font-normal text-foreground mt-1">Publish Journal Entry</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Craft farm origin chronicles, botanical guides, and two-minute nutritional rituals.
+          Publish single-origin dispatches, botanical nutrition guides, and daily rituals.
         </p>
       </div>
 
@@ -199,7 +194,6 @@ export default function AdminJournalPage() {
         </div>
       )}
 
-      {/* Article Creation Form */}
       <form onSubmit={handleSubmit} className="space-y-8 bg-card border border-border p-6 md:p-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -227,6 +221,7 @@ export default function AdminJournalPage() {
             />
           </div>
 
+          {/* Schema ENUM: ["Farm Stories", "Rituals", "Nutrition Notes", "Recipes"] */}
           <div>
             <label className="block text-xs uppercase font-mono text-muted-foreground mb-1">Category *</label>
             <select
@@ -235,34 +230,37 @@ export default function AdminJournalPage() {
               onChange={handleInputChange}
               className="w-full px-3 py-2 border border-border text-sm rounded-none bg-background focus:outline-none focus:border-foreground"
             >
-              <option value="Farm Provenance">Farm Provenance</option>
-              <option value="Daily Rituals">Daily Rituals</option>
-              <option value="Botanical Science">Botanical Science</option>
-              <option value="Recipes & Pantry">Recipes & Pantry</option>
+              <option value="Farm Stories">Farm Stories</option>
+              <option value="Rituals">Rituals</option>
+              <option value="Nutrition Notes">Nutrition Notes</option>
+              <option value="Recipes">Recipes</option>
             </select>
           </div>
 
           <div>
-            <label className="block text-xs uppercase font-mono text-muted-foreground mb-1">Estimated Read Time</label>
+            <label className="block text-xs uppercase font-mono text-muted-foreground mb-1">Read Time (Minutes) *</label>
             <input
-              type="text"
-              name="readTime"
-              value={formData.readTime}
+              type="number"
+              min="1"
+              required
+              name="readTimeMinutes"
+              value={formData.readTimeMinutes}
               onChange={handleInputChange}
-              placeholder="3 min read"
+              placeholder="4"
               className="w-full px-3 py-2 border border-border text-sm rounded-none focus:outline-none focus:border-foreground"
             />
           </div>
 
           <div className="md:col-span-2">
-            <label className="block text-xs uppercase font-mono text-muted-foreground mb-1">Article Excerpt (Short Summary) *</label>
+            <label className="block text-xs uppercase font-mono text-muted-foreground mb-1">Article Excerpt (Max 300 Chars) *</label>
             <textarea
               required
+              maxLength={300}
               rows={2}
               name="excerpt"
               value={formData.excerpt}
               onChange={handleInputChange}
-              placeholder="A field dispatch from Madhya Pradesh on how frost-free dry winters shape dense mucilage in black chia."
+              placeholder="A field dispatch exploring how basalt soil and cold nights shape seed density..."
               className="w-full px-3 py-2 border border-border text-sm rounded-none focus:outline-none focus:border-foreground"
             />
           </div>
@@ -275,12 +273,11 @@ export default function AdminJournalPage() {
               name="content"
               value={formData.content}
               onChange={handleInputChange}
-              placeholder="Write the full journal text here. Paragraph breaks will be formatted cleanly on the reader view."
+              placeholder="Write the full journal article body here..."
               className="w-full px-3 py-2 border border-border text-sm rounded-none focus:outline-none focus:border-foreground font-sans leading-relaxed"
             />
           </div>
 
-          {/* Author Details */}
           <div>
             <label className="block text-xs uppercase font-mono text-muted-foreground mb-1">Author Name</label>
             <input
@@ -306,7 +303,7 @@ export default function AdminJournalPage() {
           </div>
         </div>
 
-        {/* Tags Section */}
+        {/* Tags */}
         <div>
           <label className="block text-xs uppercase font-mono text-muted-foreground mb-1">Editorial Tags</label>
           <div className="flex gap-2 mb-2">
@@ -350,11 +347,11 @@ export default function AdminJournalPage() {
           </div>
         </div>
 
-        {/* Cover Image Upload */}
+        {/* Cover Image */}
         <div className="border border-dashed border-border p-6 text-center bg-secondary/20">
           <ImageIcon className="mx-auto text-muted-foreground mb-2" size={28} />
           <p className="text-xs uppercase font-mono font-medium text-foreground">Cover Editorial Photography *</p>
-          <p className="text-[11px] text-muted-foreground mt-1">JPEG, PNG, WEBP (Landscape recommended)</p>
+          <p className="text-[11px] text-muted-foreground mt-1">JPEG, PNG, WEBP</p>
           <input
             type="file"
             accept="image/*"
@@ -364,16 +361,16 @@ export default function AdminJournalPage() {
           {coverImage && <p className="text-[11px] font-mono text-moss mt-2">Selected: {coverImage.name}</p>}
         </div>
 
-        {/* Placement Flag */}
+        {/* Publish Flag */}
         <label className="flex items-center gap-2 text-xs font-mono uppercase cursor-pointer">
           <input
             type="checkbox"
-            name="isFeatured"
-            checked={formData.isFeatured}
+            name="isPublished"
+            checked={formData.isPublished}
             onChange={handleInputChange}
             className="accent-moss h-4 w-4"
           />
-          Feature on Journal Hero Header
+          Publish immediately (Visible in Public Journal)
         </label>
 
         {/* Submit */}
@@ -383,7 +380,7 @@ export default function AdminJournalPage() {
           className="w-full py-4 bg-foreground hover:bg-foreground/90 text-background text-xs uppercase tracking-widest font-mono transition-colors font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
         >
           {submitting ? (
-            <span>Uploading Cover & Publishing...</span>
+            <span>Uploading to Cloudinary & Publishing...</span>
           ) : (
             <>
               <BookOpen size={16} /> Publish Journal Entry
@@ -392,7 +389,7 @@ export default function AdminJournalPage() {
         </button>
       </form>
 
-      {/* Existing Published Articles */}
+      {/* Published List */}
       <div className="mt-14 space-y-4">
         <h2 className="text-xl font-serif text-foreground">Published Journal Entries ({articles.length})</h2>
 
@@ -400,14 +397,14 @@ export default function AdminJournalPage() {
           <div className="py-8 text-center text-xs font-mono text-muted-foreground">Loading editorial entries...</div>
         ) : articles.length === 0 ? (
           <div className="border border-dashed border-border p-8 text-center bg-secondary/10">
-            <p className="text-xs font-mono text-muted-foreground">No journal entries published yet.</p>
+            <p className="text-xs font-mono text-muted-foreground">No journal entries found.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {articles.map((article) => (
               <div key={article._id} className="border border-border p-4 bg-card flex gap-4 items-start">
                 <img
-                  src={article.image}
+                  src={article.coverImage}
                   alt={article.title}
                   className="w-20 h-20 object-cover bg-secondary border border-border shrink-0"
                 />
@@ -416,7 +413,7 @@ export default function AdminJournalPage() {
                   <h3 className="font-serif text-sm text-foreground truncate mt-0.5">{article.title}</h3>
                   <p className="text-[11px] text-muted-foreground line-clamp-1 mt-1">{article.excerpt}</p>
                   <div className="flex items-center justify-between mt-3 text-[10px] font-mono text-muted-foreground">
-                    <span>{article.readTime}</span>
+                    <span>{article.readTimeMinutes} min read</span>
                     <button
                       onClick={() => handleDeleteArticle(article._id, article.title)}
                       className="text-rose-600 hover:underline flex items-center gap-1"
