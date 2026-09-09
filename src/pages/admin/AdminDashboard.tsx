@@ -13,35 +13,39 @@ import {
   PlusCircle,
   Boxes,
   ClipboardList,
+  BookOpen,
 } from "lucide-react";
 import AdminInventoryPage from "./AdminInventoryPage";
 import AdminOrdersPage from "./AdminOrdersPage";
+import AdminJournalPage from "./AdminJournalPage";
 
 export default function AdminDashboard() {
   const location = useLocation();
   const navigate = useNavigate();
 
   // Helper to resolve active tab from URL pathname
-  const getTabFromPath = (path: string): "publish" | "inventory" | "orders" => {
+  const getTabFromPath = (path: string): "publish" | "inventory" | "orders" | "journal" => {
     if (path.includes("/admin/inventory")) return "inventory";
     if (path.includes("/admin/orders")) return "orders";
+    if (path.includes("/admin/journal")) return "journal";
     return "publish"; // Default for /admin and /admin/products/new
   };
 
-  const [activeTab, setActiveTab] = useState<"publish" | "inventory" | "orders">(() =>
+  const [activeTab, setActiveTab] = useState<"publish" | "inventory" | "orders" | "journal">(() =>
     getTabFromPath(location.pathname)
   );
 
-  // Sync state whenever the URL pathname changes (e.g. clicking + New Product link)
+  // Sync state whenever the URL pathname changes
   useEffect(() => {
     setActiveTab(getTabFromPath(location.pathname));
   }, [location.pathname]);
 
-  const handleTabChange = (tab: "publish" | "inventory" | "orders") => {
+  const handleTabChange = (tab: "publish" | "inventory" | "orders" | "journal") => {
     setActiveTab(tab);
     if (tab === "publish") navigate("/admin/products/new");
     else if (tab === "inventory") navigate("/admin/inventory");
     else if (tab === "orders") navigate("/admin/orders");
+    else if (tab === "journal") navigate("/admin/journal");
   };
 
   const [loading, setLoading] = useState(false);
@@ -226,7 +230,7 @@ export default function AdminDashboard() {
     <div className="container-page py-10 md:py-14">
       {/* Top Sliding Tab Navigator */}
       <div className="flex justify-center border-b border-border pb-6 mb-8">
-        <div className="inline-flex p-1 rounded-sm border border-border bg-secondary/40 font-mono text-xs uppercase tracking-wider">
+        <div className="inline-flex flex-wrap p-1 rounded-sm border border-border bg-secondary/40 font-mono text-xs uppercase tracking-wider gap-1">
           <button
             type="button"
             onClick={() => handleTabChange("publish")}
@@ -262,12 +266,25 @@ export default function AdminDashboard() {
           >
             <ClipboardList size={14} /> Orders & Fulfillment
           </button>
+
+          <button
+            type="button"
+            onClick={() => handleTabChange("journal")}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-sm transition-all duration-200 ${
+              activeTab === "journal"
+                ? "bg-foreground text-background font-semibold shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <BookOpen size={14} /> Journal Editorial
+          </button>
         </div>
       </div>
 
       {/* Render Selected View */}
       {activeTab === "inventory" && <AdminInventoryPage />}
       {activeTab === "orders" && <AdminOrdersPage />}
+      {activeTab === "journal" && <AdminJournalPage />}
 
       {activeTab === "publish" && (
         <div className="max-w-4xl mx-auto">
