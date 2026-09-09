@@ -28,11 +28,18 @@ export default function JournalPage() {
     const fetchJournal = async () => {
       try {
         const { data } = await api.get(ENDPOINTS.JOURNAL.GET_ARTICLES);
-        if (data?.data) {
-          setArticles(data.data);
-        }
+        
+        // Defensive unpacking across different backend response shapes
+        const rawArticles =
+          data?.data?.articles ||
+          data?.data ||
+          data?.articles ||
+          [];
+
+        setArticles(Array.isArray(rawArticles) ? rawArticles : []);
       } catch (err) {
         console.error("Error loading journal:", err);
+        setArticles([]);
       } finally {
         setLoading(false);
       }
@@ -41,13 +48,27 @@ export default function JournalPage() {
     fetchJournal();
   }, []);
 
-  const categories = ["All", "Farm Provenance", "Daily Rituals", "Botanical Science", "Recipes & Pantry"];
+  const categories = [
+    "All",
+    "Farm Provenance",
+    "Daily Rituals",
+    "Botanical Science",
+    "Recipes & Pantry",
+  ];
 
-  const filteredArticles = activeCategory === "All"
-    ? articles
-    : articles.filter((a) => a.category.toLowerCase() === activeCategory.toLowerCase());
+  // Ensure safe array evaluation
+  const safeArticlesList = Array.isArray(articles) ? articles : [];
 
-  const featuredArticle = articles.find((a) => a.isFeatured) || articles[0];
+  const filteredArticles =
+    activeCategory === "All"
+      ? safeArticlesList
+      : safeArticlesList.filter(
+          (a) => a.category?.toLowerCase() === activeCategory.toLowerCase()
+        );
+
+  const featuredArticle =
+    safeArticlesList.find((a) => a.isFeatured) || safeArticlesList[0];
+
   const listArticles = featuredArticle
     ? filteredArticles.filter((a) => a._id !== featuredArticle._id)
     : filteredArticles;
@@ -88,13 +109,13 @@ export default function JournalPage() {
           <div className="py-24 text-center text-xs font-mono uppercase tracking-widest text-muted-foreground">
             Gathering harvest dispatches...
           </div>
-        ) : articles.length === 0 ? (
+        ) : safeArticlesList.length === 0 ? (
           <div className="py-24 text-center text-xs font-mono text-muted-foreground">
             No journal entries published yet.
           </div>
         ) : (
           <div className="mt-12 space-y-16">
-            {/* Featured Hero Article (if on 'All' tab) */}
+            {/* Featured Hero Article */}
             {activeCategory === "All" && featuredArticle && (
               <Link
                 to={`/journal/${featuredArticle.slug}`}
@@ -123,7 +144,10 @@ export default function JournalPage() {
                   </p>
                   <div className="pt-2 flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-foreground">
                     <span>Read dispatch</span>
-                    <ArrowRight size={14} className="transition-transform group-hover:translate-x-1" />
+                    <ArrowRight
+                      size={14}
+                      className="transition-transform group-hover:translate-x-1"
+                    />
                   </div>
                 </div>
               </Link>
@@ -147,7 +171,9 @@ export default function JournalPage() {
                     </div>
                     <div className="mt-4 flex items-center justify-between text-[11px] font-mono text-clay uppercase tracking-wider">
                       <span>{article.category}</span>
-                      <span className="text-muted-foreground">{article.readTime}</span>
+                      <span className="text-muted-foreground">
+                        {article.readTime}
+                      </span>
                     </div>
                     <h3 className="mt-2 font-serif text-xl text-foreground leading-snug group-hover:text-moss transition-colors">
                       {article.title}
