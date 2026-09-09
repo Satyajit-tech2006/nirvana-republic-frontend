@@ -1,9 +1,10 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Heart, Menu, Search, ShoppingBag, User, X } from "lucide-react";
+import { Heart, LogOut, Menu, Search, ShoppingBag, User as UserIcon, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import logo from "@/assets/logo-mark.png";
 import { categories } from "@/data/products";
 import { useStore } from "@/lib/store";
+import { useAuth } from "@/context/AuthContext";
 
 const navLinks = [
   { label: "Shop all", to: "/shop" },
@@ -12,7 +13,8 @@ const navLinks = [
 ];
 
 export function Header() {
-  const { cartCount, wishlist, setCartOpen, customer } = useStore();
+  const { cartCount, wishlist, setCartOpen } = useStore();
+  const { user, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [term, setTerm] = useState("");
@@ -30,6 +32,11 @@ export function Header() {
     setSearchOpen(false);
   };
 
+  const handleLogout = async () => {
+    await logout();
+    navigate("/");
+  };
+
   return (
     <header className="sticky top-0 z-40 border-b border-border/70 bg-background/85 backdrop-blur-md">
       <p className="bg-primary py-2 text-center text-[11px] tracking-[0.16em] uppercase text-primary-foreground">
@@ -37,6 +44,7 @@ export function Header() {
       </p>
 
       <div className="container-page flex h-16 items-center gap-4 md:h-20">
+        {/* Mobile Menu Button */}
         <button
           className="-ml-1 p-2 md:hidden"
           aria-label="Open menu"
@@ -45,13 +53,15 @@ export function Header() {
           <Menu size={20} strokeWidth={1.5} />
         </button>
 
+        {/* Brand Logo */}
         <Link to="/" className="flex items-center gap-2.5 md:w-[15rem]">
-          <img src={logo} alt="" width={512} height={512} className="h-8 w-8" />
+          <img src={logo} alt="Nirvana Republic" width={512} height={512} className="h-8 w-8 object-contain" />
           <span className="font-display text-[1.05rem] leading-none tracking-tight md:text-[1.2rem]">
             Nirvana Republic
           </span>
         </Link>
 
+        {/* Desktop Navigation Links */}
         <nav className="mx-auto hidden items-center gap-9 text-sm md:flex">
           {categories.map((c) => (
             <Link
@@ -67,7 +77,9 @@ export function Header() {
           </Link>
         </nav>
 
+        {/* Action Icons */}
         <div className="ml-auto flex items-center gap-1 md:w-[15rem] md:justify-end">
+          {/* Search Toggle */}
           <button
             aria-label="Search products"
             onClick={() => setSearchOpen((v) => !v)}
@@ -75,6 +87,8 @@ export function Header() {
           >
             <Search size={18} strokeWidth={1.5} />
           </button>
+
+          {/* Wishlist Link */}
           <Link
             to="/wishlist"
             aria-label="Wishlist"
@@ -85,13 +99,41 @@ export function Header() {
               <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-clay" />
             )}
           </Link>
-          <Link
-            to="/account"
-            aria-label={customer ? "Your account" : "Sign in"}
-            className="hidden h-10 w-10 place-items-center rounded-full transition-colors hover:bg-secondary sm:grid"
-          >
-            <User size={18} strokeWidth={1.5} />
-          </Link>
+
+          {/* User Account / Auth Link */}
+          {user ? (
+            <div className="hidden items-center sm:flex">
+              <Link
+                to="/account"
+                aria-label="Your account"
+                title={`Logged in as ${user.name}`}
+                className="grid h-10 w-10 place-items-center rounded-full transition-colors hover:bg-secondary"
+              >
+                <span className="font-mono text-xs font-semibold uppercase text-primary">
+                  {user.name.charAt(0)}
+                </span>
+              </Link>
+              <button
+                onClick={handleLogout}
+                aria-label="Sign out"
+                title="Sign out"
+                className="grid h-10 w-10 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+              >
+                <LogOut size={16} strokeWidth={1.5} />
+              </button>
+            </div>
+          ) : (
+            <Link
+              to="/auth"
+              aria-label="Sign in or register"
+              title="Sign in or register"
+              className="hidden h-10 w-10 place-items-center rounded-full transition-colors hover:bg-secondary sm:grid"
+            >
+              <UserIcon size={18} strokeWidth={1.5} />
+            </Link>
+          )}
+
+          {/* Cart Trigger */}
           <button
             aria-label="Open cart"
             onClick={() => setCartOpen(true)}
@@ -107,6 +149,7 @@ export function Header() {
         </div>
       </div>
 
+      {/* Expandable Search Input Bar */}
       {searchOpen && (
         <div className="border-t border-border bg-background">
           <form onSubmit={submitSearch} className="container-page flex items-center gap-3 py-4">
@@ -125,13 +168,16 @@ export function Header() {
         </div>
       )}
 
+      {/* Mobile Drawer Menu */}
       <div
         className={`fixed inset-0 z-50 md:hidden ${menuOpen ? "" : "pointer-events-none"}`}
         aria-hidden={!menuOpen}
       >
         <div
           onClick={() => setMenuOpen(false)}
-          className={`absolute inset-0 bg-foreground/25 transition-opacity duration-300 ${menuOpen ? "opacity-100" : "opacity-0"}`}
+          className={`absolute inset-0 bg-foreground/25 transition-opacity duration-300 ${
+            menuOpen ? "opacity-100" : "opacity-0"
+          }`}
         />
         <nav
           className={`absolute left-0 top-0 flex h-dvh w-[86%] max-w-sm flex-col bg-background px-6 py-6 shadow-lift transition-transform duration-300 ease-out ${
@@ -144,6 +190,7 @@ export function Header() {
               <X size={20} strokeWidth={1.5} />
             </button>
           </div>
+
           <div className="mt-8 space-y-1">
             <p className="eyebrow">Shop by category</p>
             {categories.map((c) => (
@@ -156,6 +203,7 @@ export function Header() {
               </Link>
             ))}
           </div>
+
           <div className="mt-8 space-y-1">
             {navLinks.map((l) => (
               <Link key={l.to} to={l.to} className="block py-2.5 text-sm text-muted-foreground">
@@ -168,9 +216,24 @@ export function Header() {
             <Link to="/orders" className="block py-2.5 text-sm text-muted-foreground">
               Orders
             </Link>
-            <Link to="/account" className="block py-2.5 text-sm text-muted-foreground">
-              {customer ? customer.name : "Sign in / Create account"}
-            </Link>
+
+            {user ? (
+              <>
+                <Link to="/account" className="block py-2.5 text-sm font-medium text-foreground">
+                  Account ({user.name})
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="block w-full py-2.5 text-left text-sm text-clay"
+                >
+                  Sign Out
+                </button>
+              </>
+            ) : (
+              <Link to="/auth" className="block py-2.5 text-sm font-medium text-primary">
+                Sign in / Create account
+              </Link>
+            )}
           </div>
         </nav>
       </div>

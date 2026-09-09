@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ArrowRight, Leaf, ShieldCheck, Sprout, Timer } from "lucide-react";
+import { ArrowRight, Leaf, ShieldCheck, Sprout, Timer, User } from "lucide-react";
 import editorial from "@/assets/editorial-ritual.jpg";
 import { ProductCard } from "@/components/ProductCard";
 import { SectionHead } from "@/components/SectionHead";
@@ -8,6 +8,7 @@ import { SeedScrollScene } from "@/components/hero/SeedScrollScene";
 import { SEO } from "@/components/SEO";
 import { categories, products } from "@/data/products";
 import { journal } from "@/data/journal";
+import { useAuth } from "@/context/AuthContext";
 
 const promises = [
   { icon: Leaf, title: "Single origin", copy: "Each batch traced to one farm cluster, named on the pack." },
@@ -17,6 +18,7 @@ const promises = [
 ];
 
 export default function Home() {
+  const { user } = useAuth();
   const featured = products.filter((p) => p.featured).slice(0, 4);
   const bestSellers = products.filter((p) => p.bestSeller).slice(0, 4);
 
@@ -52,6 +54,17 @@ export default function Home() {
         canonical="/"
         schema={homeSchema}
       />
+
+      {/* Top Banner for Authentication Status */}
+      {!user && (
+        <div className="bg-secondary/40 border-b border-border/50 py-2.5 text-center text-xs text-muted-foreground">
+          <span>First-time ritual? </span>
+          <Link to="/auth" className="font-medium text-foreground underline underline-offset-4 hover:text-moss">
+            Sign in or create an account
+          </Link>
+          <span> to save your farm batches & track orders.</span>
+        </div>
+      )}
 
       {/* Scroll-Driven 3D Hero */}
       <SeedScrollScene />
