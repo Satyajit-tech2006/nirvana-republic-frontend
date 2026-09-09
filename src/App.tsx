@@ -6,11 +6,13 @@ import Home from "@/pages/Home";
 import { AuthPage } from "@/pages/AuthPage";
 import ShopPage from "@/pages/ShopPage";
 import ProductDetailPage from "@/pages/ProductDetailPage";
+import CartPage from "@/pages/CartPage";
 import AccountPage from "@/pages/AccountPage";
 import JournalPage from "@/pages/JournalPage";
 import JournalDetailPage from "@/pages/JournalDetailPage";
 import AdminDashboard from "@/pages/admin/AdminDashboard";
 import { AdminRoute } from "@/components/AdminRoute";
+import WishlistPage from "@/components/WishlistPage";
 
 export function App() {
   return (
@@ -22,10 +24,14 @@ export function App() {
           <Route path="/" element={<Home />} />
           <Route path="/shop" element={<ShopPage />} />
           <Route path="/shop/:slug" element={<ProductDetailPage />} />
+          <Route path="/product/:slug" element={<ProductDetailPage />} />
+          <Route path="/cart" element={<CartPage />} />
           <Route path="/auth" element={<AuthPage />} />
           <Route path="/login" element={<AuthPage />} />
           <Route path="/register" element={<AuthPage />} />
+          <Route path="/wishlist" element={<WishlistPage />} />
 
+          
           {/* Editorial Journal & Ritual Chronicles */}
           <Route path="/journal" element={<JournalPage />} />
           <Route path="/journal/:slug" element={<JournalDetailPage />} />

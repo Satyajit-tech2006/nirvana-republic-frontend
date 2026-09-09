@@ -1,22 +1,56 @@
 import { Link } from "react-router-dom";
 import { Heart, Plus } from "lucide-react";
 import { toast } from "sonner";
-import type { Product } from "@/data/products";
 import { discountPercent, inr } from "@/lib/format";
 import { useStore } from "@/lib/store";
 import { StarRating } from "./StarRating";
 
-export function ProductCard({ product }: { product: Product }) {
+export interface DynamicProduct {
+  _id?: string;
+  id?: string;
+  name: string;
+  slug: string;
+  tagline?: string;
+  description?: string;
+  category?: string;
+  price: number;
+  mrp?: number;
+  compareAtPrice?: number;
+  weight?: string;
+  weightGrams?: number;
+  images?: string[];
+  image?: string;
+  rating?: number;
+  reviewCount?: number;
+  ratings?: {
+    average: number;
+    count: number;
+  };
+}
+
+export function ProductCard({ product }: { product: DynamicProduct }) {
   const { addToCart, toggleWishlist, inWishlist } = useStore();
-  const off = discountPercent(product.price, product.mrp);
-  const wished = inWishlist(product.id);
+
+  const productId = product._id || product.id || "";
+  const mrpValue = product.mrp || product.compareAtPrice;
+  const off = mrpValue ? discountPercent(product.price, mrpValue) : 0;
+  const wished = inWishlist(productId);
+
+  const displayImage =
+    product.images?.[0] ||
+    product.image ||
+    "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=900&q=80";
+
+  const ratingValue = product.ratings?.average ?? product.rating ?? 5;
+  const reviewCountValue = product.ratings?.count ?? product.reviewCount ?? 0;
+  const displayWeight = product.weight || (product.weightGrams ? `${product.weightGrams}g` : "");
 
   return (
     <article className="group relative flex flex-col">
       <div className="relative overflow-hidden rounded-sm bg-secondary">
         <Link to={`/product/${product.slug}`} className="block">
           <img
-            src={product.images[0]}
+            src={displayImage}
             alt={product.name}
             loading="lazy"
             width={900}
@@ -35,7 +69,7 @@ export function ProductCard({ product }: { product: Product }) {
           type="button"
           aria-label={wished ? "Remove from wishlist" : "Save to wishlist"}
           onClick={() => {
-            toggleWishlist(product.id);
+            toggleWishlist(productId);
             toast(wished ? "Removed from wishlist" : "Saved to wishlist");
           }}
           className="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-card/85 backdrop-blur-sm transition-colors hover:text-clay"
@@ -47,7 +81,7 @@ export function ProductCard({ product }: { product: Product }) {
           <button
             type="button"
             onClick={() => {
-              addToCart(product.id);
+              addToCart(productId);
               toast.success(`${product.name} added to cart`);
             }}
             className="btn-base w-full bg-card py-2.5 text-primary shadow-soft hover:bg-primary hover:text-primary-foreground"
@@ -59,19 +93,23 @@ export function ProductCard({ product }: { product: Product }) {
 
       <div className="mt-4 flex flex-1 flex-col">
         <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
-          <StarRating rating={product.rating} size={12} />
-          <span>{product.reviewCount}</span>
-          <span className="ml-auto">{product.weight}</span>
+          <StarRating rating={ratingValue} size={12} />
+          {reviewCountValue > 0 && <span>{reviewCountValue}</span>}
+          {displayWeight && <span className="ml-auto">{displayWeight}</span>}
         </div>
         <h3 className="mt-2 font-display text-[1.0625rem] leading-snug">
           <Link to={`/product/${product.slug}`} className="link-underline">
             {product.name}
           </Link>
         </h3>
-        <p className="mt-1 line-clamp-2 text-sm leading-relaxed text-muted-foreground">{product.tagline}</p>
+        {product.tagline && (
+          <p className="mt-1 line-clamp-2 text-sm leading-relaxed text-muted-foreground">
+            {product.tagline}
+          </p>
+        )}
         <p className="mt-3 flex items-baseline gap-2 text-sm">
           <span className="font-medium text-foreground">{inr(product.price)}</span>
-          {product.mrp && <span className="text-muted-foreground line-through">{inr(product.mrp)}</span>}
+          {mrpValue && <span className="text-muted-foreground line-through">{inr(mrpValue)}</span>}
         </p>
       </div>
     </article>

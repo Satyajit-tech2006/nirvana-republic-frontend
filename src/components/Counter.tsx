@@ -19,49 +19,61 @@ export function Counter({
 }: CounterProps) {
   const [displayValue, setDisplayValue] = useState(0);
   const elementRef = useRef<HTMLSpanElement>(null);
-  const hasAnimated = useRef(false);
+  const prevValueRef = useRef(0);
+  const isIntersectingRef = useRef(false);
 
   useEffect(() => {
+    let animationFrameId: number;
+    let startTime: number | null = null;
+    const startValue = prevValueRef.current;
+    const change = value - startValue;
+
+    const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
+
+    const animate = (timestamp: number) => {
+      if (!startTime) startTime = timestamp;
+      const elapsed = timestamp - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const easedProgress = easeOutCubic(progress);
+      const current = startValue + change * easedProgress;
+
+      setDisplayValue(current);
+
+      if (progress < 1) {
+        animationFrameId = requestAnimationFrame(animate);
+      } else {
+        setDisplayValue(value);
+        prevValueRef.current = value;
+      }
+    };
+
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && !hasAnimated.current) {
-          hasAnimated.current = true;
-          let startTime: number | null = null;
-
-          const easeOutQuad = (t: number) => t * (2 - t);
-
-          const animate = (timestamp: number) => {
-            if (!startTime) startTime = timestamp;
-            const progress = Math.min((timestamp - startTime) / duration, 1);
-            const easedProgress = easeOutQuad(progress);
-            const current = easedProgress * value;
-
-            setDisplayValue(current);
-
-            if (progress < 1) {
-              requestAnimationFrame(animate);
-            } else {
-              setDisplayValue(value);
-            }
-          };
-
-          requestAnimationFrame(animate);
+        if (entries[0].isIntersecting) {
+          isIntersectingRef.current = true;
+          startTime = null;
+          animationFrameId = requestAnimationFrame(animate);
         }
       },
-      { threshold: 0.1 }
+      { threshold: 0.15 }
     );
 
     if (elementRef.current) {
       observer.observe(elementRef.current);
     }
 
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
+    };
   }, [value, duration]);
 
-  const formatted =
-    decimals > 0
-      ? displayValue.toFixed(decimals)
-      : Math.floor(displayValue).toLocaleString("en-IN");
+  const formatted = displayValue.toLocaleString("en-IN", {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  });
 
   return (
     <span ref={elementRef} className={className}>
@@ -71,3 +83,5 @@ export function Counter({
     </span>
   );
 }
+
+export default Counter;
