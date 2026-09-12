@@ -4,33 +4,63 @@ export function QuantityStepper({
   value,
   onChange,
   size = "md",
+  min = 1,
+  max,
 }: {
   value: number;
   onChange: (next: number) => void;
   size?: "sm" | "md";
+  min?: number;
+  max?: number;
 }) {
-  const btn =
-    size === "sm"
-      ? "h-8 w-8 text-muted-foreground hover:text-primary"
-      : "h-11 w-11 text-muted-foreground hover:text-primary";
+  const isSmall = size === "sm";
+
+  const btnClasses = isSmall
+    ? "h-7 w-7 text-muted-foreground hover:text-foreground active:scale-95 disabled:opacity-30 disabled:pointer-events-none"
+    : "h-9 w-9 text-muted-foreground hover:text-foreground active:scale-95 disabled:opacity-30 disabled:pointer-events-none";
+
+  const iconSize = isSmall ? 12 : 14;
+
+  const handleDecrease = () => {
+    if (value > min) {
+      onChange(value - 1);
+    }
+  };
+
+  const handleIncrease = () => {
+    if (max === undefined || value < max) {
+      onChange(value + 1);
+    }
+  };
+
   return (
-    <div className="inline-flex items-center rounded-full border border-border bg-card">
+    <div className="inline-flex items-center rounded-full border border-border bg-card p-0.5 shadow-xs transition-colors focus-within:border-primary">
       <button
         type="button"
         aria-label="Decrease quantity"
-        onClick={() => onChange(value - 1)}
-        className={`${btn} grid place-items-center rounded-full transition-colors`}
+        disabled={value <= min}
+        onClick={handleDecrease}
+        className={`${btnClasses} grid place-items-center rounded-full transition-all duration-150 ease-out`}
       >
-        <Minus size={14} strokeWidth={1.75} />
+        <Minus size={iconSize} strokeWidth={1.75} />
       </button>
-      <span className="min-w-7 text-center text-sm tabular-nums">{value}</span>
+
+      <span
+        className={`select-none text-center font-mono font-medium text-foreground tabular-nums ${
+          isSmall ? "min-w-6 text-xs" : "min-w-8 text-sm"
+        }`}
+      >
+        {value}
+      </span>
+
       <button
         type="button"
         aria-label="Increase quantity"
-        onClick={() => onChange(value + 1)}
-        className={`${btn} grid place-items-center rounded-full transition-colors`}
+        disabled={max !== undefined && value >= max}
+        onClick={handleIncrease}
+        className={`${btnClasses} grid place-items-center rounded-full transition-all duration-150 ease-out`}
       >
-        <Plus size={14} strokeWidth={1.75} />
+        <Plus size={iconSize} strokeWidth={1.75} />
       </button>
     </div>
   );

@@ -11,6 +11,10 @@ export const ENDPOINTS = {
     ME: `${API_BASE_URL}/users/me`,
     UPDATE_PROFILE: `${API_BASE_URL}/users/update-profile`,
     ADD_ADDRESS: `${API_BASE_URL}/users/addresses`,
+    UPDATE_ADDRESS: (addressId: string) =>
+      `${API_BASE_URL}/users/addresses/${addressId}`,
+    SET_DEFAULT_ADDRESS: (addressId: string) =>
+      `${API_BASE_URL}/users/addresses/${addressId}/default`,
     DELETE_ADDRESS: (addressId: string) =>
       `${API_BASE_URL}/users/addresses/${addressId}`,
   },

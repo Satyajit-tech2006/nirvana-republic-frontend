@@ -33,21 +33,21 @@ export function CartDrawer() {
       {/* Drawer Container */}
       <aside
         aria-label="Shopping Cart Drawer"
-        className={`fixed right-0 top-0 z-50 flex h-dvh w-full max-w-[26rem] flex-col bg-background shadow-2xl transition-transform duration-300 ease-out border-l border-border ${
+        className={`fixed right-0 top-0 z-50 flex h-dvh w-full max-w-[26rem] flex-col border-l border-border bg-background shadow-lift transition-transform duration-300 ease-out ${
           cartOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
         {/* Header */}
-        <header className="flex items-center justify-between border-b border-border px-6 py-5">
+        <header className="flex items-center justify-between border-b border-border/80 px-6 py-5">
           <div className="flex items-center gap-2">
-            <h2 className="font-display text-xl text-foreground">Your Pantry Bag</h2>
-            <span className="font-mono text-xs text-muted-foreground">({cartItems.length})</span>
+            <h2 className="font-display text-xl tracking-tight text-foreground">Your Pantry Bag</h2>
+            <span className="badge-base badge-bestseller font-mono">{cartItems.length}</span>
           </div>
           <button
             type="button"
             onClick={() => setCartOpen(false)}
             aria-label="Close cart"
-            className="p-1 text-muted-foreground hover:text-foreground transition-colors"
+            className="btn-icon h-8 w-8 border-transparent text-muted-foreground hover:border-transparent hover:text-foreground"
           >
             <X size={18} strokeWidth={1.5} />
           </button>
@@ -56,17 +56,17 @@ export function CartDrawer() {
         {cartItems.length === 0 ? (
           /* Empty State */
           <div className="flex flex-1 flex-col items-center justify-center gap-4 px-8 text-center">
-            <div className="p-4 rounded-full bg-secondary text-muted-foreground">
-              <ShoppingBag size={28} strokeWidth={1.25} />
+            <div className="grid h-14 w-14 place-items-center rounded-full bg-sand-100 text-muted-foreground">
+              <ShoppingBag size={24} strokeWidth={1.25} />
             </div>
-            <h3 className="font-display text-lg text-foreground">Your bag is empty</h3>
-            <p className="text-xs text-muted-foreground max-w-xs">
+            <h3 className="font-display text-xl tracking-tight text-foreground">Your bag is empty</h3>
+            <p className="max-w-xs text-xs leading-relaxed text-muted-foreground">
               Single-origin ceremonial seeds, cold-processed superfoods, and clean essentials await.
             </p>
             <Link
               to="/shop"
               onClick={() => setCartOpen(false)}
-              className="btn-base mt-2 bg-foreground text-background py-2.5 px-6 text-xs uppercase font-mono tracking-wider hover:bg-foreground/90 transition-colors"
+              className="btn-base btn-primary mt-2 text-xs uppercase tracking-wider"
             >
               Explore Catalog
             </Link>
@@ -74,25 +74,25 @@ export function CartDrawer() {
         ) : (
           <>
             {/* Free Shipping Progress Indicator */}
-            <div className="border-b border-border bg-secondary/50 px-6 py-3.5 space-y-1.5">
-              <div className="flex items-center justify-between text-[11px] font-mono">
+            <div className="space-y-2 border-b border-border/80 bg-sand-50/70 px-6 py-3.5">
+              <div className="flex items-center justify-between font-mono text-[11px]">
                 <span className="text-foreground">
                   {freeShippingGap > 0
                     ? `Add ${inr(freeShippingGap)} more for free delivery`
                     : "Free delivery unlocked"}
                 </span>
-                <span className="text-moss font-semibold">{Math.round(progressPercent)}%</span>
+                <span className="font-semibold text-moss">{Math.round(progressPercent)}%</span>
               </div>
-              <div className="h-1.5 w-full bg-border rounded-full overflow-hidden">
+              <div className="h-1.5 w-full overflow-hidden rounded-full bg-sand-200">
                 <div
-                  className="h-full bg-moss transition-all duration-300"
+                  className="h-full bg-moss transition-all duration-300 ease-out"
                   style={{ width: `${progressPercent}%` }}
                 />
               </div>
             </div>
 
             {/* Cart Items List */}
-            <div className="flex-1 space-y-5 overflow-y-auto px-6 py-5 divide-y divide-border/60">
+            <div className="flex-1 divide-y divide-border/70 overflow-y-auto px-6 py-2">
               {cartItems.map(({ product, qty }) => {
                 const productId = product._id || product.id || "";
                 const displayImage =
@@ -105,17 +105,17 @@ export function CartDrawer() {
                   (product.weightGrams ? `${product.weightGrams}g pouch` : "");
 
                 return (
-                  <div key={productId} className="flex gap-4 pt-4 first:pt-0">
+                  <div key={productId} className="flex gap-4 py-4 first:pt-2">
                     <Link
                       to={`/product/${product.slug}`}
                       onClick={() => setCartOpen(false)}
-                      className="shrink-0"
+                      className="card-flush shrink-0 bg-sand-100 p-1.5"
                     >
                       <img
                         src={displayImage}
                         alt={product.name}
                         loading="lazy"
-                        className="h-20 w-20 rounded-xs bg-[#F2EDE4]/60 border border-border/50 object-contain p-2"
+                        className="h-16 w-16 object-contain"
                       />
                     </Link>
 
@@ -124,18 +124,18 @@ export function CartDrawer() {
                         <Link
                           to={`/product/${product.slug}`}
                           onClick={() => setCartOpen(false)}
-                          className="font-display text-sm leading-snug text-foreground hover:text-moss transition-colors line-clamp-1"
+                          className="line-clamp-1 font-display text-sm leading-snug text-foreground transition-colors hover:text-moss"
                         >
                           {product.name}
                         </Link>
                         {displayWeight && (
-                          <p className="text-[11px] font-mono text-muted-foreground mt-0.5">
+                          <p className="mt-0.5 font-mono text-[11px] uppercase tracking-wide text-muted-foreground">
                             {displayWeight}
                           </p>
                         )}
                       </div>
 
-                      <div className="mt-2 flex items-center justify-between">
+                      <div className="mt-2.5 flex items-center justify-between">
                         <QuantityStepper
                           value={qty}
                           size="sm"
@@ -151,9 +151,9 @@ export function CartDrawer() {
               })}
             </div>
 
-            {/* Sticky Drawer Footer */}
-            <footer className="space-y-3.5 border-t border-border bg-card px-6 py-5">
-              <div className="space-y-1.5 text-xs font-mono">
+            {/* Drawer Footer */}
+            <footer className="space-y-4 border-t border-border bg-card px-6 py-5 shadow-soft">
+              <div className="space-y-2 font-mono text-xs">
                 <div className="flex justify-between text-muted-foreground">
                   <span>Subtotal</span>
                   <span className="text-foreground">{inr(subtotal)}</span>
@@ -164,18 +164,18 @@ export function CartDrawer() {
                 </div>
               </div>
 
-              <div className="border-t border-border pt-2 flex justify-between font-mono text-sm font-semibold text-foreground">
-                <span>Total Amount</span>
+              <div className="flex justify-between border-t border-border/80 pt-3 font-mono text-sm font-semibold text-foreground">
+                <span>Total</span>
                 <span>{inr(subtotal + shipping)}</span>
               </div>
 
               <Link
                 to="/checkout"
                 onClick={() => setCartOpen(false)}
-                className="btn-base w-full bg-foreground text-background py-3 text-xs uppercase font-mono tracking-widest hover:bg-foreground/90 transition-all font-semibold flex items-center justify-center gap-2 rounded-xs shadow-xs"
+                className="btn-base btn-primary w-full py-3 text-xs uppercase tracking-wider"
               >
                 <span>Proceed to Checkout</span>
-                <ArrowRight size={13} />
+                <ArrowRight size={14} strokeWidth={1.5} />
               </Link>
             </footer>
           </>

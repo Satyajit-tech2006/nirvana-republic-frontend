@@ -47,70 +47,93 @@ export function ProductCard({ product }: { product: DynamicProduct }) {
 
   return (
     <article className="group relative flex flex-col">
-      <div className="relative overflow-hidden rounded-sm bg-secondary">
-        <Link to={`/product/${product.slug}`} className="block">
+      {/* Product Image Stage */}
+      <div className="card-flush relative aspect-product w-full overflow-hidden bg-sand-100">
+        <Link to={`/product/${product.slug}`} className="block h-full w-full">
           <img
             src={displayImage}
             alt={product.name}
             loading="lazy"
             width={900}
             height={900}
-            className="aspect-square w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
+            className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
           />
         </Link>
 
+        {/* Sale / Discount Badge */}
         {off > 0 && (
-          <span className="absolute left-3 top-3 rounded-full bg-clay px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.14em] text-primary-foreground">
+          <span className="badge-base badge-sale absolute left-3 top-3 shadow-xs">
             {off}% off
           </span>
         )}
 
+        {/* Wishlist Action */}
         <button
           type="button"
           aria-label={wished ? "Remove from wishlist" : "Save to wishlist"}
           onClick={() => {
             toggleWishlist(productId);
-            toast(wished ? "Removed from wishlist" : "Saved to wishlist");
+            toast(wished ? "Removed from wishlist" : "Saved to sanctuary");
           }}
-          className="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-card/85 backdrop-blur-sm transition-colors hover:text-clay"
+          className="btn-icon absolute right-3 top-3 h-8 w-8 border-transparent bg-card/85 text-foreground backdrop-blur-xs hover:border-transparent hover:bg-card hover:text-clay"
         >
-          <Heart size={16} strokeWidth={1.5} className={wished ? "fill-clay text-clay" : ""} />
+          <Heart
+            size={15}
+            strokeWidth={1.5}
+            className={wished ? "fill-clay text-clay" : "transition-colors"}
+          />
         </button>
 
-        <div className="absolute inset-x-3 bottom-3 translate-y-2 opacity-0 transition-all duration-300 ease-out group-hover:translate-y-0 group-hover:opacity-100 max-sm:translate-y-0 max-sm:opacity-100">
+        {/* Quick Add Overlay */}
+        <div className="absolute inset-x-3 bottom-3 translate-y-2 opacity-0 transition-all duration-300 var(--ease-brand) group-hover:translate-y-0 group-hover:opacity-100 max-sm:translate-y-0 max-sm:opacity-100">
           <button
             type="button"
             onClick={() => {
               addToCart(productId);
-              toast.success(`${product.name} added to cart`);
+              toast.success(`${product.name} added to pantry`);
             }}
-            className="btn-base w-full bg-card py-2.5 text-primary shadow-soft hover:bg-primary hover:text-primary-foreground"
+            className="btn-base w-full bg-card/95 py-2.5 text-xs uppercase tracking-wider text-foreground shadow-soft backdrop-blur-xs transition-colors hover:bg-primary hover:text-primary-foreground"
           >
-            <Plus size={14} strokeWidth={2} /> Quick add
+            <Plus size={14} strokeWidth={2} /> Quick Add
           </button>
         </div>
       </div>
 
-      <div className="mt-4 flex flex-1 flex-col">
-        <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
-          <StarRating rating={ratingValue} size={12} />
-          {reviewCountValue > 0 && <span>{reviewCountValue}</span>}
-          {displayWeight && <span className="ml-auto">{displayWeight}</span>}
+      {/* Product Metadata */}
+      <div className="mt-3.5 flex flex-1 flex-col">
+        <div className="flex items-center gap-1.5 text-caption">
+          <StarRating rating={ratingValue} size={11} />
+          {reviewCountValue > 0 && (
+            <span className="font-mono text-[10px] text-muted-foreground">({reviewCountValue})</span>
+          )}
+          {displayWeight && (
+            <span className="ml-auto font-mono text-[11px] uppercase tracking-wide text-muted-foreground">
+              {displayWeight}
+            </span>
+          )}
         </div>
+
         <h3 className="mt-2 font-display text-[1.0625rem] leading-snug">
-          <Link to={`/product/${product.slug}`} className="link-underline">
+          <Link
+            to={`/product/${product.slug}`}
+            className="link-underline text-foreground transition-colors group-hover:text-moss"
+          >
             {product.name}
           </Link>
         </h3>
+
         {product.tagline && (
-          <p className="mt-1 line-clamp-2 text-sm leading-relaxed text-muted-foreground">
+          <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
             {product.tagline}
           </p>
         )}
-        <p className="mt-3 flex items-baseline gap-2 text-sm">
-          <span className="font-medium text-foreground">{inr(product.price)}</span>
-          {mrpValue && <span className="text-muted-foreground line-through">{inr(mrpValue)}</span>}
-        </p>
+
+        <div className="mt-3 flex items-baseline gap-2 pt-1">
+          <span className="text-price text-sm">{inr(product.price)}</span>
+          {mrpValue && mrpValue > product.price && (
+            <span className="text-price-strike text-xs">{inr(mrpValue)}</span>
+          )}
+        </div>
       </div>
     </article>
   );

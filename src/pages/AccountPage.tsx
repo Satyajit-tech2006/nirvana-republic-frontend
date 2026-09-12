@@ -6,15 +6,13 @@ import {
   User,
   LogOut,
   Truck,
-  CheckCircle2,
   ExternalLink,
   Plus,
   Trash2,
-  AlertCircle,
+  Edit2,
   Clock,
   Sparkles,
   X,
-  CreditCard,
 } from "lucide-react";
 import { toast } from "sonner";
 import api from "@/lib/axios";
@@ -71,6 +69,16 @@ interface Address {
   isDefault: boolean;
 }
 
+const emptyAddressState = {
+  street: "",
+  locality: "",
+  city: "Sambalpur",
+  state: "Odisha",
+  postalCode: "",
+  phone: "",
+  isDefault: false,
+};
+
 export default function AccountPage() {
   const { user, logout, loading: authLoading } = useAuth();
   const navigate = useNavigate();
@@ -81,18 +89,11 @@ export default function AccountPage() {
   const [loadingOrders, setLoadingOrders] = useState(true);
   const [loadingAddresses, setLoadingAddresses] = useState(true);
 
-  // New Address Form State
+  // Address Modal (Add / Edit)
   const [showAddressModal, setShowAddressModal] = useState(false);
+  const [editingAddressId, setEditingAddressId] = useState<string | null>(null);
   const [submittingAddress, setSubmittingAddress] = useState(false);
-  const [newAddress, setNewAddress] = useState({
-    street: "",
-    locality: "",
-    city: "",
-    state: "Karnataka",
-    postalCode: "",
-    phone: "",
-    isDefault: false,
-  });
+  const [addressForm, setAddressForm] = useState(emptyAddressState);
 
   // Profile Edit State
   const [profileName, setProfileName] = useState("");
@@ -160,35 +161,97 @@ export default function AccountPage() {
   const handleLogout = async () => {
     try {
       await logout();
-      toast.success("Signed out successfully");
+      toast.success("Signed out of your sanctuary");
       navigate("/");
     } catch {
       navigate("/");
     }
   };
 
-  const handleAddAddress = async (e: React.FormEvent) => {
+  const handleOpenAddModal = () => {
+    setEditingAddressId(null);
+    setAddressForm(emptyAddressState);
+    setShowAddressModal(true);
+  };
+
+  const handleOpenEditModal = (addr: Address) => {
+    setEditingAddressId(addr._id);
+    setAddressForm({
+      street: addr.street,
+      locality: addr.locality || "",
+      city: addr.city,
+      state: addr.state,
+      postalCode: addr.postalCode,
+      phone: addr.phone,
+      isDefault: addr.isDefault,
+    });
+    setShowAddressModal(true);
+  };
+
+  const handleSaveAddress = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmittingAddress(true);
     try {
-      const { data } = await api.post(ENDPOINTS.AUTH.ADD_ADDRESS, newAddress);
-      const updatedList = data?.data?.addresses || data?.data || [];
-      setAddresses(Array.isArray(updatedList) ? updatedList : [...addresses, data?.data]);
+      if (editingAddressId) {
+        const { data } = await api.put(
+          ENDPOINTS.AUTH.UPDATE_ADDRESS(editingAddressId),
+          addressForm
+        );
+        const updatedList = data?.data?.addresses || data?.data?.user?.addresses || data?.data;
+        if (Array.isArray(updatedList)) {
+          setAddresses(updatedList);
+        } else {
+          setAddresses((prev) =>
+            prev.map((a) =>
+              a._id === editingAddressId
+                ? { ...a, ...addressForm }
+                : addressForm.isDefault
+                ? { ...a, isDefault: false }
+                : a
+            )
+          );
+        }
+        toast.success("Delivery address updated");
+      } else {
+        const { data } = await api.post(ENDPOINTS.AUTH.ADD_ADDRESS, addressForm);
+        const updatedList = data?.data?.addresses || data?.data || [];
+        if (Array.isArray(updatedList)) {
+          setAddresses(updatedList);
+        } else {
+          setAddresses((prev) => [
+            ...prev.map((a) => (addressForm.isDefault ? { ...a, isDefault: false } : a)),
+            data?.data || { ...addressForm, _id: Date.now().toString() },
+          ]);
+        }
+        toast.success("Delivery address added");
+      }
       setShowAddressModal(false);
-      setNewAddress({
-        street: "",
-        locality: "",
-        city: "",
-        state: "Karnataka",
-        postalCode: "",
-        phone: "",
-        isDefault: false,
-      });
-      toast.success("Delivery address saved");
+      setAddressForm(emptyAddressState);
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "Failed to save address");
     } finally {
       setSubmittingAddress(false);
+    }
+  };
+
+  const handleSetDefault = async (addressId: string) => {
+    try {
+      const { data } = await api.patch(ENDPOINTS.AUTH.SET_DEFAULT_ADDRESS(addressId));
+      const updatedList = data?.data?.addresses || data?.data?.user?.addresses || data?.data;
+
+      if (Array.isArray(updatedList)) {
+        setAddresses(updatedList);
+      } else {
+        setAddresses((prev) =>
+          prev.map((a) => ({
+            ...a,
+            isDefault: a._id === addressId,
+          }))
+        );
+      }
+      toast.success("Default address updated");
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Failed to set default address");
     }
   };
 
@@ -215,7 +278,7 @@ export default function AccountPage() {
         name: profileName,
         phone: profilePhone,
       });
-      toast.success("Profile details updated successfully");
+      toast.success("Sanctuary profile updated");
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "Failed to update profile");
     } finally {
@@ -226,24 +289,27 @@ export default function AccountPage() {
   const getOrderStatusDisplay = (status: Order["orderStatus"]) => {
     switch (status) {
       case "confirmed":
-        return { label: "Confirmed", color: "bg-blue-500/10 text-blue-700 border-blue-200" };
+        return { label: "Confirmed", className: "badge-base badge-bestseller" };
       case "processing":
-        return { label: "Batch Packing", color: "bg-amber-500/10 text-amber-700 border-amber-200" };
+        return { label: "Batch Packing", className: "badge-base badge-new" };
       case "shipped":
-        return { label: "In Transit", color: "bg-purple-500/10 text-purple-700 border-purple-200" };
+        return { label: "In Transit", className: "badge-base border-moss/40 bg-moss/10 text-moss" };
       case "delivered":
-        return { label: "Delivered", color: "bg-emerald-500/10 text-emerald-700 border-emerald-200" };
+        return { label: "Delivered", className: "badge-base border-moss/60 bg-moss text-primary-foreground" };
       case "cancelled":
-        return { label: "Cancelled", color: "bg-rose-500/10 text-rose-700 border-rose-200" };
+        return { label: "Cancelled", className: "badge-base badge-sale" };
       default:
-        return { label: "Order Placed", color: "bg-secondary text-muted-foreground border-border" };
+        return { label: "Order Placed", className: "badge-base" };
     }
   };
 
   if (authLoading || !user) {
     return (
-      <div className="container-page py-32 text-center text-xs font-mono uppercase tracking-widest text-muted-foreground animate-pulse">
-        Retrieving your account details...
+      <div className="container-page flex min-h-[60vh] flex-col items-center justify-center gap-3 py-24 text-center">
+        <div className="h-6 w-6 animate-spin rounded-full border-2 border-border border-t-primary" />
+        <p className="eyebrow text-xs tracking-widest text-muted-foreground">
+          Retrieving your sanctuary details...
+        </p>
       </div>
     );
   }
@@ -258,21 +324,23 @@ export default function AccountPage() {
 
       <main className="container-page py-10 md:py-16">
         {/* Account Header */}
-        <header className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-border/80 pb-8">
+        <header className="flex flex-col justify-between gap-4 border-b border-border/80 pb-8 md:flex-row md:items-end">
           <div>
             <div className="flex items-center gap-2 text-moss">
-              <Sparkles size={13} />
-              <span className="eyebrow text-[10px] tracking-[0.24em]">Customer Sanctuary</span>
+              <Sparkles size={13} strokeWidth={1.5} />
+              <span className="eyebrow-accent text-[10px] tracking-[0.24em]">Customer Sanctuary</span>
             </div>
-            <h1 className="text-3xl sm:text-4xl font-display text-foreground mt-1">{user.name}</h1>
-            <p className="text-xs font-mono text-muted-foreground mt-1">{user.email}</p>
+            <h1 className="mt-2 text-balance font-display text-3xl tracking-tight text-foreground sm:text-4xl">
+              {user.name}
+            </h1>
+            <p className="mt-1 font-mono text-xs text-muted-foreground">{user.email}</p>
           </div>
 
           <div className="flex items-center gap-3">
             {user.role === "admin" && (
               <Link
                 to="/admin"
-                className="px-4 py-2 border border-border text-xs font-mono uppercase tracking-wider hover:bg-secondary transition-colors"
+                className="btn-base btn-outline btn-sm font-mono text-xs uppercase tracking-wider"
               >
                 Admin Deck
               </Link>
@@ -280,9 +348,9 @@ export default function AccountPage() {
             <button
               type="button"
               onClick={handleLogout}
-              className="flex items-center gap-2 px-4 py-2 bg-secondary text-foreground text-xs font-mono uppercase tracking-wider hover:bg-border/70 transition-colors rounded-sm"
+              className="btn-base btn-outline btn-sm inline-flex items-center gap-2 font-mono text-xs uppercase tracking-wider hover:border-clay hover:text-clay"
             >
-              <LogOut size={13} /> Sign Out
+              <LogOut size={13} strokeWidth={1.5} /> Sign Out
             </button>
           </div>
         </header>
@@ -290,18 +358,19 @@ export default function AccountPage() {
         {/* Account Navigation Tabs */}
         <nav
           aria-label="Account Tabs"
-          className="flex border-b border-border mt-8 gap-6 sm:gap-8 text-xs font-mono uppercase tracking-wider overflow-x-auto scrollbar-none"
+          className="mt-8 flex gap-6 overflow-x-auto border-b border-border/80 font-mono text-xs uppercase tracking-wider scrollbar-none sm:gap-8"
         >
           <button
             type="button"
             onClick={() => setActiveTab("orders")}
-            className={`pb-3 transition-colors relative flex items-center gap-2 whitespace-nowrap ${
+            className={`relative flex items-center gap-2 whitespace-nowrap pb-3 transition-colors ${
               activeTab === "orders"
-                ? "text-foreground font-semibold"
+                ? "font-semibold text-foreground"
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
-            <Package size={15} /> Orders & Traceability ({orders.length})
+            <Package size={15} strokeWidth={1.5} />
+            <span>Orders &amp; Traceability ({orders.length})</span>
             {activeTab === "orders" && (
               <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-foreground" />
             )}
@@ -310,13 +379,14 @@ export default function AccountPage() {
           <button
             type="button"
             onClick={() => setActiveTab("addresses")}
-            className={`pb-3 transition-colors relative flex items-center gap-2 whitespace-nowrap ${
+            className={`relative flex items-center gap-2 whitespace-nowrap pb-3 transition-colors ${
               activeTab === "addresses"
-                ? "text-foreground font-semibold"
+                ? "font-semibold text-foreground"
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
-            <MapPin size={15} /> Saved Locations ({addresses.length})
+            <MapPin size={15} strokeWidth={1.5} />
+            <span>Saved Locations ({addresses.length})</span>
             {activeTab === "addresses" && (
               <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-foreground" />
             )}
@@ -325,13 +395,14 @@ export default function AccountPage() {
           <button
             type="button"
             onClick={() => setActiveTab("profile")}
-            className={`pb-3 transition-colors relative flex items-center gap-2 whitespace-nowrap ${
+            className={`relative flex items-center gap-2 whitespace-nowrap pb-3 transition-colors ${
               activeTab === "profile"
-                ? "text-foreground font-semibold"
+                ? "font-semibold text-foreground"
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
-            <User size={15} /> Personal Details
+            <User size={15} strokeWidth={1.5} />
+            <span>Personal Details</span>
             {activeTab === "profile" && (
               <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-foreground" />
             )}
@@ -344,23 +415,27 @@ export default function AccountPage() {
             {loadingOrders ? (
               <div className="space-y-4">
                 {[1, 2].map((i) => (
-                  <div key={i} className="animate-pulse border border-border p-6 space-y-4">
-                    <div className="h-4 w-1/3 bg-secondary/70 rounded-xs" />
-                    <div className="h-16 w-full bg-secondary/40 rounded-xs" />
-                    <div className="h-4 w-1/4 bg-secondary/50 rounded-xs" />
+                  <div key={i} className="card-flush space-y-4 bg-card p-6 shadow-soft">
+                    <div className="skeleton h-3 w-1/3 rounded-full" />
+                    <div className="skeleton h-14 w-full rounded-sm" />
+                    <div className="skeleton h-3 w-1/4 rounded-full" />
                   </div>
                 ))}
               </div>
             ) : orders.length === 0 ? (
-              <div className="border border-dashed border-border p-14 text-center bg-secondary/10 rounded-sm">
-                <Package className="mx-auto text-muted-foreground/80 mb-3" size={32} strokeWidth={1.5} />
-                <h2 className="font-display text-lg sm:text-xl text-foreground">No batch orders yet</h2>
-                <p className="text-xs sm:text-sm text-muted-foreground mt-1 max-w-sm mx-auto">
+              <div className="my-10 flex flex-col items-center justify-center rounded-sm border border-dashed border-border/80 bg-sand-50/40 px-6 py-20 text-center">
+                <div className="mb-4 grid h-12 w-12 place-items-center rounded-full bg-sand-100 text-muted-foreground">
+                  <Package size={22} strokeWidth={1.5} />
+                </div>
+                <h2 className="font-display text-2xl tracking-tight text-foreground">
+                  No batch orders yet
+                </h2>
+                <p className="mt-2 max-w-sm text-sm leading-relaxed text-muted-foreground">
                   Your pantry awaits fresh, single-origin ceremonial seeds and everyday wellness staples.
                 </p>
                 <Link
                   to="/shop"
-                  className="mt-6 inline-block px-6 py-2.5 bg-foreground text-background text-xs font-mono uppercase tracking-widest hover:bg-foreground/90 transition-colors"
+                  className="btn-base btn-primary mt-6 text-xs uppercase tracking-wider"
                 >
                   Explore Catalog
                 </Link>
@@ -372,17 +447,17 @@ export default function AccountPage() {
                 return (
                   <div
                     key={order._id}
-                    className="border border-border/90 bg-card rounded-sm overflow-hidden"
+                    className="card-flush overflow-hidden bg-card shadow-soft"
                   >
                     {/* Order Top Bar */}
-                    <div className="bg-secondary/40 border-b border-border p-4 flex flex-wrap items-center justify-between gap-3 text-xs">
-                      <div className="flex items-center gap-2 font-mono">
-                        <span className="text-muted-foreground uppercase">Ref:</span>
+                    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/80 bg-sand-50/60 p-4 font-mono text-xs">
+                      <div className="flex items-center gap-2">
+                        <span className="uppercase text-muted-foreground">Ref:</span>
                         <span className="font-semibold text-foreground">
                           #{order._id.slice(-8).toUpperCase()}
                         </span>
                         <span className="text-border">·</span>
-                        <span className="text-muted-foreground text-[11px]">
+                        <span className="text-[11px] text-muted-foreground">
                           {new Date(order.createdAt).toLocaleDateString("en-IN", {
                             month: "short",
                             day: "numeric",
@@ -392,46 +467,44 @@ export default function AccountPage() {
                       </div>
 
                       <div className="flex items-center gap-3">
-                        <span
-                          className={`inline-block px-2.5 py-0.5 text-[10px] font-mono uppercase tracking-wider border rounded-xs ${statusInfo.color}`}
-                        >
-                          {statusInfo.label}
-                        </span>
-                        <span className="font-mono font-semibold text-foreground">
+                        <span className={statusInfo.className}>{statusInfo.label}</span>
+                        <span className="text-price font-semibold text-foreground">
                           {inr(order.totalAmount)}
                         </span>
                       </div>
                     </div>
 
                     {/* Order Items List */}
-                    <div className="p-5 divide-y divide-border/60">
+                    <div className="divide-y divide-border/70 p-5">
                       {order.items.map((item, idx) => (
                         <div
                           key={idx}
-                          className="py-3.5 first:pt-0 last:pb-0 flex items-center justify-between gap-4"
+                          className="flex items-center justify-between gap-4 py-3.5 first:pt-0 last:pb-0"
                         >
                           <div className="flex items-center gap-4">
-                            <img
-                              src={
-                                item.image ||
-                                "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=200&q=80"
-                              }
-                              alt={item.name}
-                              className="w-14 h-14 object-cover bg-secondary/50 border border-border shrink-0 rounded-xs"
-                            />
+                            <div className="card-flush shrink-0 bg-sand-100 p-1.5">
+                              <img
+                                src={
+                                  item.image ||
+                                  "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=200&q=80"
+                                }
+                                alt={item.name}
+                                className="h-12 w-12 object-contain"
+                              />
+                            </div>
                             <div>
                               <Link
                                 to={`/product/${item.slug}`}
-                                className="font-display text-sm text-foreground hover:text-moss transition-colors line-clamp-1"
+                                className="line-clamp-1 font-display text-sm text-foreground transition-colors hover:text-moss"
                               >
                                 {item.name}
                               </Link>
-                              <p className="text-[11px] font-mono text-muted-foreground mt-0.5">
+                              <p className="mt-0.5 font-mono text-[11px] uppercase tracking-wide text-muted-foreground">
                                 {item.weightGrams ? `${item.weightGrams}g pouch · ` : ""}Qty: {item.quantity}
                               </p>
                             </div>
                           </div>
-                          <span className="font-mono text-xs font-semibold text-foreground shrink-0">
+                          <span className="text-price shrink-0 text-xs font-semibold text-foreground">
                             {inr(item.lineTotal || item.price * item.quantity)}
                           </span>
                         </div>
@@ -439,9 +512,9 @@ export default function AccountPage() {
                     </div>
 
                     {/* Tracking & Destination Bar */}
-                    <div className="bg-secondary/20 border-t border-border p-4 text-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                      <div className="text-muted-foreground text-[11px] leading-relaxed max-w-md">
-                        <span className="font-mono uppercase font-semibold text-foreground">
+                    <div className="flex flex-col items-start justify-between gap-4 border-t border-border/80 bg-sand-50/40 p-4 text-xs sm:flex-row sm:items-center">
+                      <div className="max-w-md text-[11px] leading-relaxed text-muted-foreground">
+                        <span className="font-mono font-semibold uppercase text-foreground">
                           Ship To:{" "}
                         </span>
                         <span>
@@ -452,8 +525,8 @@ export default function AccountPage() {
                       </div>
 
                       {order.trackingNumber ? (
-                        <div className="flex items-center gap-2 font-mono text-[11px] text-foreground bg-background px-3 py-1.5 border border-border rounded-xs">
-                          <Truck size={13} className="text-moss" />
+                        <div className="flex items-center gap-2 rounded-xs border border-border/80 bg-card px-3 py-1.5 font-mono text-[11px] text-foreground shadow-xs">
+                          <Truck size={13} strokeWidth={1.5} className="text-moss" />
                           <span>
                             {order.courierName || "Express"}: {order.trackingNumber}
                           </span>
@@ -462,15 +535,15 @@ export default function AccountPage() {
                               href={order.trackingUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-moss hover:underline inline-flex items-center ml-1"
+                              className="ml-1 inline-flex items-center text-moss hover:underline"
                             >
-                              <ExternalLink size={11} />
+                              <ExternalLink size={11} strokeWidth={1.5} />
                             </a>
                           )}
                         </div>
                       ) : (
-                        <span className="text-[11px] font-mono text-muted-foreground flex items-center gap-1.5">
-                          <Clock size={12} className="text-moss" />
+                        <span className="flex items-center gap-1.5 font-mono text-[11px] text-muted-foreground">
+                          <Clock size={12} strokeWidth={1.5} className="text-moss" />
                           Packing verified lot at farm hub
                         </span>
                       )}
@@ -485,69 +558,94 @@ export default function AccountPage() {
         {/* TAB 2: Saved Delivery Addresses */}
         {activeTab === "addresses" && (
           <section className="mt-8">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="font-display text-xl text-foreground">Shipping Locations</h2>
+            <div className="mb-6 flex items-center justify-between">
+              <h2 className="font-display text-xl tracking-tight text-foreground">Shipping Locations</h2>
               <button
                 type="button"
-                onClick={() => setShowAddressModal(true)}
-                className="flex items-center gap-1.5 px-4 py-2 bg-foreground text-background text-xs font-mono uppercase tracking-wider hover:bg-foreground/90 transition-colors rounded-sm"
+                onClick={handleOpenAddModal}
+                className="btn-base btn-primary btn-sm inline-flex items-center gap-1.5 font-mono text-xs uppercase tracking-wider"
               >
-                <Plus size={14} /> Add Address
+                <Plus size={14} strokeWidth={1.5} /> Add Address
               </button>
             </div>
 
             {loadingAddresses ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 {[1, 2].map((i) => (
-                  <div key={i} className="animate-pulse border border-border p-5 space-y-3">
-                    <div className="h-4 w-1/3 bg-secondary/70 rounded-xs" />
-                    <div className="h-3 w-3/4 bg-secondary/50 rounded-xs" />
-                    <div className="h-3 w-1/2 bg-secondary/50 rounded-xs" />
+                  <div key={i} className="card-flush space-y-3 bg-card p-5 shadow-soft">
+                    <div className="skeleton h-3 w-1/3 rounded-full" />
+                    <div className="skeleton h-3 w-3/4 rounded-full" />
+                    <div className="skeleton h-3 w-1/2 rounded-full" />
                   </div>
                 ))}
               </div>
             ) : addresses.length === 0 ? (
-              <div className="border border-dashed border-border p-12 text-center bg-secondary/10 rounded-sm">
-                <MapPin className="mx-auto text-muted-foreground mb-3" size={28} />
-                <p className="text-sm font-medium">No saved addresses</p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Add your primary delivery address for faster checkout.
+              <div className="my-8 flex flex-col items-center justify-center rounded-sm border border-dashed border-border/80 bg-sand-50/40 p-12 text-center">
+                <div className="mb-3 grid h-12 w-12 place-items-center rounded-full bg-sand-100 text-muted-foreground">
+                  <MapPin size={22} strokeWidth={1.5} />
+                </div>
+                <p className="font-display text-lg text-foreground">No saved addresses</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Add your primary delivery address for faster dispatch.
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 {addresses.map((addr) => (
                   <div
                     key={addr._id}
-                    className="border border-border p-5 bg-card flex flex-col justify-between rounded-sm"
+                    className="card-flush flex flex-col justify-between bg-card p-5 shadow-soft"
                   >
                     <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="font-mono text-xs uppercase font-semibold text-foreground flex items-center">
-                          {addr.isDefault && (
-                            <span className="bg-moss/10 text-moss px-2 py-0.5 mr-2 rounded-xs border border-moss/30 text-[10px]">
+                      <div className="mb-2 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          {addr.isDefault ? (
+                            <span className="badge-base badge-bestseller text-[10px]">
                               Default
                             </span>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => handleSetDefault(addr._id)}
+                              className="font-mono text-[10px] uppercase tracking-wider text-moss underline underline-offset-4 transition-colors hover:text-foreground"
+                            >
+                              Set as Default
+                            </button>
                           )}
-                          Delivery Address
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteAddress(addr._id)}
-                          className="text-muted-foreground hover:text-rose-600 transition-colors p-1"
-                          title="Delete Address"
-                        >
-                          <Trash2 size={14} />
-                        </button>
+                          <span className="font-mono text-xs font-semibold uppercase tracking-wider text-foreground">
+                            Delivery Address
+                          </span>
+                        </div>
+
+                        {/* Action buttons: Edit & Delete */}
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => handleOpenEditModal(addr)}
+                            className="btn-icon h-7 w-7 border-transparent text-muted-foreground hover:border-transparent hover:text-foreground"
+                            title="Edit Address"
+                          >
+                            <Edit2 size={13} strokeWidth={1.5} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteAddress(addr._id)}
+                            className="btn-icon h-7 w-7 border-transparent text-muted-foreground hover:border-transparent hover:text-clay"
+                            title="Delete Address"
+                          >
+                            <Trash2 size={14} strokeWidth={1.5} />
+                          </button>
+                        </div>
                       </div>
-                      <p className="text-xs text-foreground mt-2 leading-relaxed">
+
+                      <p className="mt-2 text-xs leading-relaxed text-foreground">
                         {addr.street}
                         {addr.locality ? `, ${addr.locality}` : ""}
                       </p>
                       <p className="text-xs text-foreground">
                         {addr.city}, {addr.state} - {addr.postalCode}
                       </p>
-                      <p className="text-xs font-mono text-muted-foreground mt-3">
+                      <p className="mt-3 font-mono text-xs text-muted-foreground">
                         Phone: {addr.phone}
                       </p>
                     </div>
@@ -560,12 +658,14 @@ export default function AccountPage() {
 
         {/* TAB 3: Personal Details Profile */}
         {activeTab === "profile" && (
-          <section className="mt-8 max-w-lg border border-border p-6 bg-card rounded-sm">
-            <h2 className="font-display text-xl mb-4 text-foreground">Personal Details</h2>
+          <section className="card-flush mt-8 max-w-lg bg-card p-6 shadow-soft sm:p-8">
+            <h2 className="mb-5 font-display text-xl tracking-tight text-foreground">
+              Personal Details
+            </h2>
 
             <form onSubmit={handleUpdateProfile} className="space-y-4">
               <div>
-                <label className="block text-xs uppercase font-mono text-muted-foreground mb-1">
+                <label className="mb-1 block font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
                   Full Name
                 </label>
                 <input
@@ -573,27 +673,27 @@ export default function AccountPage() {
                   required
                   value={profileName}
                   onChange={(e) => setProfileName(e.target.value)}
-                  className="w-full px-3 py-2 border border-border text-xs rounded-sm focus:outline-none focus:border-moss bg-background"
+                  className="input-base text-xs"
                 />
               </div>
 
               <div>
-                <label className="block text-xs uppercase font-mono text-muted-foreground mb-1">
+                <label className="mb-1 block font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
                   Email Address
                 </label>
                 <input
                   type="email"
                   disabled
                   value={user.email}
-                  className="w-full px-3 py-2 border border-border text-xs rounded-sm bg-secondary/40 text-muted-foreground cursor-not-allowed font-mono"
+                  className="input-base cursor-not-allowed bg-sand-100/60 font-mono text-xs text-muted-foreground"
                 />
-                <p className="text-[10px] font-mono text-muted-foreground mt-1">
+                <p className="mt-1 font-mono text-[10px] text-muted-foreground">
                   Account email address cannot be modified.
                 </p>
               </div>
 
               <div>
-                <label className="block text-xs uppercase font-mono text-muted-foreground mb-1">
+                <label className="mb-1 block font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
                   Phone Number
                 </label>
                 <input
@@ -601,14 +701,14 @@ export default function AccountPage() {
                   value={profilePhone}
                   onChange={(e) => setProfilePhone(e.target.value)}
                   placeholder="+91 98765 43210"
-                  className="w-full px-3 py-2 border border-border text-xs rounded-sm focus:outline-none focus:border-moss bg-background font-mono"
+                  className="input-base font-mono text-xs"
                 />
               </div>
 
               <button
                 type="submit"
                 disabled={profileUpdating}
-                className="w-full py-2.5 bg-foreground text-background text-xs uppercase font-mono tracking-widest hover:bg-foreground/90 font-semibold disabled:opacity-50 transition-colors rounded-sm mt-2"
+                className="btn-base btn-primary mt-3 w-full py-3 text-xs uppercase tracking-wider disabled:pointer-events-none disabled:opacity-50"
               >
                 {profileUpdating ? "Saving..." : "Save Preferences"}
               </button>
@@ -616,135 +716,141 @@ export default function AccountPage() {
           </section>
         )}
 
-        {/* New Address Modal */}
+        {/* Add / Edit Address Modal */}
         {showAddressModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-foreground/40 backdrop-blur-xs">
-            <div className="relative w-full max-w-md bg-card border border-border p-6 shadow-xl rounded-sm">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-display text-xl text-foreground">Add Shipping Address</h3>
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 p-4 backdrop-blur-xs">
+            <div className="card-flush relative w-full max-w-md bg-card p-6 shadow-lift">
+              <div className="mb-4 flex items-center justify-between border-b border-border/80 pb-3">
+                <h3 className="font-display text-xl tracking-tight text-foreground">
+                  {editingAddressId ? "Edit Shipping Address" : "Add Shipping Address"}
+                </h3>
                 <button
                   type="button"
                   onClick={() => setShowAddressModal(false)}
-                  className="text-muted-foreground hover:text-foreground"
+                  className="btn-icon h-7 w-7 border-transparent text-muted-foreground hover:border-transparent hover:text-foreground"
                 >
-                  <X size={16} />
+                  <X size={16} strokeWidth={1.5} />
                 </button>
               </div>
 
-              <form onSubmit={handleAddAddress} className="space-y-3">
+              <form onSubmit={handleSaveAddress} className="space-y-3.5">
                 <div>
-                  <label className="block text-[11px] uppercase font-mono text-muted-foreground mb-1">
+                  <label className="mb-1 block font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
                     Street Address *
                   </label>
                   <input
                     type="text"
                     required
-                    value={newAddress.street}
-                    onChange={(e) => setNewAddress({ ...newAddress, street: e.target.value })}
+                    value={addressForm.street}
+                    onChange={(e) => setAddressForm({ ...addressForm, street: e.target.value })}
                     placeholder="House / Flat No., Street, Area"
-                    className="w-full px-3 py-2 border border-border text-xs rounded-xs focus:outline-none focus:border-moss"
+                    className="input-base text-xs"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[11px] uppercase font-mono text-muted-foreground mb-1">
+                  <label className="mb-1 block font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
                     Locality / Landmark
                   </label>
                   <input
                     type="text"
-                    value={newAddress.locality}
-                    onChange={(e) => setNewAddress({ ...newAddress, locality: e.target.value })}
+                    value={addressForm.locality}
+                    onChange={(e) => setAddressForm({ ...addressForm, locality: e.target.value })}
                     placeholder="Near Landmark"
-                    className="w-full px-3 py-2 border border-border text-xs rounded-xs focus:outline-none focus:border-moss"
+                    className="input-base text-xs"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[11px] uppercase font-mono text-muted-foreground mb-1">
+                    <label className="mb-1 block font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
                       City *
                     </label>
                     <input
                       type="text"
                       required
-                      value={newAddress.city}
-                      onChange={(e) => setNewAddress({ ...newAddress, city: e.target.value })}
-                      placeholder="Bengaluru"
-                      className="w-full px-3 py-2 border border-border text-xs rounded-xs focus:outline-none focus:border-moss"
+                      value={addressForm.city}
+                      onChange={(e) => setAddressForm({ ...addressForm, city: e.target.value })}
+                      placeholder="Sambalpur"
+                      className="input-base text-xs"
                     />
                   </div>
                   <div>
-                    <label className="block text-[11px] uppercase font-mono text-muted-foreground mb-1">
+                    <label className="mb-1 block font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
                       PIN Code *
                     </label>
                     <input
                       type="text"
                       required
-                      value={newAddress.postalCode}
+                      value={addressForm.postalCode}
                       onChange={(e) =>
-                        setNewAddress({ ...newAddress, postalCode: e.target.value })
+                        setAddressForm({ ...addressForm, postalCode: e.target.value })
                       }
-                      placeholder="560001"
-                      className="w-full px-3 py-2 border border-border text-xs rounded-xs focus:outline-none focus:border-moss font-mono"
+                      placeholder="768001"
+                      className="input-base font-mono text-xs"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[11px] uppercase font-mono text-muted-foreground mb-1">
+                    <label className="mb-1 block font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
                       State *
                     </label>
                     <input
                       type="text"
                       required
-                      value={newAddress.state}
-                      onChange={(e) => setNewAddress({ ...newAddress, state: e.target.value })}
-                      placeholder="Karnataka"
-                      className="w-full px-3 py-2 border border-border text-xs rounded-xs focus:outline-none focus:border-moss"
+                      value={addressForm.state}
+                      onChange={(e) => setAddressForm({ ...addressForm, state: e.target.value })}
+                      placeholder="Odisha"
+                      className="input-base text-xs"
                     />
                   </div>
                   <div>
-                    <label className="block text-[11px] uppercase font-mono text-muted-foreground mb-1">
+                    <label className="mb-1 block font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
                       Phone *
                     </label>
                     <input
                       type="tel"
                       required
-                      value={newAddress.phone}
-                      onChange={(e) => setNewAddress({ ...newAddress, phone: e.target.value })}
+                      value={addressForm.phone}
+                      onChange={(e) => setAddressForm({ ...addressForm, phone: e.target.value })}
                       placeholder="+91 9876543210"
-                      className="w-full px-3 py-2 border border-border text-xs rounded-xs focus:outline-none focus:border-moss font-mono"
+                      className="input-base font-mono text-xs"
                     />
                   </div>
                 </div>
 
-                <label className="flex items-center gap-2 text-xs font-mono uppercase cursor-pointer pt-2">
+                <label className="flex cursor-pointer items-center gap-2 pt-1 font-mono text-xs uppercase tracking-wide">
                   <input
                     type="checkbox"
-                    checked={newAddress.isDefault}
+                    checked={addressForm.isDefault}
                     onChange={(e) =>
-                      setNewAddress({ ...newAddress, isDefault: e.target.checked })
+                      setAddressForm({ ...addressForm, isDefault: e.target.checked })
                     }
                     className="accent-moss"
                   />
                   Set as default shipping address
                 </label>
 
-                <div className="flex justify-end gap-3 pt-4 border-t border-border">
+                <div className="flex justify-end gap-3 border-t border-border/80 pt-4">
                   <button
                     type="button"
                     onClick={() => setShowAddressModal(false)}
-                    className="px-4 py-2 border border-border text-xs font-mono uppercase hover:bg-secondary rounded-xs"
+                    className="btn-base btn-outline btn-sm font-mono text-xs uppercase tracking-wider"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={submittingAddress}
-                    className="px-5 py-2 bg-foreground text-background text-xs font-mono uppercase tracking-wider font-semibold disabled:opacity-50 rounded-xs"
+                    className="btn-base btn-primary btn-sm font-mono text-xs uppercase tracking-wider disabled:opacity-50"
                   >
-                    {submittingAddress ? "Saving..." : "Save Address"}
+                    {submittingAddress
+                      ? "Saving..."
+                      : editingAddressId
+                      ? "Update Address"
+                      : "Save Address"}
                   </button>
                 </div>
               </form>

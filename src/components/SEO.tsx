@@ -14,6 +14,8 @@ const DEFAULT_DESCRIPTION =
   "Clean everyday nutrition sourced from Indian farm clusters. Ceremonial seeds, single-origin superfood powders, and simple daily pantry rituals.";
 const SITE_URL = "https://nirvanarepublic.in";
 const DEFAULT_IMAGE = `${SITE_URL}/og-preview.jpg`;
+const THEME_COLOR_LIGHT = "#FBF9F5"; // Matches --background oklch(0.973 0.011 88)
+const THEME_COLOR_DARK = "#28342D";  // Matches --background oklch(0.19 0.018 145)
 
 export function SEO({
   title,
@@ -33,6 +35,10 @@ export function SEO({
       <title>{pageTitle}</title>
       <meta name="description" content={description} />
       <link rel="canonical" href={canonicalUrl} />
+
+      {/* Brand & Browser Chrome Theme Colors */}
+      <meta name="theme-color" content={THEME_COLOR_LIGHT} media="(prefers-color-scheme: light)" />
+      <meta name="theme-color" content={THEME_COLOR_DARK} media="(prefers-color-scheme: dark)" />
 
       {/* Open Graph (WhatsApp, FB, LinkedIn) */}
       <meta property="og:site_name" content="Nirvana Republic" />

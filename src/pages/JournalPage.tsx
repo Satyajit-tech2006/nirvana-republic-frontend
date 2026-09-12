@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { ArrowRight, Clock, Sparkles, BookOpen } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Clock, Sparkles, BookOpen } from "lucide-react";
 import api from "@/lib/axios";
 import ENDPOINTS from "@/lib/endpoints";
 import { SectionHead } from "@/components/SectionHead";
@@ -29,6 +29,35 @@ const fallbackCategories = [
   "Botanical Science",
   "Recipes & Pantry",
 ];
+
+function JournalSkeleton() {
+  return (
+    <div className="mt-12 space-y-12">
+      {/* Featured Article Skeleton */}
+      <div className="grid gap-8 rounded-sm border border-border/80 bg-card p-6 md:grid-cols-2 md:items-center md:p-8">
+        <div className="skeleton aspect-[16/10] w-full rounded-sm" />
+        <div className="space-y-4 py-2">
+          <div className="skeleton h-3 w-32 rounded-full" />
+          <div className="skeleton h-8 w-3/4 rounded-sm" />
+          <div className="skeleton h-16 w-full rounded-sm" />
+          <div className="skeleton h-4 w-28 rounded-full" />
+        </div>
+      </div>
+
+      {/* Grid Articles Skeleton */}
+      <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="space-y-4 rounded-sm border border-border/70 bg-card p-5">
+            <div className="skeleton aspect-[4/3] w-full rounded-sm" />
+            <div className="skeleton h-3 w-1/3 rounded-full" />
+            <div className="skeleton h-6 w-3/4 rounded-sm" />
+            <div className="skeleton h-12 w-full rounded-sm" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export default function JournalPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -147,10 +176,10 @@ export default function JournalPage() {
           intro="Tracing harvest cycles, active botanical compounds, and simple daily practices."
         />
 
-        {/* Category Filter Pills */}
+        {/* Category Filter Tabs */}
         <nav
           aria-label="Journal Categories"
-          className="mt-8 flex items-center gap-2 overflow-x-auto border-b border-border pb-6 scrollbar-none"
+          className="mt-8 flex items-center gap-1.5 overflow-x-auto border-b border-border/80 pb-4 scrollbar-none"
         >
           {categories.map((cat) => {
             const isActive =
@@ -162,10 +191,10 @@ export default function JournalPage() {
                 key={cat}
                 type="button"
                 onClick={() => handleCategoryChange(cat)}
-                className={`whitespace-nowrap rounded-sm px-4 py-1.5 text-xs font-mono uppercase tracking-wider transition-all duration-200 border ${
+                className={`whitespace-nowrap rounded-xs border px-3.5 py-1.5 font-mono text-[11px] uppercase tracking-wider transition-all duration-200 ${
                   isActive
-                    ? "bg-foreground text-background border-foreground font-semibold shadow-xs"
-                    : "bg-secondary/60 text-muted-foreground border-transparent hover:border-border hover:text-foreground"
+                    ? "border-foreground bg-foreground font-semibold text-background shadow-xs"
+                    : "border-transparent bg-sand-100/70 text-muted-foreground hover:border-border hover:text-foreground"
                 }`}
               >
                 {cat}
@@ -175,39 +204,17 @@ export default function JournalPage() {
         </nav>
 
         {loading ? (
-          /* Skeletons */
-          <div className="mt-12 space-y-12">
-            <div className="grid gap-8 rounded-sm border border-border/80 bg-card p-6 md:grid-cols-2 md:p-8">
-              <div className="aspect-[16/10] w-full animate-pulse rounded-xs bg-secondary/50" />
-              <div className="space-y-4 py-4">
-                <div className="h-3 w-28 animate-pulse rounded-xs bg-secondary/70" />
-                <div className="h-8 w-3/4 animate-pulse rounded-xs bg-secondary/80" />
-                <div className="h-16 w-full animate-pulse rounded-xs bg-secondary/40" />
-                <div className="h-4 w-24 animate-pulse rounded-xs bg-secondary/60" />
-              </div>
-            </div>
-
-            <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="animate-pulse space-y-4 border border-border/70 p-5">
-                  <div className="aspect-[4/3] w-full bg-secondary/50 rounded-xs" />
-                  <div className="h-3 w-1/3 bg-secondary/70 rounded-xs" />
-                  <div className="h-6 w-3/4 bg-secondary/80 rounded-xs" />
-                  <div className="h-10 w-full bg-secondary/40 rounded-xs" />
-                </div>
-              ))}
-            </div>
-          </div>
+          <JournalSkeleton />
         ) : safeArticlesList.length === 0 ? (
           /* Empty state */
-          <div className="my-12 flex flex-col items-center justify-center border border-dashed border-border py-24 text-center rounded-sm bg-secondary/10">
-            <div className="p-3 rounded-full bg-secondary text-muted-foreground mb-3">
+          <div className="my-14 flex flex-col items-center justify-center rounded-sm border border-dashed border-border/80 bg-sand-50/40 px-6 py-24 text-center">
+            <div className="mb-4 grid h-12 w-12 place-items-center rounded-full bg-sand-100 text-muted-foreground">
               <BookOpen size={20} strokeWidth={1.5} />
             </div>
-            <h2 className="font-display text-xl sm:text-2xl text-foreground">
+            <h2 className="font-display text-2xl tracking-tight text-foreground">
               No dispatches published yet
             </h2>
-            <p className="mt-2 text-xs sm:text-sm text-muted-foreground max-w-sm">
+            <p className="mt-2 max-w-sm text-sm leading-relaxed text-muted-foreground">
               Our harvest notes and nutritional writeups are currently being compiled.
             </p>
           </div>
@@ -217,46 +224,47 @@ export default function JournalPage() {
             {activeCategory === "All" && featuredArticle && (
               <Link
                 to={`/journal/${featuredArticle.slug}`}
-                className="group grid gap-8 md:grid-cols-2 md:items-center border border-border bg-card p-6 md:p-8 rounded-sm hover:border-moss/40 transition-colors"
+                className="group grid gap-8 rounded-sm border border-border/80 bg-card p-6 transition-all duration-300 hover:border-moss/50 hover:shadow-soft md:grid-cols-2 md:items-center md:p-8"
               >
-                <div className="overflow-hidden rounded-xs aspect-[16/10] bg-secondary">
+                <div className="aspect-[16/10] overflow-hidden rounded-xs bg-sand-100">
                   <img
                     src={getArticleImage(featuredArticle)}
                     alt={featuredArticle.title}
-                    className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                    className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
                   />
                 </div>
                 <div className="space-y-4">
-                  <div className="flex items-center gap-3 text-xs font-mono text-clay uppercase tracking-widest">
+                  <div className="flex items-center gap-2.5 font-mono text-xs uppercase tracking-widest text-clay">
                     <span>{featuredArticle.category}</span>
-                    <span>·</span>
+                    <span className="text-border">·</span>
                     <span className="flex items-center gap-1 text-muted-foreground">
-                      <Clock size={12} /> {getReadTime(featuredArticle)}
+                      <Clock size={12} strokeWidth={1.5} /> {getReadTime(featuredArticle)}
                     </span>
                     {featuredArticle.isFeatured && (
                       <>
-                        <span>·</span>
-                        <span className="flex items-center gap-1 text-moss">
+                        <span className="text-border">·</span>
+                        <span className="flex items-center gap-1 font-semibold text-moss">
                           <Sparkles size={11} /> Featured Lot
                         </span>
                       </>
                     )}
                   </div>
-                  <h2 className="font-serif text-2xl md:text-3xl lg:text-4xl text-foreground font-normal leading-tight group-hover:text-moss transition-colors">
+                  <h2 className="text-balance font-display text-2xl leading-snug tracking-tight text-foreground transition-colors duration-300 group-hover:text-moss md:text-3xl lg:text-4xl">
                     {featuredArticle.title}
                   </h2>
-                  <p className="text-sm text-muted-foreground leading-relaxed line-clamp-3">
+                  <p className="line-clamp-3 text-sm leading-relaxed text-muted-foreground">
                     {featuredArticle.excerpt}
                   </p>
-                  <div className="pt-2 flex items-center justify-between text-xs font-mono text-muted-foreground">
+                  <div className="flex items-center justify-between pt-2 font-mono text-xs text-muted-foreground">
                     <span className="text-[11px]">
                       {formatDate(featuredArticle.publishedAt || featuredArticle.createdAt)}
                     </span>
-                    <span className="inline-flex items-center gap-1.5 uppercase tracking-wider text-foreground font-semibold">
-                      Read dispatch
+                    <span className="inline-flex items-center gap-1.5 font-semibold uppercase tracking-wider text-foreground group-hover:text-moss">
+                      <span>Read dispatch</span>
                       <ArrowRight
                         size={14}
-                        className="transition-transform group-hover:translate-x-1"
+                        strokeWidth={1.5}
+                        className="transition-transform duration-200 group-hover:translate-x-1"
                       />
                     </span>
                   </div>
@@ -270,36 +278,42 @@ export default function JournalPage() {
                 <Link
                   key={article._id || article.slug}
                   to={`/journal/${article.slug}`}
-                  className="group flex flex-col justify-between border border-border bg-card p-5 rounded-sm hover:border-moss/40 transition-colors"
+                  className="group flex flex-col justify-between rounded-sm border border-border/80 bg-card p-5 transition-all duration-300 hover:border-moss/40 hover:shadow-soft"
                 >
                   <div>
-                    <div className="overflow-hidden rounded-xs aspect-[4/3] bg-secondary">
+                    <div className="aspect-[4/3] overflow-hidden rounded-xs bg-sand-100">
                       <img
                         src={getArticleImage(article)}
                         alt={article.title}
-                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        loading="lazy"
+                        className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
                       />
                     </div>
-                    <div className="mt-4 flex items-center justify-between text-[11px] font-mono text-clay uppercase tracking-wider">
+                    <div className="mt-4 flex items-center justify-between font-mono text-[11px] uppercase tracking-wider text-clay">
                       <span>{article.category}</span>
                       <span className="text-muted-foreground">
                         {getReadTime(article)}
                       </span>
                     </div>
-                    <h3 className="mt-2 font-serif text-xl text-foreground leading-snug group-hover:text-moss transition-colors">
+                    <h3 className="mt-2 font-display text-xl leading-snug tracking-tight text-foreground transition-colors duration-300 group-hover:text-moss">
                       {article.title}
                     </h3>
-                    <p className="mt-2 text-xs text-muted-foreground line-clamp-3 leading-relaxed">
+                    <p className="mt-2 line-clamp-3 text-xs leading-relaxed text-muted-foreground">
                       {article.excerpt}
                     </p>
                   </div>
 
-                  <div className="mt-6 pt-4 border-t border-border flex items-center justify-between text-xs font-mono uppercase tracking-wider text-muted-foreground group-hover:text-foreground">
+                  <div className="mt-6 flex items-center justify-between border-t border-border/70 pt-4 font-mono text-xs uppercase tracking-wider text-muted-foreground group-hover:text-foreground">
                     <span className="text-[11px]">
                       {formatDate(article.publishedAt || article.createdAt)}
                     </span>
-                    <span className="inline-flex items-center gap-1">
-                      Read <ArrowRight size={13} className="transition-transform group-hover:translate-x-0.5" />
+                    <span className="inline-flex items-center gap-1 font-semibold group-hover:text-moss">
+                      <span>Read</span>
+                      <ArrowUpRight
+                        size={13}
+                        strokeWidth={1.5}
+                        className="transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+                      />
                     </span>
                   </div>
                 </Link>

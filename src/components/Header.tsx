@@ -8,7 +8,6 @@ import {
   ShoppingBag,
   User as UserIcon,
   X,
-  ShieldCheck,
 } from "lucide-react";
 import logo from "@/assets/logo-mark.png";
 import { categories } from "@/data/products";
@@ -48,7 +47,7 @@ export function Header() {
     };
   }, [menuOpen]);
 
-  // Keyboard shortcut listener for search overlay
+  // Keyboard shortcut listener for search overlay (Cmd/Ctrl + K)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
@@ -79,9 +78,9 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border/70 bg-background/90 backdrop-blur-md">
+    <header className="sticky top-0 z-40 border-b border-border/80 bg-background/90 backdrop-blur-md">
       {/* Announcement Bar */}
-      <div className="bg-primary py-2 text-center text-[11px] tracking-[0.16em] uppercase text-primary-foreground font-mono">
+      <div className="bg-primary py-2 text-center text-[10px] font-medium uppercase tracking-[0.2em] text-primary-foreground">
         Free delivery across India on orders above ₹799
       </div>
 
@@ -89,65 +88,65 @@ export function Header() {
         {/* Mobile Menu Button */}
         <button
           type="button"
-          className="-ml-1 p-2 md:hidden text-foreground hover:text-moss transition-colors"
+          className="btn-icon -ml-2 border-transparent text-foreground md:hidden hover:border-transparent hover:bg-secondary"
           aria-label="Open menu"
           onClick={() => setMenuOpen(true)}
         >
-          <Menu size={20} strokeWidth={1.5} />
+          <Menu size={20} strokeWidth={1.25} />
         </button>
 
         {/* Brand Logo */}
-        <Link to="/" className="flex items-center gap-2.5 md:w-[15rem] group">
+        <Link to="/" className="group flex items-center gap-3 md:w-[16rem]">
           <img
             src={logo}
             alt="Nirvana Republic"
             width={512}
             height={512}
-            className="h-8 w-8 object-contain transition-transform duration-300 group-hover:scale-105"
+            className="h-8 w-8 object-contain transition-transform duration-500 group-hover:scale-105"
           />
-          <span className="font-display text-[1.05rem] leading-none tracking-tight md:text-[1.2rem] text-foreground">
+          <span className="font-display text-lg tracking-tight text-foreground md:text-xl">
             Nirvana Republic
           </span>
         </Link>
 
         {/* Desktop Navigation Links */}
-        <nav className="mx-auto hidden items-center gap-8 text-xs font-mono uppercase tracking-wider md:flex">
+        <nav className="mx-auto hidden items-center gap-8 md:flex">
           {categories.map((c) => (
             <Link
               key={c.id}
               to={`/shop?category=${c.id}`}
-              className="text-foreground/75 transition-colors hover:text-foreground"
+              className="link-underline text-xs uppercase tracking-[0.14em] text-muted-foreground transition-colors duration-200 hover:text-foreground"
             >
               {c.name}
             </Link>
           ))}
           <Link
             to="/journal"
-            className="text-foreground/75 transition-colors hover:text-foreground"
+            className="link-underline text-xs uppercase tracking-[0.14em] text-muted-foreground transition-colors duration-200 hover:text-foreground"
           >
             Journal
           </Link>
         </nav>
 
         {/* Action Icons */}
-        <div className="ml-auto flex items-center gap-1 md:w-[15rem] md:justify-end">
+        <div className="ml-auto flex items-center gap-1.5 md:w-[16rem] md:justify-end">
           {/* Search Toggle */}
           <button
             type="button"
             aria-label="Search products"
             onClick={() => setSearchOpen((v) => !v)}
-            className="grid h-10 w-10 place-items-center rounded-full transition-colors hover:bg-secondary text-foreground"
+            className="btn-icon h-9 w-9 border-transparent text-foreground hover:border-transparent hover:bg-secondary"
           >
-            <Search size={18} strokeWidth={1.5} />
+            <Search size={18} strokeWidth={1.25} />
           </button>
 
           {/* Wishlist Link */}
           <Link
             to="/wishlist"
             aria-label="Wishlist"
-            className="relative hidden h-10 w-10 place-items-center rounded-full transition-colors hover:bg-secondary sm:grid text-foreground"
+            className="btn-icon relative hidden h-9 w-9 border-transparent text-foreground hover:border-transparent hover:bg-secondary sm:inline-flex"
           >
-            <Heart size={18} strokeWidth={1.5} />
+            <Heart size={18} strokeWidth={1.25} />
             {wishlist.length > 0 && (
               <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-clay" />
             )}
@@ -155,14 +154,14 @@ export function Header() {
 
           {/* User Account / Auth Link */}
           {user ? (
-            <div className="hidden items-center sm:flex">
+            <div className="hidden items-center gap-1 sm:flex">
               <Link
                 to="/account"
                 aria-label="Your account"
                 title={`Logged in as ${user.name}`}
-                className="grid h-10 w-10 place-items-center rounded-full transition-colors hover:bg-secondary"
+                className="btn-icon h-9 w-9 border-transparent hover:border-transparent hover:bg-secondary"
               >
-                <span className="font-mono text-xs font-semibold uppercase text-primary border border-primary/40 rounded-full h-7 w-7 grid place-items-center bg-primary/10">
+                <span className="grid h-7 w-7 place-items-center rounded-full bg-primary/10 font-mono text-[11px] font-semibold uppercase text-primary border border-primary/20">
                   {user.name.charAt(0)}
                 </span>
               </Link>
@@ -171,9 +170,9 @@ export function Header() {
                 onClick={handleLogout}
                 aria-label="Sign out"
                 title="Sign out"
-                className="grid h-10 w-10 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                className="btn-icon h-9 w-9 border-transparent text-muted-foreground hover:border-transparent hover:bg-secondary hover:text-foreground"
               >
-                <LogOut size={16} strokeWidth={1.5} />
+                <LogOut size={16} strokeWidth={1.25} />
               </button>
             </div>
           ) : (
@@ -181,9 +180,9 @@ export function Header() {
               to="/auth"
               aria-label="Sign in or register"
               title="Sign in or register"
-              className="hidden h-10 w-10 place-items-center rounded-full transition-colors hover:bg-secondary sm:grid text-foreground"
+              className="btn-icon hidden h-9 w-9 border-transparent text-foreground hover:border-transparent hover:bg-secondary sm:inline-flex"
             >
-              <UserIcon size={18} strokeWidth={1.5} />
+              <UserIcon size={18} strokeWidth={1.25} />
             </Link>
           )}
 
@@ -192,11 +191,11 @@ export function Header() {
             type="button"
             aria-label="Open pantry cart drawer"
             onClick={() => setCartOpen(true)}
-            className="relative grid h-10 w-10 place-items-center rounded-full transition-colors hover:bg-secondary text-foreground"
+            className="btn-icon relative h-9 w-9 border-transparent text-foreground hover:border-transparent hover:bg-secondary"
           >
-            <ShoppingBag size={18} strokeWidth={1.5} />
+            <ShoppingBag size={18} strokeWidth={1.25} />
             {cartCount > 0 && (
-              <span className="absolute right-1 top-1 grid h-4 min-w-[1rem] place-items-center rounded-full bg-foreground px-1 font-mono text-[9px] font-semibold text-background">
+              <span className="absolute right-1 top-1 grid h-4 min-w-[1rem] place-items-center rounded-full bg-primary px-1 font-mono text-[9px] font-semibold text-primary-foreground">
                 {cartCount}
               </span>
             )}
@@ -206,27 +205,27 @@ export function Header() {
 
       {/* Expandable Search Input Bar */}
       {searchOpen && (
-        <div className="border-t border-border bg-background/95 backdrop-blur-xs shadow-xs">
-          <form onSubmit={submitSearch} className="container-page flex items-center gap-3 py-3.5">
-            <Search size={16} strokeWidth={1.5} className="text-muted-foreground shrink-0" />
+        <div className="fade-in border-t border-border bg-card/95 py-3 shadow-soft backdrop-blur-xs">
+          <form onSubmit={submitSearch} className="container-page flex items-center gap-3">
+            <Search size={16} strokeWidth={1.5} className="shrink-0 text-muted-foreground" />
             <input
               autoFocus
               type="search"
               value={term}
               onChange={(e) => setTerm(e.target.value)}
-              placeholder="Search by ingredient, seed or ritual (e.g. chia, moringa, ashwagandha)..."
-              className="w-full bg-transparent py-1 text-xs sm:text-sm outline-none placeholder:text-muted-foreground font-sans"
+              placeholder="Search by single-origin ingredient, ritual, or seed..."
+              className="w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground font-sans"
             />
             <button
               type="submit"
-              className="btn-base bg-foreground text-background px-4 py-1.5 text-xs font-mono uppercase tracking-wider hover:bg-foreground/90 shrink-0 rounded-xs"
+              className="btn-base btn-primary btn-sm rounded-xs font-mono text-xs uppercase tracking-wider"
             >
               Search
             </button>
             <button
               type="button"
               onClick={() => setSearchOpen(false)}
-              className="p-1 text-muted-foreground hover:text-foreground shrink-0"
+              className="p-1.5 text-muted-foreground transition-colors hover:text-foreground"
             >
               <X size={16} />
             </button>
@@ -236,42 +235,42 @@ export function Header() {
 
       {/* Mobile Drawer Menu */}
       <div
-        className={`fixed inset-0 z-50 md:hidden transition-opacity duration-300 ${
+        className={`fixed inset-0 z-50 transition-opacity duration-300 md:hidden ${
           menuOpen ? "opacity-100" : "pointer-events-none opacity-0"
         }`}
         aria-hidden={!menuOpen}
       >
         <div
           onClick={() => setMenuOpen(false)}
-          className="absolute inset-0 bg-foreground/30 backdrop-blur-xs"
+          className="overlay-scrim absolute inset-0 backdrop-blur-xs"
         />
         <nav
-          className={`absolute left-0 top-0 flex h-dvh w-[86%] max-w-sm flex-col justify-between bg-background p-6 shadow-2xl transition-transform duration-300 ease-out border-r border-border ${
+          className={`absolute left-0 top-0 flex h-dvh w-[86%] max-w-sm flex-col justify-between border-r border-border bg-background p-6 shadow-lift transition-transform duration-300 ease-out ${
             menuOpen ? "translate-x-0" : "-translate-x-full"
           }`}
         >
           <div className="space-y-6 overflow-y-auto pr-1">
             <div className="flex items-center justify-between border-b border-border pb-4">
-              <span className="font-display text-lg text-foreground">Menu</span>
+              <span className="font-display text-lg text-foreground">Shelves</span>
               <button
                 type="button"
                 aria-label="Close menu"
                 onClick={() => setMenuOpen(false)}
-                className="p-1 text-muted-foreground hover:text-foreground"
+                className="btn-icon h-8 w-8 border-transparent text-muted-foreground hover:border-transparent hover:text-foreground"
               >
-                <X size={20} strokeWidth={1.5} />
+                <X size={18} strokeWidth={1.5} />
               </button>
             </div>
 
             {/* Shelves List */}
             <div className="space-y-1">
-              <p className="eyebrow text-[10px] tracking-[0.2em] text-moss">Shop by Shelf</p>
+              <p className="eyebrow-accent">Collections</p>
               {categories.map((c) => (
                 <Link
                   key={c.id}
                   to={`/shop?category=${c.id}`}
                   onClick={() => setMenuOpen(false)}
-                  className="block border-b border-border/50 py-3 font-display text-lg text-foreground hover:text-moss transition-colors"
+                  className="block border-b border-border/50 py-3 font-display text-lg text-foreground transition-colors hover:text-moss"
                 >
                   {c.name}
                 </Link>
@@ -280,12 +279,13 @@ export function Header() {
 
             {/* General Navigation */}
             <div className="space-y-2 pt-2">
+              <p className="eyebrow">Explore</p>
               {navLinks.map((l) => (
                 <Link
                   key={l.to}
                   to={l.to}
                   onClick={() => setMenuOpen(false)}
-                  className="block py-1.5 text-xs font-mono uppercase tracking-wider text-muted-foreground hover:text-foreground"
+                  className="block py-1.5 text-xs uppercase tracking-wider text-muted-foreground transition-colors hover:text-foreground"
                 >
                   {l.label}
                 </Link>
@@ -293,17 +293,17 @@ export function Header() {
               <Link
                 to="/cart"
                 onClick={() => setMenuOpen(false)}
-                className="flex items-center justify-between py-1.5 text-xs font-mono uppercase tracking-wider text-muted-foreground hover:text-foreground"
+                className="flex items-center justify-between py-1.5 text-xs uppercase tracking-wider text-muted-foreground transition-colors hover:text-foreground"
               >
-                <span>View Full Bag</span>
+                <span>Cart</span>
                 {cartCount > 0 && (
-                  <span className="font-semibold text-foreground">({cartCount})</span>
+                  <span className="badge-base badge-bestseller font-mono">{cartCount}</span>
                 )}
               </Link>
               <Link
                 to="/wishlist"
                 onClick={() => setMenuOpen(false)}
-                className="block py-1.5 text-xs font-mono uppercase tracking-wider text-muted-foreground hover:text-foreground"
+                className="block py-1.5 text-xs uppercase tracking-wider text-muted-foreground transition-colors hover:text-foreground"
               >
                 Saved Wishlist
               </Link>
@@ -317,9 +317,9 @@ export function Header() {
                 <Link
                   to="/account"
                   onClick={() => setMenuOpen(false)}
-                  className="block text-xs font-mono uppercase tracking-wider text-foreground font-semibold"
+                  className="block text-xs uppercase tracking-wider text-foreground font-medium"
                 >
-                  Sanctuary ({user.name})
+                  Account ({user.name})
                 </Link>
                 <button
                   type="button"
@@ -327,7 +327,7 @@ export function Header() {
                     setMenuOpen(false);
                     handleLogout();
                   }}
-                  className="block w-full text-left text-xs font-mono uppercase tracking-wider text-rose-600 hover:underline"
+                  className="block w-full text-left text-xs uppercase tracking-wider text-destructive transition-colors hover:underline"
                 >
                   Sign Out
                 </button>
@@ -336,7 +336,7 @@ export function Header() {
               <Link
                 to="/auth"
                 onClick={() => setMenuOpen(false)}
-                className="btn-base block text-center bg-foreground text-background py-2 text-xs font-mono uppercase tracking-wider font-semibold rounded-xs"
+                className="btn-base btn-primary w-full py-2.5 text-xs uppercase tracking-wider"
               >
                 Sign In / Register
               </Link>

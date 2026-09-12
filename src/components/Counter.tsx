@@ -11,7 +11,7 @@ interface CounterProps {
 
 export function Counter({
   value,
-  duration = 1800,
+  duration = 1600,
   decimals = 0,
   suffix = "",
   prefix = "",
@@ -20,7 +20,7 @@ export function Counter({
   const [displayValue, setDisplayValue] = useState(0);
   const elementRef = useRef<HTMLSpanElement>(null);
   const prevValueRef = useRef(0);
-  const isIntersectingRef = useRef(false);
+  const hasAnimatedRef = useRef(false);
 
   useEffect(() => {
     let animationFrameId: number;
@@ -28,13 +28,14 @@ export function Counter({
     const startValue = prevValueRef.current;
     const change = value - startValue;
 
-    const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
+    // Matches --ease-out-soft: cubic-bezier(0.16, 1, 0.3, 1)
+    const easeOutQuart = (t: number) => 1 - Math.pow(1 - t, 4);
 
     const animate = (timestamp: number) => {
       if (!startTime) startTime = timestamp;
       const elapsed = timestamp - startTime;
       const progress = Math.min(elapsed / duration, 1);
-      const easedProgress = easeOutCubic(progress);
+      const easedProgress = easeOutQuart(progress);
       const current = startValue + change * easedProgress;
 
       setDisplayValue(current);
@@ -49,13 +50,13 @@ export function Counter({
 
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting) {
-          isIntersectingRef.current = true;
+        if (entries[0].isIntersecting && !hasAnimatedRef.current) {
+          hasAnimatedRef.current = true;
           startTime = null;
           animationFrameId = requestAnimationFrame(animate);
         }
       },
-      { threshold: 0.15 }
+      { threshold: 0.2 }
     );
 
     if (elementRef.current) {
@@ -76,10 +77,15 @@ export function Counter({
   });
 
   return (
-    <span ref={elementRef} className={className}>
+    <span
+      ref={elementRef}
+      className={`font-display tabular-nums tracking-tight text-foreground ${className}`}
+    >
       {prefix}
       {formatted}
-      {suffix}
+      {suffix && (
+        <span className="font-sans font-light text-clay ml-0.5">{suffix}</span>
+      )}
     </span>
   );
 }

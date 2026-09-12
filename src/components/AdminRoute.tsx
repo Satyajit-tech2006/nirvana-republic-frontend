@@ -7,8 +7,11 @@ export const AdminRoute: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="container-page py-24 text-center text-xs font-mono uppercase tracking-widest text-muted-foreground">
-        Checking clearance...
+      <div className="container-page flex min-h-[60vh] flex-col items-center justify-center gap-3 py-24 text-center">
+        <div className="h-6 w-6 animate-spin rounded-full border-2 border-border border-t-primary" />
+        <p className="eyebrow text-xs tracking-widest text-muted-foreground">
+          Checking clearance...
+        </p>
       </div>
     );
   }
@@ -19,3 +22,5 @@ export const AdminRoute: React.FC = () => {
 
   return <Outlet />;
 };
+
+export default AdminRoute;

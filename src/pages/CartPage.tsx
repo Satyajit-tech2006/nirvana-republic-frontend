@@ -37,15 +37,20 @@ export default function CartPage() {
         <div className="mb-6 flex items-center justify-between">
           <Link
             to="/shop"
-            className="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors"
+            className="group inline-flex items-center gap-2 text-xs uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:text-foreground"
           >
-            <ArrowLeft size={14} /> Continue Shopping
+            <ArrowLeft
+              size={14}
+              strokeWidth={1.5}
+              className="transition-transform duration-200 group-hover:-translate-x-0.5"
+            />
+            <span>Continue Shopping</span>
           </Link>
           {cartItems.length > 0 && (
             <button
               type="button"
               onClick={clearCart}
-              className="text-xs font-mono uppercase tracking-wider text-muted-foreground hover:text-rose-600 transition-colors"
+              className="font-mono text-xs uppercase tracking-wider text-muted-foreground transition-colors hover:text-clay"
             >
               Clear Bag
             </button>
@@ -53,35 +58,37 @@ export default function CartPage() {
         </div>
 
         {/* Page Header */}
-        <header className="border-b border-border/80 pb-6">
+        <header className="border-b border-border/80 pb-6 md:pb-8">
           <div className="flex items-center gap-2 text-moss">
-            <Sparkles size={14} />
-            <span className="eyebrow text-[10px] tracking-[0.24em]">Pantry Bag</span>
+            <Sparkles size={14} strokeWidth={1.5} />
+            <span className="eyebrow-accent text-[10px] tracking-[0.24em]">Pantry Bag</span>
           </div>
-          <h1 className="mt-2 font-display text-3xl sm:text-4xl text-foreground">
+          <h1 className="mt-2 text-balance font-display text-3xl tracking-tight text-foreground sm:text-4xl">
             Review Your Harvest Order
           </h1>
-          <p className="mt-1 text-xs sm:text-sm text-muted-foreground">
+          <p className="mt-2 max-w-[46ch] text-sm leading-relaxed text-muted-foreground">
             Unblended, single-origin lots prepared fresh and sealed upon batch confirmation.
           </p>
         </header>
 
         {cartItems.length === 0 ? (
           /* Empty State */
-          <div className="my-12 flex flex-col items-center justify-center rounded-sm border border-dashed border-border bg-secondary/10 px-4 py-24 text-center">
-            <div className="mb-4 rounded-full bg-secondary p-4 text-muted-foreground">
-              <ShoppingBag size={32} strokeWidth={1.25} />
+          <div className="my-14 flex flex-col items-center justify-center rounded-sm border border-dashed border-border/80 bg-sand-50/40 px-6 py-24 text-center">
+            <div className="mb-5 grid h-14 w-14 place-items-center rounded-full bg-sand-100 text-muted-foreground">
+              <ShoppingBag size={26} strokeWidth={1.25} />
             </div>
-            <h2 className="font-display text-xl sm:text-2xl text-foreground">Your bag is empty</h2>
-            <p className="mt-2 max-w-sm text-xs sm:text-sm text-muted-foreground">
+            <h2 className="font-display text-2xl tracking-tight text-foreground">
+              Your bag is empty
+            </h2>
+            <p className="mt-2 max-w-sm text-sm leading-relaxed text-muted-foreground">
               Explore our ceremonial seeds, cold-processed superfood powders, and unrefined pantry essentials.
             </p>
             <Link
               to="/shop"
-              className="btn-base mt-6 inline-flex items-center gap-2 bg-foreground px-6 py-2.5 text-xs font-mono uppercase tracking-widest text-background hover:bg-foreground/90 transition-colors"
+              className="btn-base btn-primary mt-8 inline-flex items-center gap-2 text-xs uppercase tracking-wider"
             >
               <span>Explore Catalog</span>
-              <ArrowRight size={13} />
+              <ArrowRight size={13} strokeWidth={1.5} />
             </Link>
           </div>
         ) : (
@@ -89,10 +96,10 @@ export default function CartPage() {
             {/* Left Column: Cart Items & Free Delivery Bar */}
             <section className="space-y-6 lg:col-span-8">
               {/* Free Delivery Meter */}
-              <div className="rounded-sm border border-border bg-secondary/40 p-4 space-y-2">
-                <div className="flex items-center justify-between text-xs font-mono">
+              <div className="space-y-2 rounded-sm border border-border/80 bg-sand-50/70 p-4">
+                <div className="flex items-center justify-between font-mono text-xs">
                   <div className="flex items-center gap-2">
-                    <Truck size={14} className="text-moss" />
+                    <Truck size={14} strokeWidth={1.5} className="text-moss" />
                     <span className="text-foreground">
                       {freeShippingGap > 0
                         ? `Add ${inr(freeShippingGap)} more for complimentary delivery`
@@ -101,7 +108,7 @@ export default function CartPage() {
                   </div>
                   <span className="font-semibold text-moss">{Math.round(progressPercent)}%</span>
                 </div>
-                <div className="h-1.5 w-full overflow-hidden rounded-full bg-border">
+                <div className="h-1.5 w-full overflow-hidden rounded-full bg-sand-200">
                   <div
                     className="h-full bg-moss transition-all duration-300 ease-out"
                     style={{ width: `${progressPercent}%` }}
@@ -110,7 +117,7 @@ export default function CartPage() {
               </div>
 
               {/* Items Table List */}
-              <div className="divide-y divide-border border border-border bg-card rounded-sm overflow-hidden">
+              <div className="card-flush divide-y divide-border/70 overflow-hidden bg-card">
                 {cartItems.map(({ product, qty }) => {
                   const productId = product._id || product.id || "";
                   const displayImage =
@@ -125,43 +132,46 @@ export default function CartPage() {
                   return (
                     <div
                       key={productId}
-                      className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 transition-colors hover:bg-secondary/15"
+                      className="flex flex-col justify-between gap-4 p-5 transition-colors hover:bg-sand-50/50 sm:flex-row sm:items-center"
                     >
                       {/* Product Thumbnail & Details */}
                       <div className="flex items-center gap-4">
-                        <Link to={`/product/${product.slug}`} className="shrink-0">
+                        <Link
+                          to={`/product/${product.slug}`}
+                          className="card-flush shrink-0 bg-sand-100 p-2"
+                        >
                           <img
                             src={displayImage}
                             alt={product.name}
-                            className="h-20 w-20 rounded-xs bg-[#F2EDE4]/60 border border-border/60 object-contain p-2"
+                            className="h-16 w-16 object-contain"
                             loading="lazy"
                           />
                         </Link>
                         <div>
-                          <span className="text-[10px] font-mono uppercase tracking-wider text-moss">
+                          <span className="eyebrow-accent text-[10px] tracking-[0.2em]">
                             {product.category || "Single Origin"}
                           </span>
                           <Link
                             to={`/product/${product.slug}`}
-                            className="block font-display text-base text-foreground hover:text-moss transition-colors"
+                            className="block font-display text-base text-foreground transition-colors hover:text-moss"
                           >
                             {product.name}
                           </Link>
-                          <p className="text-xs font-mono text-muted-foreground mt-0.5">
+                          <p className="mt-0.5 font-mono text-xs text-muted-foreground">
                             {displayWeight} · {inr(product.price)} each
                           </p>
                         </div>
                       </div>
 
                       {/* Stepper, Subtotal, and Delete Action */}
-                      <div className="flex items-center justify-between sm:justify-end gap-6 pt-3 sm:pt-0 border-t sm:border-t-0 border-border/50">
+                      <div className="flex items-center justify-between gap-6 border-t border-border/50 pt-3 sm:justify-end sm:border-t-0 sm:pt-0">
                         <QuantityStepper
                           value={qty}
                           size="sm"
                           onChange={(n) => setQty(productId, n)}
                         />
 
-                        <div className="text-right min-w-[70px]">
+                        <div className="min-w-[70px] text-right">
                           <span className="font-mono text-sm font-semibold text-foreground">
                             {inr(product.price * qty)}
                           </span>
@@ -169,11 +179,15 @@ export default function CartPage() {
 
                         <button
                           type="button"
-                          onClick={() => removeFromCart ? removeFromCart(productId) : setQty(productId, 0)}
-                          className="p-1 text-muted-foreground hover:text-rose-600 transition-colors"
+                          onClick={() =>
+                            removeFromCart
+                              ? removeFromCart(productId)
+                              : setQty(productId, 0)
+                          }
+                          className="btn-icon h-8 w-8 border-transparent text-muted-foreground hover:border-transparent hover:text-clay"
                           title="Remove item"
                         >
-                          <Trash2 size={15} />
+                          <Trash2 size={15} strokeWidth={1.5} />
                         </button>
                       </div>
                     </div>
@@ -182,30 +196,30 @@ export default function CartPage() {
               </div>
 
               {/* Guarantees Strip */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 border border-border/80 bg-secondary/20 p-4 rounded-sm text-xs text-muted-foreground">
+              <div className="grid grid-cols-1 gap-4 rounded-sm border border-border/80 bg-sand-50/60 p-4 text-xs text-muted-foreground sm:grid-cols-3">
                 <div className="flex items-center gap-2.5">
-                  <ShieldCheck size={16} className="text-moss shrink-0" />
-                  <span>Screened for pesticides & heavy metals</span>
+                  <ShieldCheck size={16} strokeWidth={1.5} className="shrink-0 text-moss" />
+                  <span>Screened for pesticides &amp; heavy metals</span>
                 </div>
                 <div className="flex items-center gap-2.5">
-                  <Leaf size={16} className="text-moss shrink-0" />
-                  <span>Unblended & 100% single-origin</span>
+                  <Leaf size={16} strokeWidth={1.5} className="shrink-0 text-moss" />
+                  <span>Unblended &amp; 100% single-origin</span>
                 </div>
                 <div className="flex items-center gap-2.5">
-                  <Truck size={16} className="text-moss shrink-0" />
-                  <span>Despatched direct from regional farm hub</span>
+                  <Truck size={16} strokeWidth={1.5} className="shrink-0 text-moss" />
+                  <span>Dispatched direct from regional farm hub</span>
                 </div>
               </div>
             </section>
 
             {/* Right Column: Order Summary Card */}
             <aside className="lg:col-span-4">
-              <div className="sticky top-24 rounded-sm border border-border bg-card p-6 shadow-xs space-y-5">
-                <h2 className="font-display text-lg text-foreground border-b border-border pb-3">
+              <div className="card-flush sticky top-24 space-y-5 bg-card p-6 shadow-soft">
+                <h2 className="border-b border-border/80 pb-3 font-display text-lg tracking-tight text-foreground">
                   Order Summary
                 </h2>
 
-                <div className="space-y-3 text-xs font-mono">
+                <div className="space-y-3 font-mono text-xs">
                   <div className="flex justify-between text-muted-foreground">
                     <span>Items Subtotal</span>
                     <span className="text-foreground">{inr(subtotal)}</span>
@@ -217,35 +231,35 @@ export default function CartPage() {
                   </div>
 
                   <div className="flex justify-between text-muted-foreground">
-                    <span>Taxes & Cess</span>
+                    <span>Taxes &amp; Cess</span>
                     <span className="text-[11px] text-muted-foreground">Calculated at checkout</span>
                   </div>
                 </div>
 
-                <div className="border-t border-border pt-4">
+                <div className="border-t border-border/80 pt-4">
                   <div className="flex items-baseline justify-between font-mono">
-                    <span className="text-xs uppercase font-semibold text-foreground">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-foreground">
                       Estimated Total
                     </span>
-                    <span className="text-lg font-semibold text-foreground">
+                    <span className="text-price text-lg font-semibold text-foreground">
                       {inr(totalAmount)}
                     </span>
                   </div>
-                  <p className="mt-1 text-[10px] font-mono text-muted-foreground">
-                    Inclusive of all local agricultural taxes
+                  <p className="mt-1 font-mono text-[10px] text-muted-foreground">
+                    Inclusive of all statutory taxes
                   </p>
                 </div>
 
                 <button
                   type="button"
                   onClick={() => navigate("/checkout")}
-                  className="btn-base w-full bg-foreground text-background py-3 text-xs uppercase font-mono tracking-widest hover:bg-foreground/90 transition-all font-semibold flex items-center justify-center gap-2 rounded-xs shadow-xs"
+                  className="btn-base btn-primary w-full py-3 text-xs uppercase tracking-wider"
                 >
                   <span>Proceed to Checkout</span>
-                  <ArrowRight size={14} />
+                  <ArrowRight size={14} strokeWidth={1.5} />
                 </button>
 
-                <p className="text-center text-[11px] font-mono text-muted-foreground">
+                <p className="text-center font-mono text-[11px] text-muted-foreground">
                   🔒 Encrypted and secure checkout flow
                 </p>
               </div>

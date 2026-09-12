@@ -79,18 +79,18 @@ export default function JournalDetailPage() {
 
   if (loading) {
     return (
-      <div className="container-page max-w-3xl py-20 space-y-8 animate-pulse">
-        <div className="h-4 w-32 bg-secondary/60 rounded-xs" />
+      <div className="container-page max-w-3xl space-y-8 py-16 md:py-24">
+        <div className="skeleton h-4 w-32 rounded-full" />
         <div className="space-y-4">
-          <div className="h-4 w-24 bg-secondary/50 rounded-xs" />
-          <div className="h-10 w-full bg-secondary/70 rounded-xs" />
-          <div className="h-16 w-full bg-secondary/40 rounded-xs" />
+          <div className="skeleton h-3 w-24 rounded-full" />
+          <div className="skeleton h-10 w-full rounded-sm" />
+          <div className="skeleton h-16 w-full rounded-sm" />
         </div>
-        <div className="aspect-[16/10] w-full bg-secondary/50 rounded-xs" />
+        <div className="skeleton aspect-[16/10] w-full rounded-sm" />
         <div className="space-y-4 pt-4">
-          <div className="h-4 w-full bg-secondary/40 rounded-xs" />
-          <div className="h-4 w-5/6 bg-secondary/40 rounded-xs" />
-          <div className="h-4 w-4/6 bg-secondary/40 rounded-xs" />
+          <div className="skeleton h-4 w-full rounded-full" />
+          <div className="skeleton h-4 w-5/6 rounded-full" />
+          <div className="skeleton h-4 w-4/6 rounded-full" />
         </div>
       </div>
     );
@@ -98,19 +98,21 @@ export default function JournalDetailPage() {
 
   if (!article) {
     return (
-      <div className="container-page py-28 text-center max-w-md mx-auto">
-        <div className="p-3 rounded-full bg-secondary text-muted-foreground w-fit mx-auto mb-4">
+      <div className="container-page mx-auto max-w-md py-28 text-center">
+        <div className="mx-auto mb-4 grid h-12 w-12 place-items-center rounded-full bg-sand-100 text-muted-foreground">
           <BookOpen size={22} strokeWidth={1.5} />
         </div>
-        <h1 className="font-serif text-2xl md:text-3xl text-foreground">Dispatch Not Found</h1>
-        <p className="mt-2 text-xs sm:text-sm text-muted-foreground leading-relaxed">
+        <h1 className="font-display text-2xl tracking-tight text-foreground md:text-3xl">
+          Dispatch Not Found
+        </h1>
+        <p className="mt-2 text-xs leading-relaxed text-muted-foreground sm:text-sm">
           This harvest record or wellness guide may have been archived or updated under a different slug.
         </p>
         <Link
           to="/journal"
-          className="btn-base mt-6 inline-flex items-center gap-2 bg-primary px-6 py-2.5 text-xs text-primary-foreground"
+          className="btn-base btn-primary mt-6 inline-flex items-center gap-2 text-xs uppercase tracking-wider"
         >
-          <ArrowLeft size={14} /> Back to Journal Feed
+          <ArrowLeft size={14} strokeWidth={1.5} /> Back to Journal Feed
         </Link>
       </div>
     );
@@ -134,53 +136,81 @@ export default function JournalDetailPage() {
     }
   );
 
+  const articleSchema = {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: article.title,
+    description: article.excerpt,
+    image: [coverImage],
+    datePublished: article.publishedAt || article.createdAt,
+    author: {
+      "@type": "Organization",
+      name: article.author?.name || "Nirvana Republic",
+    },
+    publisher: {
+      "@type": "Organization",
+      name: "Nirvana Republic",
+      logo: {
+        "@type": "ImageObject",
+        url: "https://nirvanarepublic.in/logo.png",
+      },
+    },
+  };
+
   return (
     <>
       <SEO
         title={`${article.title} — Nirvana Republic Journal`}
         description={article.excerpt}
         canonical={`/journal/${article.slug}`}
+        type="article"
+        schema={articleSchema}
       />
 
       <article className="container-page max-w-3xl py-10 md:py-16">
         <Link
           to="/journal"
-          className="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors mb-8"
+          className="group mb-8 inline-flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-muted-foreground transition-colors hover:text-foreground"
         >
-          <ArrowLeft size={14} /> Back to all dispatches
+          <ArrowLeft
+            size={14}
+            strokeWidth={1.5}
+            className="transition-transform duration-200 group-hover:-translate-x-0.5"
+          />
+          <span>Back to all dispatches</span>
         </Link>
 
         {/* Meta Header */}
         <header className="space-y-4">
-          <div className="flex flex-wrap items-center gap-3 text-xs font-mono text-clay uppercase tracking-widest">
+          <div className="flex flex-wrap items-center gap-2.5 font-mono text-xs uppercase tracking-widest text-clay">
             <span>{article.category}</span>
-            <span>·</span>
+            <span className="text-border">·</span>
             <span className="flex items-center gap-1 text-muted-foreground">
-              <Clock size={12} /> {readTimeFormatted}
+              <Clock size={12} strokeWidth={1.5} /> {readTimeFormatted}
             </span>
-            <span>·</span>
+            <span className="text-border">·</span>
             <span className="flex items-center gap-1 text-muted-foreground">
-              <Calendar size={12} /> {formattedDate}
+              <Calendar size={12} strokeWidth={1.5} /> {formattedDate}
             </span>
           </div>
 
-          <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl text-foreground font-normal leading-tight">
+          <h1 className="text-balance font-display text-3xl leading-[1.15] tracking-tight text-foreground sm:text-4xl lg:text-display-md">
             {article.title}
           </h1>
 
           {article.excerpt && (
-            <p className="text-base sm:text-lg text-muted-foreground leading-relaxed border-l-2 border-moss pl-4 py-1 italic">
+            <p className="border-l-2 border-moss py-1 pl-4 font-serif text-base italic leading-relaxed text-muted-foreground sm:text-lg">
               {article.excerpt}
             </p>
           )}
 
           {/* Author info & Share button */}
-          <div className="flex items-center justify-between border-y border-border py-4 mt-6">
+          <div className="mt-6 flex items-center justify-between border-y border-border/80 py-4">
             <div>
-              <p className="text-xs font-mono uppercase font-semibold text-foreground">
+              <p className="font-mono text-xs font-semibold uppercase tracking-wide text-foreground">
                 {article.author?.name || "Nirvana Republic"}
               </p>
-              <p className="text-[11px] font-mono text-muted-foreground">
+              <p className="font-mono text-[11px] text-muted-foreground">
                 {article.author?.role || "Editorial Desk & Farm Origin Team"}
               </p>
             </div>
@@ -188,16 +218,16 @@ export default function JournalDetailPage() {
             <button
               type="button"
               onClick={handleShare}
-              className="flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider text-muted-foreground hover:text-foreground border border-border px-3 py-1.5 rounded-sm hover:bg-secondary transition-colors"
+              className="btn-base btn-outline btn-sm font-mono text-xs uppercase tracking-wider"
             >
-              {copied ? <Check size={13} className="text-moss" /> : <Share2 size={13} />}
+              {copied ? <Check size={13} className="text-moss" /> : <Share2 size={13} strokeWidth={1.5} />}
               <span>{copied ? "Copied" : "Share"}</span>
             </button>
           </div>
         </header>
 
         {/* Cover Photo */}
-        <div className="mt-8 overflow-hidden rounded-xs bg-secondary aspect-[16/10] border border-border/60">
+        <div className="card-flush mt-8 aspect-[16/10] overflow-hidden bg-sand-100">
           <img
             src={coverImage}
             alt={article.title}
@@ -206,18 +236,18 @@ export default function JournalDetailPage() {
         </div>
 
         {/* Article Body Content */}
-        <div className="mt-10 space-y-6 text-foreground/90 leading-relaxed text-sm sm:text-base font-sans whitespace-pre-line">
+        <div className="mt-10 space-y-6 font-sans text-sm leading-relaxed text-foreground/90 whitespace-pre-line sm:text-base">
           {article.content}
         </div>
 
         {/* Tags */}
         {article.tags && article.tags.length > 0 && (
-          <footer className="mt-12 pt-6 border-t border-border flex flex-wrap items-center gap-2">
-            <Tag size={13} className="text-muted-foreground mr-1" />
+          <footer className="mt-12 flex flex-wrap items-center gap-2 border-t border-border/80 pt-6">
+            <Tag size={13} strokeWidth={1.5} className="mr-1 text-muted-foreground" />
             {article.tags.map((tag) => (
               <span
                 key={tag}
-                className="bg-secondary text-foreground text-[11px] font-mono uppercase tracking-wider px-2.5 py-1 rounded-none border border-border"
+                className="badge-base badge-bestseller font-mono text-[11px] uppercase tracking-wider text-foreground"
               >
                 #{tag}
               </span>

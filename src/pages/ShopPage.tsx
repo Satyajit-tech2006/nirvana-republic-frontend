@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState, useTransition } from "react";
+import React, { useEffect, useState, useTransition } from "react";
 import { useSearchParams } from "react-router-dom";
 import {
   Search,
@@ -31,6 +31,25 @@ const sortOptions = [
   { value: "newest", label: "Latest Harvest" },
 ];
 
+function CatalogSkeleton() {
+  return (
+    <div className="grid grid-cols-2 gap-x-5 gap-y-12 sm:gap-x-6 md:gap-y-14 lg:grid-cols-4 lg:gap-x-8">
+      {[...Array(8)].map((_, i) => (
+        <div key={i} className="space-y-3">
+          <div className="skeleton aspect-square w-full rounded-sm" />
+          <div className="flex justify-between">
+            <div className="skeleton h-3 w-1/3 rounded-full" />
+            <div className="skeleton h-3 w-1/4 rounded-full" />
+          </div>
+          <div className="skeleton h-4 w-3/4 rounded-full" />
+          <div className="skeleton h-3 w-1/2 rounded-full" />
+          <div className="skeleton h-4 w-1/3 rounded-full pt-1" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function ShopPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [, startTransition] = useTransition();
@@ -50,12 +69,12 @@ export default function ShopPage() {
 
   const [searchInput, setSearchInput] = useState(searchQuery);
 
-  // Sync search input if URL changes externally
+  // Sync search input when URL changes
   useEffect(() => {
     setSearchInput(searchQuery);
   }, [searchQuery]);
 
-  // Fetch live products
+  // Fetch catalog products
   useEffect(() => {
     let isMounted = true;
 
@@ -99,7 +118,6 @@ export default function ShopPage() {
     };
   }, [category, searchQuery, sortBy, page]);
 
-  // Query parameter update helper
   const updateParams = (updates: Record<string, string | null>) => {
     const next = new URLSearchParams(searchParams);
     Object.entries(updates).forEach(([key, value]) => {
@@ -109,10 +127,11 @@ export default function ShopPage() {
         next.set(key, value);
       }
     });
-    // Always reset to page 1 unless pagination is explicitly changing
+
     if (!updates.page) {
       next.delete("page");
     }
+
     startTransition(() => {
       setSearchParams(next);
     });
@@ -140,40 +159,43 @@ export default function ShopPage() {
 
       <main className="container-page py-10 md:py-16">
         {/* Editorial Page Header */}
-        <header className="relative border-b border-border/80 pb-8 md:pb-12">
-          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
+        <header className="border-b border-border/80 pb-8 md:pb-12">
+          <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
             <div className="max-w-2xl">
               <div className="flex items-center gap-2 text-moss">
-                <Sparkles size={14} />
-                <span className="eyebrow text-[10px] tracking-[0.24em]">Single-Origin Catalog</span>
+                <Sparkles size={14} strokeWidth={1.5} />
+                <span className="eyebrow-accent text-[10px] tracking-[0.24em]">
+                  Single-Origin Catalog
+                </span>
               </div>
-              <h1 className="mt-2.5 font-display text-3xl sm:text-4xl lg:text-5xl leading-tight text-foreground">
-                Wholesome Staples & Seeds
+              <h1 className="mt-2 text-balance font-display text-3xl tracking-tight text-foreground sm:text-4xl lg:text-display-md">
+                Wholesome Staples &amp; Seeds
               </h1>
-              <p className="mt-3 text-xs sm:text-sm leading-relaxed text-muted-foreground">
+              <p className="mt-3 max-w-[50ch] text-sm leading-relaxed text-muted-foreground">
                 Grown across dedicated farm clusters. Clean, unblended, and tested for pesticides,
                 heavy metals, and microbials before packaging.
               </p>
             </div>
 
             {/* Total Results Counter */}
-            <div className="font-mono text-xs text-muted-foreground uppercase tracking-wider">
+            <div className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
               <span>Showing </span>
               <strong className="text-foreground">{products.length}</strong>
               {pagination.totalProducts > 0 && (
                 <span> of {pagination.totalProducts}</span>
-              )} staples
+              )}{" "}
+              staples
             </div>
           </div>
         </header>
 
         {/* Control Bar: Categories, Search, and Sorting */}
         <div className="mt-8 space-y-4">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-            {/* Category Filter Pills */}
+          <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
+            {/* Category Filter Tabs */}
             <nav
               aria-label="Filter by Category"
-              className="flex items-center gap-1.5 overflow-x-auto pb-2 scrollbar-none"
+              className="flex items-center gap-1.5 overflow-x-auto pb-1"
             >
               {categories.map((cat) => {
                 const isActive =
@@ -183,10 +205,10 @@ export default function ShopPage() {
                     key={cat.id}
                     type="button"
                     onClick={() => updateParams({ category: cat.id })}
-                    className={`whitespace-nowrap px-3.5 py-1.5 text-[11px] font-mono uppercase tracking-wider transition-all duration-200 border rounded-sm ${
+                    className={`whitespace-nowrap px-3.5 py-1.5 font-mono text-[11px] uppercase tracking-wider transition-all duration-200 rounded-xs border ${
                       isActive
-                        ? "bg-foreground text-background border-foreground font-semibold shadow-xs"
-                        : "bg-secondary/60 text-muted-foreground border-transparent hover:border-border hover:text-foreground"
+                        ? "border-foreground bg-foreground font-semibold text-background shadow-xs"
+                        : "border-transparent bg-sand-100/70 text-muted-foreground hover:border-border hover:text-foreground"
                     }`}
                   >
                     {cat.label}
@@ -201,14 +223,15 @@ export default function ShopPage() {
               <form onSubmit={handleSearchSubmit} className="relative flex-1 sm:w-64">
                 <Search
                   size={14}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                  strokeWidth={1.5}
+                  className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
                 />
                 <input
                   type="search"
-                  placeholder="Search moringa, chia, jaggery..."
+                  placeholder="Search moringa, chia..."
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
-                  className="w-full bg-secondary/40 border border-border/80 pl-9 pr-8 py-1.5 text-xs rounded-sm placeholder:text-muted-foreground/70 focus:outline-none focus:border-moss transition-colors"
+                  className="input-base py-1.5 pl-8 pr-8 text-xs placeholder:text-muted-foreground/70"
                 />
                 {searchInput && (
                   <button
@@ -219,7 +242,7 @@ export default function ShopPage() {
                     }}
                     className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                   >
-                    <X size={13} />
+                    <X size={13} strokeWidth={1.5} />
                   </button>
                 )}
               </form>
@@ -230,7 +253,7 @@ export default function ShopPage() {
                   value={sortBy}
                   onChange={(e) => updateParams({ sort: e.target.value })}
                   aria-label="Sort products"
-                  className="appearance-none bg-secondary/40 border border-border/80 pl-3 pr-8 py-1.5 text-xs font-mono text-foreground rounded-sm focus:outline-none focus:border-moss transition-colors cursor-pointer"
+                  className="input-base cursor-pointer appearance-none py-1.5 pl-3 pr-8 font-mono text-xs uppercase tracking-wider text-foreground"
                 >
                   {sortOptions.map((opt) => (
                     <option key={opt.value} value={opt.value}>
@@ -240,6 +263,7 @@ export default function ShopPage() {
                 </select>
                 <ArrowUpDown
                   size={12}
+                  strokeWidth={1.5}
                   className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground"
                 />
               </div>
@@ -248,10 +272,12 @@ export default function ShopPage() {
 
           {/* Active Filter Badges */}
           {hasActiveFilters && (
-            <div className="flex flex-wrap items-center gap-2 pt-2 text-xs">
-              <span className="text-muted-foreground font-mono text-[11px]">Active Filters:</span>
+            <div className="flex flex-wrap items-center gap-2 pt-2">
+              <span className="font-mono text-[11px] uppercase tracking-wide text-muted-foreground">
+                Active Filters:
+              </span>
               {category !== "all" && (
-                <span className="inline-flex items-center gap-1.5 bg-secondary px-2.5 py-0.5 rounded-sm font-mono text-[11px] text-foreground">
+                <span className="inline-flex items-center gap-1.5 rounded-xs border border-border bg-card px-2.5 py-0.5 font-mono text-[11px] text-foreground shadow-xs">
                   Shelf: {categories.find((c) => c.id === category)?.label || category}
                   <button
                     type="button"
@@ -263,7 +289,7 @@ export default function ShopPage() {
                 </span>
               )}
               {searchQuery && (
-                <span className="inline-flex items-center gap-1.5 bg-secondary px-2.5 py-0.5 rounded-sm font-mono text-[11px] text-foreground">
+                <span className="inline-flex items-center gap-1.5 rounded-xs border border-border bg-card px-2.5 py-0.5 font-mono text-[11px] text-foreground shadow-xs">
                   Query: "{searchQuery}"
                   <button
                     type="button"
@@ -280,7 +306,7 @@ export default function ShopPage() {
               <button
                 type="button"
                 onClick={clearAllFilters}
-                className="text-[11px] font-mono text-moss hover:underline ml-1"
+                className="ml-1 font-mono text-[11px] text-moss underline underline-offset-4 hover:text-foreground"
               >
                 Reset All
               </button>
@@ -289,52 +315,43 @@ export default function ShopPage() {
         </div>
 
         {/* Product Catalog Grid */}
-        <section className="mt-8">
+        <section className="mt-10">
           {loading ? (
-            <div className="grid grid-cols-2 gap-x-4 gap-y-10 sm:gap-x-6 md:gap-y-12 lg:grid-cols-4">
-              {[...Array(8)].map((_, i) => (
-                <div key={i} className="animate-pulse space-y-3">
-                  <div className="aspect-square w-full bg-secondary/50 rounded-xs" />
-                  <div className="flex justify-between">
-                    <div className="h-3 bg-secondary/70 w-1/4 rounded-xs" />
-                    <div className="h-3 bg-secondary/70 w-1/6 rounded-xs" />
-                  </div>
-                  <div className="h-4 bg-secondary/80 w-3/4 rounded-xs" />
-                  <div className="h-3 bg-secondary/50 w-1/2 rounded-xs" />
-                  <div className="h-4 bg-secondary/70 w-1/3 rounded-xs pt-2" />
-                </div>
-              ))}
-            </div>
+            <CatalogSkeleton />
           ) : products.length === 0 ? (
             /* Empty State */
-            <div className="flex flex-col items-center justify-center border border-dashed border-border py-24 px-4 text-center rounded-sm my-6 bg-secondary/10">
-              <div className="p-3 rounded-full bg-secondary text-muted-foreground mb-3">
+            <div className="my-10 flex flex-col items-center justify-center rounded-sm border border-dashed border-border/80 bg-sand-50/40 px-6 py-24 text-center">
+              <div className="mb-4 grid h-12 w-12 place-items-center rounded-full bg-sand-100 text-muted-foreground">
                 <SlidersHorizontal size={20} strokeWidth={1.5} />
               </div>
-              <h2 className="font-display text-xl sm:text-2xl text-foreground">
+              <h2 className="font-display text-2xl tracking-tight text-foreground">
                 No matching farm staples found
               </h2>
-              <p className="mt-2 text-xs sm:text-sm text-muted-foreground max-w-sm">
+              <p className="mt-2 max-w-sm text-sm leading-relaxed text-muted-foreground">
                 We couldn't find any single-origin lots matching your active shelf or search criteria.
               </p>
               <button
                 type="button"
                 onClick={clearAllFilters}
-                className="btn-base mt-6 bg-primary text-primary-foreground text-xs py-2 px-6 hover:bg-primary/90"
+                className="btn-base btn-primary mt-6 text-xs uppercase tracking-wider"
               >
-                Clear Filters & View Catalog
+                Clear Filters &amp; View Catalog
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-x-4 gap-y-10 sm:gap-x-6 md:gap-y-12 lg:grid-cols-4">
+            <div className="grid grid-cols-2 gap-x-5 gap-y-12 sm:gap-x-6 md:gap-y-14 lg:grid-cols-4 lg:gap-x-8">
               {products.map((product) => (
-                <ProductCard
+                <div
                   key={product._id || product.id}
-                  product={{
-                    ...product,
-                    id: product._id || product.id,
-                  }}
-                />
+                  className="transition-transform duration-300 ease-out hover:-translate-y-1"
+                >
+                  <ProductCard
+                    product={{
+                      ...product,
+                      id: product._id || product.id,
+                    }}
+                  />
+                </div>
               ))}
             </div>
           )}
@@ -344,18 +361,18 @@ export default function ShopPage() {
         {pagination.totalPages > 1 && (
           <nav
             aria-label="Pagination Navigation"
-            className="mt-16 flex items-center justify-center gap-2 border-t border-border pt-8"
+            className="mt-16 flex items-center justify-center gap-2 border-t border-border/80 pt-8"
           >
             <button
               type="button"
               disabled={page <= 1}
               onClick={() => updateParams({ page: String(page - 1) })}
-              className="inline-flex items-center gap-1 border border-border px-3 py-1.5 text-xs font-mono rounded-sm transition-colors hover:bg-secondary disabled:opacity-40 disabled:pointer-events-none"
+              className="btn-base btn-outline btn-sm font-mono text-xs uppercase tracking-wider disabled:pointer-events-none disabled:opacity-40"
             >
               <ChevronLeft size={14} /> Previous
             </button>
 
-            <div className="flex items-center gap-1 mx-2">
+            <div className="mx-2 flex items-center gap-1">
               {[...Array(pagination.totalPages)].map((_, idx) => {
                 const pageNum = idx + 1;
                 const isCurrent = pageNum === page;
@@ -364,10 +381,10 @@ export default function ShopPage() {
                     key={pageNum}
                     type="button"
                     onClick={() => updateParams({ page: String(pageNum) })}
-                    className={`h-8 w-8 text-xs font-mono rounded-sm transition-colors ${
+                    className={`h-8 w-8 rounded-xs font-mono text-xs transition-colors ${
                       isCurrent
-                        ? "bg-foreground text-background font-semibold"
-                        : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                        ? "bg-foreground font-semibold text-background"
+                        : "text-muted-foreground hover:bg-sand-100 hover:text-foreground"
                     }`}
                   >
                     {pageNum}
@@ -380,7 +397,7 @@ export default function ShopPage() {
               type="button"
               disabled={page >= pagination.totalPages}
               onClick={() => updateParams({ page: String(page + 1) })}
-              className="inline-flex items-center gap-1 border border-border px-3 py-1.5 text-xs font-mono rounded-sm transition-colors hover:bg-secondary disabled:opacity-40 disabled:pointer-events-none"
+              className="btn-base btn-outline btn-sm font-mono text-xs uppercase tracking-wider disabled:pointer-events-none disabled:opacity-40"
             >
               Next <ChevronRight size={14} />
             </button>

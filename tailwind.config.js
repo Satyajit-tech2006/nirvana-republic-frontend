@@ -1,0 +1,127 @@
+/** @type {import('tailwindcss').Config} */
+export default {
+  darkMode: ["class"],
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+  theme: {
+    extend: {
+      fontFamily: {
+        display: ['"Fraunces"', "ui-serif", "Georgia", "serif"],
+        sans: ['"DM Sans"', "ui-sans-serif", "system-ui", "sans-serif"],
+        mono: ['"IBM Plex Mono"', "ui-monospace", '"SF Mono"', "monospace"],
+      },
+      colors: {
+        background: "var(--background)",
+        foreground: "var(--foreground)",
+        card: {
+          DEFAULT: "var(--card)",
+          foreground: "var(--card-foreground)",
+        },
+        popover: {
+          DEFAULT: "var(--popover)",
+          foreground: "var(--popover-foreground)",
+        },
+        primary: {
+          DEFAULT: "var(--primary)",
+          foreground: "var(--primary-foreground)",
+          50: "var(--primary-50)",
+          100: "var(--primary-100)",
+          200: "var(--primary-200)",
+          300: "var(--primary-300)",
+          400: "var(--primary-400)",
+          500: "var(--primary-500)",
+          600: "var(--primary-600)",
+          700: "var(--primary-700)",
+          800: "var(--primary-800)",
+          900: "var(--primary-900)",
+        },
+        secondary: {
+          DEFAULT: "var(--secondary)",
+          foreground: "var(--secondary-foreground)",
+        },
+        muted: {
+          DEFAULT: "var(--muted)",
+          foreground: "var(--muted-foreground)",
+        },
+        accent: {
+          DEFAULT: "var(--accent)",
+          foreground: "var(--accent-foreground)",
+        },
+        destructive: {
+          DEFAULT: "var(--destructive)",
+          foreground: "var(--destructive-foreground)",
+        },
+        success: {
+          DEFAULT: "var(--success)",
+          foreground: "var(--success-foreground)",
+        },
+        info: {
+          DEFAULT: "var(--info)",
+          foreground: "var(--info-foreground)",
+        },
+        border: "var(--border)",
+        input: "var(--input)",
+        ring: "var(--ring)",
+
+        /* Brand scales */
+        clay: {
+          DEFAULT: "var(--clay)",
+          50: "var(--clay-50)",
+          100: "var(--clay-100)",
+          200: "var(--clay-200)",
+          300: "var(--clay-300)",
+          400: "var(--clay-400)",
+          500: "var(--clay-500)",
+          600: "var(--clay-600)",
+          700: "var(--clay-700)",
+          800: "var(--clay-800)",
+          900: "var(--clay-900)",
+        },
+        moss: {
+          DEFAULT: "var(--moss)",
+          50: "var(--moss-50)",
+          100: "var(--moss-100)",
+          200: "var(--moss-200)",
+          300: "var(--moss-300)",
+          400: "var(--moss-400)",
+          500: "var(--moss-500)",
+          600: "var(--moss-600)",
+          700: "var(--moss-700)",
+          800: "var(--moss-800)",
+          900: "var(--moss-900)",
+        },
+        sand: {
+          DEFAULT: "var(--sand)",
+          50: "var(--sand-50)",
+          100: "var(--sand-100)",
+          200: "var(--sand-200)",
+          300: "var(--sand-300)",
+          400: "var(--sand-400)",
+          500: "var(--sand-500)",
+          600: "var(--sand-600)",
+          700: "var(--sand-700)",
+          800: "var(--sand-800)",
+          900: "var(--sand-900)",
+        },
+      },
+      borderRadius: {
+        xs: "var(--radius-xs)",
+        sm: "var(--radius-sm)",
+        md: "var(--radius-md)",
+        lg: "var(--radius)",
+        xl: "var(--radius-xl)",
+        "2xl": "var(--radius-2xl)",
+        "3xl": "var(--radius-3xl)",
+      },
+      boxShadow: {
+        xs: "var(--shadow-xs)",
+        soft: "var(--shadow-soft)",
+        lift: "var(--shadow-lift)",
+        inset: "var(--shadow-inset)",
+      },
+    },
+  },
+  plugins: [],
+};
