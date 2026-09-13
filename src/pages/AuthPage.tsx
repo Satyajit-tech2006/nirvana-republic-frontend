@@ -53,20 +53,20 @@ export const AuthPage: React.FC = () => {
         canonical="/auth"
       />
 
-      <main className="min-h-[calc(100dvh-5rem)] bg-background">
-        <div className="container-page grid min-h-[calc(100dvh-5rem)] lg:grid-cols-12">
-          {/* Editorial Left Column */}
-          <section className="hidden flex-col justify-between border-r border-border/80 py-16 pr-12 lg:col-span-5 lg:flex xl:col-span-6 xl:pr-20">
+      <main className="min-h-[calc(100dvh-4rem)] bg-background">
+        <div className="mx-auto grid min-h-[calc(100dvh-4rem)] max-w-7xl grid-cols-1 md:grid-cols-12">
+          {/* Editorial Left Column (Now visible from 768px / md up) */}
+          <section className="hidden flex-col justify-between border-r border-border/80 bg-sand-50/40 p-8 md:col-span-5 md:flex lg:col-span-5 lg:p-14 xl:col-span-6 xl:p-20">
             <div>
               <p className="eyebrow-accent">Member Sanctuary</p>
-              <h1 className="mt-4 text-balance font-display text-4xl leading-[1.12] tracking-tight text-foreground xl:text-display-md">
+              <h1 className="mt-4 text-balance font-display text-3xl leading-[1.12] tracking-tight text-foreground lg:text-4xl xl:text-display-md">
                 Every harvest traced. Every batch accountable.
               </h1>
-              <p className="mt-5 max-w-[38ch] text-[15px] leading-relaxed text-muted-foreground">
+              <p className="mt-5 max-w-[38ch] text-[14px] leading-relaxed text-muted-foreground lg:text-[15px]">
                 Your account is a quiet corner for managing whole-food staples, lab-tested harvests, and unhurried daily rituals.
               </p>
 
-              <ul className="mt-12 space-y-4">
+              <ul className="mt-10 space-y-4 lg:mt-12">
                 {sanctuaryPledges.map((item) => (
                   <li key={item} className="flex items-start gap-3">
                     <span className="mt-1 grid h-4 w-4 shrink-0 place-items-center rounded-full bg-sand-200 text-moss">
@@ -88,7 +88,7 @@ export const AuthPage: React.FC = () => {
           </section>
 
           {/* Form Right Column */}
-          <section className="flex flex-col justify-center py-12 sm:py-16 lg:col-span-7 lg:py-20 lg:pl-12 xl:col-span-6 xl:pl-20">
+          <section className="flex flex-col justify-center px-6 py-12 sm:px-10 md:col-span-7 md:px-10 lg:col-span-7 lg:px-16 xl:col-span-6 xl:px-20">
             <div className="mx-auto w-full max-w-md">
               {/* Top Mode Segmented Switch */}
               <div className="flex items-center justify-between border-b border-border/80 pb-4">
@@ -192,7 +192,7 @@ export const AuthPage: React.FC = () => {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       className="input-base pr-10 text-sm"
-                      placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;"
+                      placeholder="••••••••"
                       autoComplete={isLogin ? "current-password" : "new-password"}
                     />
                     <button
