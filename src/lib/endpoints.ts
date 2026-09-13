@@ -19,6 +19,14 @@ export const ENDPOINTS = {
       `${API_BASE_URL}/users/addresses/${addressId}`,
   },
 
+  // Admin User & Capability Management
+  ADMIN_USERS: {
+    SEARCH: `${API_BASE_URL}/users/admin/search`,
+    GET_ALL_ADMINS: `${API_BASE_URL}/users/admin/admins`,
+    UPDATE_PERMISSIONS: (userId: string) =>
+      `${API_BASE_URL}/users/admin/${userId}/permissions`,
+  },
+
   // Product Catalog & Traceability
   PRODUCTS: {
     GET_ALL: `${API_BASE_URL}/products`,

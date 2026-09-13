@@ -13,6 +13,7 @@ import {
   Clock,
   Sparkles,
   X,
+  ShieldCheck,
 } from "lucide-react";
 import { toast } from "sonner";
 import api from "@/lib/axios";
@@ -77,6 +78,14 @@ const emptyAddressState = {
   postalCode: "",
   phone: "",
   isDefault: false,
+};
+
+const PERMISSION_LABELS: Record<string, string> = {
+  MANAGE_PRODUCTS: "Catalog Manager",
+  MANAGE_INVENTORY: "Inventory Master",
+  MANAGE_JOURNALS: "Editorial Publisher",
+  MANAGE_ORDERS: "Fulfillment Agent",
+  MANAGE_USERS: "User Management",
 };
 
 export default function AccountPage() {
@@ -314,6 +323,9 @@ export default function AccountPage() {
     );
   }
 
+  const userPermissions = Array.isArray(user.permissions) ? user.permissions : [];
+  const isSuperAdmin = user.role === "admin" && userPermissions.length >= 5;
+
   return (
     <>
       <SEO
@@ -328,12 +340,37 @@ export default function AccountPage() {
           <div>
             <div className="flex items-center gap-2 text-moss">
               <Sparkles size={13} strokeWidth={1.5} />
-              <span className="eyebrow-accent text-[10px] tracking-[0.24em]">Customer Sanctuary</span>
+              <span className="eyebrow-accent text-[10px] tracking-[0.24em]">
+                {user.role === "admin" ? "Staff & Patron Sanctuary" : "Customer Sanctuary"}
+              </span>
             </div>
             <h1 className="mt-2 text-balance font-display text-3xl tracking-tight text-foreground sm:text-4xl">
               {user.name}
             </h1>
             <p className="mt-1 font-mono text-xs text-muted-foreground">{user.email}</p>
+
+            {/* Granular Staff Capabilities Tags (Only shown if user holds permissions) */}
+            {user.role === "admin" && userPermissions.length > 0 && (
+              <div className="mt-3.5 flex flex-wrap items-center gap-2">
+                <span className="flex items-center gap-1 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                  <ShieldCheck size={13} className="text-moss" /> Clearance:
+                </span>
+                {isSuperAdmin ? (
+                  <span className="badge-base border-moss/50 bg-moss/10 font-mono text-[10px] font-medium text-moss">
+                    Super Admin (All Capabilities)
+                  </span>
+                ) : (
+                  userPermissions.map((perm) => (
+                    <span
+                      key={perm}
+                      className="badge-base border-border/90 bg-sand-100/80 font-mono text-[10px] uppercase tracking-wide text-foreground"
+                    >
+                      {PERMISSION_LABELS[perm] || perm.replace("MANAGE_", "")}
+                    </span>
+                  ))
+                )}
+              </div>
+            )}
           </div>
 
           <div className="flex items-center gap-3">

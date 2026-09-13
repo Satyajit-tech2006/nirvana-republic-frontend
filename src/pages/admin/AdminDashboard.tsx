@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import api from "@/lib/axios";
 import ENDPOINTS from "@/lib/endpoints";
+import { useAuth } from "@/context/AuthContext";
 import {
   Upload,
   Plus,
@@ -15,40 +16,92 @@ import {
   ClipboardList,
   BookOpen,
   Sparkles,
+  Shield,
+  ShieldAlert,
 } from "lucide-react";
 import AdminInventoryPage from "./AdminInventoryPage";
 import AdminOrdersPage from "./AdminOrdersPage";
 import AdminJournalPage from "./AdminJournalPage";
+import UserManagementPortal from "./UserManagementPortal";
 import { SEO } from "@/components/SEO";
+
+type AdminTab = "publish" | "inventory" | "orders" | "journal" | "users";
 
 export default function AdminDashboard() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { hasPermission, user } = useAuth();
 
-  // Helper to resolve active tab from URL pathname
-  const getTabFromPath = (path: string): "publish" | "inventory" | "orders" | "journal" => {
-    if (path.includes("/admin/inventory")) return "inventory";
-    if (path.includes("/admin/orders")) return "orders";
-    if (path.includes("/admin/journal")) return "journal";
-    return "publish";
-  };
-
-  const [activeTab, setActiveTab] = useState<"publish" | "inventory" | "orders" | "journal">(() =>
-    getTabFromPath(location.pathname)
+  // Check if a specific tab is permitted for the logged-in user
+  const isTabAllowed = useCallback(
+    (tab: AdminTab): boolean => {
+      switch (tab) {
+        case "publish":
+          return hasPermission("MANAGE_PRODUCTS");
+        case "inventory":
+          return hasPermission("MANAGE_INVENTORY");
+        case "orders":
+          return hasPermission("MANAGE_ORDERS");
+        case "journal":
+          return hasPermission("MANAGE_JOURNALS");
+        case "users":
+          return hasPermission("MANAGE_USERS");
+        default:
+          return false;
+      }
+    },
+    [hasPermission]
   );
 
-  // Sync state whenever the URL pathname changes
-  useEffect(() => {
-    setActiveTab(getTabFromPath(location.pathname));
-  }, [location.pathname]);
+  // Helper to find the first authorized tab for redirection
+  const firstAllowedTab = useMemo((): AdminTab | null => {
+    if (hasPermission("MANAGE_PRODUCTS")) return "publish";
+    if (hasPermission("MANAGE_INVENTORY")) return "inventory";
+    if (hasPermission("MANAGE_ORDERS")) return "orders";
+    if (hasPermission("MANAGE_JOURNALS")) return "journal";
+    if (hasPermission("MANAGE_USERS")) return "users";
+    return null;
+  }, [hasPermission]);
 
-  const handleTabChange = (tab: "publish" | "inventory" | "orders" | "journal") => {
+  // Resolve requested tab from URL pathname, falling back to first allowed tab if unauthorized
+  const resolveAllowedTab = useCallback(
+    (pathname: string): AdminTab | null => {
+      let requested: AdminTab = "publish";
+      if (pathname.includes("/admin/inventory")) requested = "inventory";
+      else if (pathname.includes("/admin/orders")) requested = "orders";
+      else if (pathname.includes("/admin/journal")) requested = "journal";
+      else if (pathname.includes("/admin/users")) requested = "users";
+
+      if (isTabAllowed(requested)) {
+        return requested;
+      }
+      return firstAllowedTab;
+    },
+    [isTabAllowed, firstAllowedTab]
+  );
+
+  const [activeTab, setActiveTab] = useState<AdminTab | null>(() =>
+    resolveAllowedTab(location.pathname)
+  );
+
+  const handleTabChange = (tab: AdminTab) => {
     setActiveTab(tab);
     if (tab === "publish") navigate("/admin/products/new");
     else if (tab === "inventory") navigate("/admin/inventory");
     else if (tab === "orders") navigate("/admin/orders");
     else if (tab === "journal") navigate("/admin/journal");
+    else if (tab === "users") navigate("/admin/users");
   };
+
+  // Sync state whenever URL or permissions change, enforcing redirection if unauthorized
+  useEffect(() => {
+    const validTab = resolveAllowedTab(location.pathname);
+    if (validTab && validTab !== activeTab) {
+      handleTabChange(validTab);
+    } else if (validTab) {
+      setActiveTab(validTab);
+    }
+  }, [location.pathname, resolveAllowedTab]);
 
   const [loading, setLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
@@ -111,12 +164,16 @@ export default function AdminDashboard() {
       ...prev,
       name: val,
       slug: generatedSlug,
-      sku: prev.weightGrams ? `NR-${generatedSlug.toUpperCase()}-${prev.weightGrams}G` : prev.sku,
+      sku: prev.weightGrams
+        ? `NR-${generatedSlug.toUpperCase()}-${prev.weightGrams}G`
+        : prev.sku,
     }));
   };
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
   ) => {
     const { name, value, type } = e.target;
     if (type === "checkbox") {
@@ -129,7 +186,8 @@ export default function AdminDashboard() {
 
   // Benefits handlers
   const handleAddBenefit = () => setBenefits([...benefits, ""]);
-  const handleRemoveBenefit = (idx: number) => setBenefits(benefits.filter((_, i) => i !== idx));
+  const handleRemoveBenefit = (idx: number) =>
+    setBenefits(benefits.filter((_, i) => i !== idx));
   const handleBenefitChange = (idx: number, val: string) => {
     const updated = [...benefits];
     updated[idx] = val;
@@ -166,10 +224,15 @@ export default function AdminDashboard() {
       payload.append("description", formData.description);
       payload.append("category", formData.category);
       payload.append("price", formData.price);
-      if (formData.compareAtPrice) payload.append("compareAtPrice", formData.compareAtPrice);
+      if (formData.compareAtPrice)
+        payload.append("compareAtPrice", formData.compareAtPrice);
       payload.append("weightGrams", formData.weightGrams);
       payload.append("stockQuantity", formData.stockQuantity);
-      payload.append("sku", formData.sku || `NR-${formData.slug.toUpperCase()}-${formData.weightGrams}G`);
+      payload.append(
+        "sku",
+        formData.sku ||
+          `NR-${formData.slug.toUpperCase()}-${formData.weightGrams}G`
+      );
 
       // Farm Cluster Object
       payload.append(
@@ -189,7 +252,10 @@ export default function AdminDashboard() {
       payload.append("ritualInstruction", formData.ritualInstruction);
 
       // Arrays & Complex Objects
-      payload.append("benefits", JSON.stringify(benefits.filter((b) => b.trim() !== "")));
+      payload.append(
+        "benefits",
+        JSON.stringify(benefits.filter((b) => b.trim() !== ""))
+      );
       payload.append(
         "nutritionalFacts",
         JSON.stringify({
@@ -219,7 +285,9 @@ export default function AdminDashboard() {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      setSuccessMsg(`Lot "${formData.name}" cataloged and published successfully!`);
+      setSuccessMsg(
+        `Lot "${formData.name}" cataloged and published successfully!`
+      );
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err: any) {
       setErrorMsg(err?.response?.data?.message || "Failed to publish product.");
@@ -227,6 +295,24 @@ export default function AdminDashboard() {
       setLoading(false);
     }
   };
+
+  // If user has zero operational permissions assigned
+  if (!firstAllowedTab) {
+    return (
+      <div className="container-page flex min-h-[60vh] flex-col items-center justify-center gap-3 py-24 text-center">
+        <div className="grid h-12 w-12 place-items-center rounded-full bg-clay/10 text-clay">
+          <ShieldAlert size={24} strokeWidth={1.5} />
+        </div>
+        <h2 className="font-display text-2xl tracking-tight text-foreground">
+          Restricted Clearance
+        </h2>
+        <p className="max-w-md text-xs leading-relaxed text-muted-foreground sm:text-sm">
+          Your account is registered as staff, but no specific operational capability tokens
+          have been granted. Contact your platform administrator to assign permissions.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -243,66 +329,98 @@ export default function AdminDashboard() {
             aria-label="Admin Navigation Tabs"
             className="inline-flex flex-wrap gap-1 rounded-sm border border-border/80 bg-sand-100/60 p-1 font-mono text-xs uppercase tracking-wider"
           >
-            <button
-              type="button"
-              onClick={() => handleTabChange("publish")}
-              className={`flex items-center gap-2 rounded-xs px-4 py-2 transition-all duration-200 ${
-                activeTab === "publish"
-                  ? "border border-foreground bg-foreground font-semibold text-background shadow-xs"
-                  : "border border-transparent text-muted-foreground hover:border-border hover:text-foreground"
-              }`}
-            >
-              <PlusCircle size={14} strokeWidth={1.5} />
-              <span>Publish Product</span>
-            </button>
+            {hasPermission("MANAGE_PRODUCTS") && (
+              <button
+                type="button"
+                onClick={() => handleTabChange("publish")}
+                className={`flex items-center gap-2 rounded-xs px-4 py-2 transition-all duration-200 ${
+                  activeTab === "publish"
+                    ? "border border-foreground bg-foreground font-semibold text-background shadow-xs"
+                    : "border border-transparent text-muted-foreground hover:border-border hover:text-foreground"
+                }`}
+              >
+                <PlusCircle size={14} strokeWidth={1.5} />
+                <span>Publish Product</span>
+              </button>
+            )}
 
-            <button
-              type="button"
-              onClick={() => handleTabChange("inventory")}
-              className={`flex items-center gap-2 rounded-xs px-4 py-2 transition-all duration-200 ${
-                activeTab === "inventory"
-                  ? "border border-foreground bg-foreground font-semibold text-background shadow-xs"
-                  : "border border-transparent text-muted-foreground hover:border-border hover:text-foreground"
-              }`}
-            >
-              <Boxes size={14} strokeWidth={1.5} />
-              <span>Inventory &amp; Stock</span>
-            </button>
+            {hasPermission("MANAGE_INVENTORY") && (
+              <button
+                type="button"
+                onClick={() => handleTabChange("inventory")}
+                className={`flex items-center gap-2 rounded-xs px-4 py-2 transition-all duration-200 ${
+                  activeTab === "inventory"
+                    ? "border border-foreground bg-foreground font-semibold text-background shadow-xs"
+                    : "border border-transparent text-muted-foreground hover:border-border hover:text-foreground"
+                }`}
+              >
+                <Boxes size={14} strokeWidth={1.5} />
+                <span>Inventory &amp; Stock</span>
+              </button>
+            )}
 
-            <button
-              type="button"
-              onClick={() => handleTabChange("orders")}
-              className={`flex items-center gap-2 rounded-xs px-4 py-2 transition-all duration-200 ${
-                activeTab === "orders"
-                  ? "border border-foreground bg-foreground font-semibold text-background shadow-xs"
-                  : "border border-transparent text-muted-foreground hover:border-border hover:text-foreground"
-              }`}
-            >
-              <ClipboardList size={14} strokeWidth={1.5} />
-              <span>Orders &amp; Fulfilment</span>
-            </button>
+            {hasPermission("MANAGE_ORDERS") && (
+              <button
+                type="button"
+                onClick={() => handleTabChange("orders")}
+                className={`flex items-center gap-2 rounded-xs px-4 py-2 transition-all duration-200 ${
+                  activeTab === "orders"
+                    ? "border border-foreground bg-foreground font-semibold text-background shadow-xs"
+                    : "border border-transparent text-muted-foreground hover:border-border hover:text-foreground"
+                }`}
+              >
+                <ClipboardList size={14} strokeWidth={1.5} />
+                <span>Orders &amp; Fulfilment</span>
+              </button>
+            )}
 
-            <button
-              type="button"
-              onClick={() => handleTabChange("journal")}
-              className={`flex items-center gap-2 rounded-xs px-4 py-2 transition-all duration-200 ${
-                activeTab === "journal"
-                  ? "border border-foreground bg-foreground font-semibold text-background shadow-xs"
-                  : "border border-transparent text-muted-foreground hover:border-border hover:text-foreground"
-              }`}
-            >
-              <BookOpen size={14} strokeWidth={1.5} />
-              <span>Journal Editorial</span>
-            </button>
+            {hasPermission("MANAGE_JOURNALS") && (
+              <button
+                type="button"
+                onClick={() => handleTabChange("journal")}
+                className={`flex items-center gap-2 rounded-xs px-4 py-2 transition-all duration-200 ${
+                  activeTab === "journal"
+                    ? "border border-foreground bg-foreground font-semibold text-background shadow-xs"
+                    : "border border-transparent text-muted-foreground hover:border-border hover:text-foreground"
+                }`}
+              >
+                <BookOpen size={14} strokeWidth={1.5} />
+                <span>Journal Editorial</span>
+              </button>
+            )}
+
+            {hasPermission("MANAGE_USERS") && (
+              <button
+                type="button"
+                onClick={() => handleTabChange("users")}
+                className={`flex items-center gap-2 rounded-xs px-4 py-2 transition-all duration-200 ${
+                  activeTab === "users"
+                    ? "border border-foreground bg-foreground font-semibold text-background shadow-xs"
+                    : "border border-transparent text-muted-foreground hover:border-border hover:text-foreground"
+                }`}
+              >
+                <Shield size={14} strokeWidth={1.5} />
+                <span>Users &amp; Team</span>
+              </button>
+            )}
           </nav>
         </div>
 
-        {/* Render Selected View */}
-        {activeTab === "inventory" && <AdminInventoryPage />}
-        {activeTab === "orders" && <AdminOrdersPage />}
-        {activeTab === "journal" && <AdminJournalPage />}
+        {/* Render Selected View strictly when authorized */}
+        {activeTab === "inventory" && hasPermission("MANAGE_INVENTORY") && (
+          <AdminInventoryPage />
+        )}
+        {activeTab === "orders" && hasPermission("MANAGE_ORDERS") && (
+          <AdminOrdersPage />
+        )}
+        {activeTab === "journal" && hasPermission("MANAGE_JOURNALS") && (
+          <AdminJournalPage />
+        )}
+        {activeTab === "users" && hasPermission("MANAGE_USERS") && (
+          <UserManagementPortal />
+        )}
 
-        {activeTab === "publish" && (
+        {activeTab === "publish" && hasPermission("MANAGE_PRODUCTS") && (
           <div className="mx-auto max-w-4xl">
             <header className="border-b border-border/80 pb-6">
               <div className="flex items-center gap-2 text-moss">
@@ -645,7 +763,9 @@ export default function AdminDashboard() {
                         <input
                           type="text"
                           value={benefit}
-                          onChange={(e) => handleBenefitChange(idx, e.target.value)}
+                          onChange={(e) =>
+                            handleBenefitChange(idx, e.target.value)
+                          }
                           placeholder="e.g. 5g omega-3 ALA per serving"
                           className="input-base flex-1 text-xs"
                         />
@@ -800,7 +920,9 @@ export default function AdminDashboard() {
                     <input
                       type="file"
                       accept="application/pdf,image/*"
-                      onChange={(e) => e.target.files && setLabReport(e.target.files[0])}
+                      onChange={(e) =>
+                        e.target.files && setLabReport(e.target.files[0])
+                      }
                       className="mt-4 text-xs file:mr-4 file:rounded-xs file:border file:border-border file:bg-sand-100 file:px-4 file:py-2 file:font-mono file:text-xs file:text-foreground hover:file:bg-border/60"
                     />
                     {labReport && (

@@ -2,11 +2,22 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import api from "@/lib/axios";
 import { ENDPOINTS } from "@/lib/endpoints";
 
+export const ADMIN_PERMISSIONS = [
+  "MANAGE_PRODUCTS",
+  "MANAGE_INVENTORY",
+  "MANAGE_JOURNALS",
+  "MANAGE_ORDERS",
+  "MANAGE_USERS",
+] as const;
+
+export type AdminPermission = (typeof ADMIN_PERMISSIONS)[number];
+
 export interface User {
   _id: string;
   name: string;
   email: string;
   role: "customer" | "admin";
+  permissions?: string[];
   phone?: string;
 }
 
@@ -16,6 +27,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string, phone?: string) => Promise<void>;
   logout: () => Promise<void>;
+  hasPermission: (permission: string) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -72,8 +84,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const hasPermission = (permission: string): boolean => {
+    if (!user || user.role !== "admin") return false;
+    return Array.isArray(user.permissions) && user.permissions.includes(permission);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, hasPermission }}>
       {children}
     </AuthContext.Provider>
   );

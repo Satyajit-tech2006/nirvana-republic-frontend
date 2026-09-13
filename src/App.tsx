@@ -31,7 +31,6 @@ export function App() {
           <Route path="/register" element={<AuthPage />} />
           <Route path="/wishlist" element={<WishlistPage />} />
 
-          
           {/* Editorial Journal & Ritual Chronicles */}
           <Route path="/journal" element={<JournalPage />} />
           <Route path="/journal/:slug" element={<JournalDetailPage />} />
@@ -40,13 +39,15 @@ export function App() {
           <Route path="/account" element={<AccountPage />} />
           <Route path="/orders" element={<AccountPage />} />
 
-          {/* Unified Admin Suite with Sliding Navigation */}
+          {/* Unified Admin Suite */}
           <Route element={<AdminRoute />}>
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin/products/new" element={<AdminDashboard />} />
             <Route path="/admin/inventory" element={<AdminDashboard />} />
             <Route path="/admin/orders" element={<AdminDashboard />} />
             <Route path="/admin/journal" element={<AdminDashboard />} />
+            <Route path="/admin/users" element={<AdminDashboard />} />
+            <Route path="/admin/*" element={<AdminDashboard />} />
           </Route>
         </Routes>
       </main>
@@ -55,3 +56,5 @@ export function App() {
     </div>
   );
 }
+
+export default App;

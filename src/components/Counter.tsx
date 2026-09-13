@@ -19,14 +19,10 @@ export function Counter({
 }: CounterProps) {
   const [displayValue, setDisplayValue] = useState(0);
   const elementRef = useRef<HTMLSpanElement>(null);
-  const prevValueRef = useRef(0);
-  const hasAnimatedRef = useRef(false);
 
   useEffect(() => {
     let animationFrameId: number;
     let startTime: number | null = null;
-    const startValue = prevValueRef.current;
-    const change = value - startValue;
 
     // Matches --ease-out-soft: cubic-bezier(0.16, 1, 0.3, 1)
     const easeOutQuart = (t: number) => 1 - Math.pow(1 - t, 4);
@@ -36,7 +32,7 @@ export function Counter({
       const elapsed = timestamp - startTime;
       const progress = Math.min(elapsed / duration, 1);
       const easedProgress = easeOutQuart(progress);
-      const current = startValue + change * easedProgress;
+      const current = value * easedProgress;
 
       setDisplayValue(current);
 
@@ -44,19 +40,26 @@ export function Counter({
         animationFrameId = requestAnimationFrame(animate);
       } else {
         setDisplayValue(value);
-        prevValueRef.current = value;
       }
     };
 
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && !hasAnimatedRef.current) {
-          hasAnimatedRef.current = true;
+        const [entry] = entries;
+
+        if (entry.isIntersecting) {
+          // When scrolled into view, reset timestamp & run animation from 0
           startTime = null;
+          if (animationFrameId) cancelAnimationFrame(animationFrameId);
           animationFrameId = requestAnimationFrame(animate);
+        } else {
+          // When scrolled out of view, cancel in-flight frames & reset to 0
+          if (animationFrameId) cancelAnimationFrame(animationFrameId);
+          setDisplayValue(0);
+          startTime = null;
         }
       },
-      { threshold: 0.2 }
+      { threshold: 0.15 }
     );
 
     if (elementRef.current) {
@@ -84,7 +87,7 @@ export function Counter({
       {prefix}
       {formatted}
       {suffix && (
-        <span className="font-sans font-light text-clay ml-0.5">{suffix}</span>
+        <span className="ml-0.5 font-sans font-light text-clay">{suffix}</span>
       )}
     </span>
   );
