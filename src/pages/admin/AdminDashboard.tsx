@@ -1,981 +1,419 @@
-import React, { useEffect, useState, useMemo, useCallback } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import api from "@/lib/axios";
 import ENDPOINTS from "@/lib/endpoints";
 import { useAuth } from "@/context/AuthContext";
+import { inr } from "@/lib/format";
+import { SEO } from "@/components/SEO";
 import {
-  Upload,
-  Plus,
-  Trash2,
-  CheckCircle,
-  AlertCircle,
-  FileText,
-  Image as ImageIcon,
-  PlusCircle,
   Boxes,
   ClipboardList,
   BookOpen,
-  Sparkles,
+  PlusCircle,
   Shield,
-  ShieldAlert,
+  Sparkles,
+  AlertTriangle,
+  Package,
+  ArrowUpRight,
+  Clock,
+  CheckCircle2,
+  RefreshCw,
 } from "lucide-react";
-import AdminInventoryPage from "./AdminInventoryPage";
-import AdminOrdersPage from "./AdminOrdersPage";
-import AdminJournalPage from "./AdminJournalPage";
-import UserManagementPortal from "./UserManagementPortal";
-import { SEO } from "@/components/SEO";
 
-type AdminTab = "publish" | "inventory" | "orders" | "journal" | "users";
+interface OrderSummary {
+  _id: string;
+  user?: { name: string; email: string };
+  shippingAddress?: { name: string };
+  totalAmount: number;
+  orderStatus: string;
+  createdAt: string;
+}
+
+interface ProductSummary {
+  _id: string;
+  name: string;
+  sku: string;
+  stockQuantity: number;
+  price: number;
+}
 
 export default function AdminDashboard() {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const { hasPermission, user } = useAuth();
+  const { user, hasPermission } = useAuth();
+  const [loading, setLoading] = useState(true);
 
-  // Check if a specific tab is permitted for the logged-in user
-  const isTabAllowed = useCallback(
-    (tab: AdminTab): boolean => {
-      switch (tab) {
-        case "publish":
-          return hasPermission("MANAGE_PRODUCTS");
-        case "inventory":
-          return hasPermission("MANAGE_INVENTORY");
-        case "orders":
-          return hasPermission("MANAGE_ORDERS");
-        case "journal":
-          return hasPermission("MANAGE_JOURNALS");
-        case "users":
-          return hasPermission("MANAGE_USERS");
-        default:
-          return false;
-      }
-    },
-    [hasPermission]
-  );
+  // Metrics State
+  const [totalProducts, setTotalProducts] = useState(0);
+  const [lowStockCount, setLowStockCount] = useState(0);
+  const [lowStockItems, setLowStockItems] = useState<ProductSummary[]>([]);
+  const [orders, setOrders] = useState<OrderSummary[]>([]);
+  const [pendingOrdersCount, setPendingOrdersCount] = useState(0);
 
-  // Helper to find the first authorized tab for redirection
-  const firstAllowedTab = useMemo((): AdminTab | null => {
-    if (hasPermission("MANAGE_PRODUCTS")) return "publish";
-    if (hasPermission("MANAGE_INVENTORY")) return "inventory";
-    if (hasPermission("MANAGE_ORDERS")) return "orders";
-    if (hasPermission("MANAGE_JOURNALS")) return "journal";
-    if (hasPermission("MANAGE_USERS")) return "users";
-    return null;
-  }, [hasPermission]);
-
-  // Resolve requested tab from URL pathname, falling back to first allowed tab if unauthorized
-  const resolveAllowedTab = useCallback(
-    (pathname: string): AdminTab | null => {
-      let requested: AdminTab = "publish";
-      if (pathname.includes("/admin/inventory")) requested = "inventory";
-      else if (pathname.includes("/admin/orders")) requested = "orders";
-      else if (pathname.includes("/admin/journal")) requested = "journal";
-      else if (pathname.includes("/admin/users")) requested = "users";
-
-      if (isTabAllowed(requested)) {
-        return requested;
-      }
-      return firstAllowedTab;
-    },
-    [isTabAllowed, firstAllowedTab]
-  );
-
-  const [activeTab, setActiveTab] = useState<AdminTab | null>(() =>
-    resolveAllowedTab(location.pathname)
-  );
-
-  const handleTabChange = (tab: AdminTab) => {
-    setActiveTab(tab);
-    if (tab === "publish") navigate("/admin/products/new");
-    else if (tab === "inventory") navigate("/admin/inventory");
-    else if (tab === "orders") navigate("/admin/orders");
-    else if (tab === "journal") navigate("/admin/journal");
-    else if (tab === "users") navigate("/admin/users");
-  };
-
-  // Sync state whenever URL or permissions change, enforcing redirection if unauthorized
-  useEffect(() => {
-    const validTab = resolveAllowedTab(location.pathname);
-    if (validTab && validTab !== activeTab) {
-      handleTabChange(validTab);
-    } else if (validTab) {
-      setActiveTab(validTab);
-    }
-  }, [location.pathname, resolveAllowedTab]);
-
-  const [loading, setLoading] = useState(false);
-  const [successMsg, setSuccessMsg] = useState("");
-  const [errorMsg, setErrorMsg] = useState("");
-
-  // Product Form State
-  const [formData, setFormData] = useState({
-    name: "",
-    slug: "",
-    tagline: "",
-    description: "",
-    category: "seeds",
-    price: "",
-    compareAtPrice: "",
-    weightGrams: "",
-    stockQuantity: "100",
-    sku: "",
-    // Farm Cluster Traceability
-    farmName: "",
-    farmState: "Chhattisgarh",
-    farmElevation: "",
-    farmFarmer: "",
-    harvestPeriod: "",
-    labReportRef: "",
-    shelfLife: "12 months from packing",
-    ritualTiming: "Morning",
-    ritualInstruction: "",
-    // Flags
-    isFeatured: false,
-    isBestSeller: false,
-    // Nutritional Profile
-    servingSize: "10g",
-    energyKcal: "",
-    proteinGrams: "",
-    fiberGrams: "",
-    fatGrams: "",
-    carbsGrams: "",
-  });
-
-  // Dynamic Array for Benefits
-  const [benefits, setBenefits] = useState<string[]>([
-    "Rich in dietary fibre",
-    "High plant-based protein",
-  ]);
-
-  // File Upload States
-  const [images, setImages] = useState<File[]>([]);
-  const [labReport, setLabReport] = useState<File | null>(null);
-
-  // Auto-generate slug and SKU when name or weight changes
-  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
-    const generatedSlug = val
-      .toLowerCase()
-      .trim()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/(^-|-$)+/g, "");
-
-    setFormData((prev) => ({
-      ...prev,
-      name: val,
-      slug: generatedSlug,
-      sku: prev.weightGrams
-        ? `NR-${generatedSlug.toUpperCase()}-${prev.weightGrams}G`
-        : prev.sku,
-    }));
-  };
-
-  const handleInputChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
-  ) => {
-    const { name, value, type } = e.target;
-    if (type === "checkbox") {
-      const { checked } = e.target as HTMLInputElement;
-      setFormData((prev) => ({ ...prev, [name]: checked }));
-    } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
-    }
-  };
-
-  // Benefits handlers
-  const handleAddBenefit = () => setBenefits([...benefits, ""]);
-  const handleRemoveBenefit = (idx: number) =>
-    setBenefits(benefits.filter((_, i) => i !== idx));
-  const handleBenefitChange = (idx: number, val: string) => {
-    const updated = [...benefits];
-    updated[idx] = val;
-    setBenefits(updated);
-  };
-
-  // Image files selection
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setImages(Array.from(e.target.files));
-    }
-  };
-
-  // Form Submit Handler
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const fetchDashboardMetrics = async () => {
     setLoading(true);
-    setSuccessMsg("");
-    setErrorMsg("");
-
-    if (images.length === 0) {
-      setErrorMsg("Please select at least one product image.");
-      setLoading(false);
-      return;
-    }
-
     try {
-      const payload = new FormData();
+      const promises: Promise<any>[] = [];
 
-      // Basic Specs
-      payload.append("name", formData.name);
-      payload.append("slug", formData.slug);
-      payload.append("tagline", formData.tagline);
-      payload.append("description", formData.description);
-      payload.append("category", formData.category);
-      payload.append("price", formData.price);
-      if (formData.compareAtPrice)
-        payload.append("compareAtPrice", formData.compareAtPrice);
-      payload.append("weightGrams", formData.weightGrams);
-      payload.append("stockQuantity", formData.stockQuantity);
-      payload.append(
-        "sku",
-        formData.sku ||
-          `NR-${formData.slug.toUpperCase()}-${formData.weightGrams}G`
-      );
-
-      // Farm Cluster Object
-      payload.append(
-        "farmCluster",
-        JSON.stringify({
-          name: formData.farmName,
-          state: formData.farmState,
-          elevation: formData.farmElevation,
-          farmerOrCollective: formData.farmFarmer,
-        })
-      );
-
-      payload.append("harvestPeriod", formData.harvestPeriod);
-      payload.append("labReportRef", formData.labReportRef);
-      payload.append("shelfLife", formData.shelfLife);
-      payload.append("ritualTiming", formData.ritualTiming);
-      payload.append("ritualInstruction", formData.ritualInstruction);
-
-      // Arrays & Complex Objects
-      payload.append(
-        "benefits",
-        JSON.stringify(benefits.filter((b) => b.trim() !== ""))
-      );
-      payload.append(
-        "nutritionalFacts",
-        JSON.stringify({
-          servingSize: formData.servingSize,
-          energyKcal: Number(formData.energyKcal) || 0,
-          proteinGrams: Number(formData.proteinGrams) || 0,
-          dietaryFiberGrams: Number(formData.fiberGrams) || 0,
-          totalFatGrams: Number(formData.fatGrams) || 0,
-          carbohydratesGrams: Number(formData.carbsGrams) || 0,
-        })
-      );
-
-      payload.append("isFeatured", String(formData.isFeatured));
-      payload.append("isBestSeller", String(formData.isBestSeller));
-
-      // Append Images
-      images.forEach((img) => {
-        payload.append("images", img);
-      });
-
-      // Append Lab PDF
-      if (labReport) {
-        payload.append("labReport", labReport);
+      if (hasPermission("MANAGE_INVENTORY") || hasPermission("MANAGE_PRODUCTS")) {
+        promises.push(api.get(ENDPOINTS.PRODUCTS.GET_ALL, { params: { limit: 100 } }));
+      } else {
+        promises.push(Promise.resolve(null));
       }
 
-      await api.post(ENDPOINTS.PRODUCTS.CREATE, payload, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      if (hasPermission("MANAGE_ORDERS")) {
+        promises.push(api.get(ENDPOINTS.ORDERS.ADMIN_ALL, { params: { limit: 10 } }));
+      } else {
+        promises.push(Promise.resolve(null));
+      }
 
-      setSuccessMsg(
-        `Lot "${formData.name}" cataloged and published successfully!`
-      );
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    } catch (err: any) {
-      setErrorMsg(err?.response?.data?.message || "Failed to publish product.");
+      const [productsRes, ordersRes] = await Promise.all(promises);
+
+      // Process Products & Inventory
+      if (productsRes?.data) {
+        const prodList: ProductSummary[] =
+          productsRes.data?.data?.products || productsRes.data?.data || [];
+        setTotalProducts(prodList.length);
+        const low = prodList.filter((p) => p.stockQuantity <= 15);
+        setLowStockCount(low.length);
+        setLowStockItems(low.slice(0, 5));
+      }
+
+      // Process Orders
+      if (ordersRes?.data) {
+        const ordersList: OrderSummary[] =
+          ordersRes.data?.data?.orders || ordersRes.data?.data || [];
+        setOrders(ordersList.slice(0, 5));
+        const pending = ordersList.filter(
+          (o) => o.orderStatus === "pending" || o.orderStatus === "processing"
+        );
+        setPendingOrdersCount(pending.length);
+      }
+    } catch (err) {
+      console.error("Failed to load dashboard metrics:", err);
     } finally {
       setLoading(false);
     }
   };
 
-  // If user has zero operational permissions assigned
-  if (!firstAllowedTab) {
-    return (
-      <div className="container-page flex min-h-[60vh] flex-col items-center justify-center gap-3 py-24 text-center">
-        <div className="grid h-12 w-12 place-items-center rounded-full bg-clay/10 text-clay">
-          <ShieldAlert size={24} strokeWidth={1.5} />
-        </div>
-        <h2 className="font-display text-2xl tracking-tight text-foreground">
-          Restricted Clearance
-        </h2>
-        <p className="max-w-md text-xs leading-relaxed text-muted-foreground sm:text-sm">
-          Your account is registered as staff, but no specific operational capability tokens
-          have been granted. Contact your platform administrator to assign permissions.
-        </p>
-      </div>
-    );
-  }
+  useEffect(() => {
+    fetchDashboardMetrics();
+  }, []);
 
   return (
     <>
       <SEO
-        title="Admin Suite — Nirvana Republic"
-        description="Pantry operations deck, batch registry publishing, orders fulfilment, and dispatch tracking."
+        title="Operations Hub — Nirvana Backoffice"
+        description="Real-time operational summary, catalog volume, fulfillment status, and inventory alerts."
         canonical="/admin"
       />
 
-      <div className="container-page py-10 md:py-16">
-        {/* Top Segmented Tab Navigator */}
-        <div className="mb-10 flex justify-center border-b border-border/80 pb-6">
-          <nav
-            aria-label="Admin Navigation Tabs"
-            className="inline-flex flex-wrap gap-1 rounded-sm border border-border/80 bg-sand-100/60 p-1 font-mono text-xs uppercase tracking-wider"
-          >
-            {hasPermission("MANAGE_PRODUCTS") && (
-              <button
-                type="button"
-                onClick={() => handleTabChange("publish")}
-                className={`flex items-center gap-2 rounded-xs px-4 py-2 transition-all duration-200 ${
-                  activeTab === "publish"
-                    ? "border border-foreground bg-foreground font-semibold text-background shadow-xs"
-                    : "border border-transparent text-muted-foreground hover:border-border hover:text-foreground"
-                }`}
-              >
-                <PlusCircle size={14} strokeWidth={1.5} />
-                <span>Publish Product</span>
-              </button>
-            )}
+      <div className="space-y-8">
+        {/* Header */}
+        <div className="flex flex-col justify-between gap-4 border-b border-border/80 pb-6 sm:flex-row sm:items-end">
+          <div>
+            <div className="flex items-center gap-2 text-moss">
+              <Sparkles size={13} strokeWidth={1.5} />
+              <span className="eyebrow-accent text-[10px] tracking-[0.24em]">
+                Live Operations Deck
+              </span>
+            </div>
+            <h1 className="mt-2 text-balance font-display text-3xl tracking-tight text-foreground sm:text-4xl">
+              Welcome back, {user?.name?.split(" ")[0] || "Staff"}
+            </h1>
+            <p className="mt-1 text-xs text-muted-foreground sm:text-sm">
+              Current operational pulse across catalog lots, farm fulfillment, and sanctuary dispatch.
+            </p>
+          </div>
 
-            {hasPermission("MANAGE_INVENTORY") && (
-              <button
-                type="button"
-                onClick={() => handleTabChange("inventory")}
-                className={`flex items-center gap-2 rounded-xs px-4 py-2 transition-all duration-200 ${
-                  activeTab === "inventory"
-                    ? "border border-foreground bg-foreground font-semibold text-background shadow-xs"
-                    : "border border-transparent text-muted-foreground hover:border-border hover:text-foreground"
-                }`}
+          <button
+            type="button"
+            onClick={fetchDashboardMetrics}
+            className="btn-base btn-outline btn-sm inline-flex items-center gap-1.5 font-mono text-xs uppercase tracking-wider"
+          >
+            <RefreshCw size={13} className={loading ? "animate-spin" : ""} />
+            <span>Sync Data</span>
+          </button>
+        </div>
+
+        {/* Operational Metrics Cards */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {/* Metric 1: Catalog Volume */}
+          <div className="card-flush bg-card p-5 shadow-soft">
+            <div className="flex items-center justify-between">
+              <p className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+                Active Catalog Lots
+              </p>
+              <Package size={16} strokeWidth={1.5} className="text-moss" />
+            </div>
+            <p className="mt-2 font-display text-3xl tracking-tight text-foreground">
+              {loading ? "—" : totalProducts}
+            </p>
+            <div className="mt-3 flex items-center justify-between border-t border-border/60 pt-2 font-mono text-[10px]">
+              <span className="text-muted-foreground">Single-origin SKUs</span>
+              {hasPermission("MANAGE_INVENTORY") && (
+                <Link to="/admin/inventory" className="text-moss hover:underline">
+                  View Stock &rarr;
+                </Link>
+              )}
+            </div>
+          </div>
+
+          {/* Metric 2: Low Stock Alert */}
+          <div
+            className={`card-flush p-5 shadow-soft transition-colors ${
+              lowStockCount > 0 ? "border-amber-400/80 bg-amber-50/50" : "bg-card"
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <p className="font-mono text-[11px] uppercase tracking-wider text-amber-900">
+                Low Volume Batches
+              </p>
+              <AlertTriangle size={16} strokeWidth={1.5} className="text-amber-600" />
+            </div>
+            <p className="mt-2 font-display text-3xl tracking-tight text-amber-950">
+              {loading ? "—" : lowStockCount}
+            </p>
+            <div className="mt-3 flex items-center justify-between border-t border-border/60 pt-2 font-mono text-[10px]">
+              <span className="text-amber-800">&le; 15 units remaining</span>
+              {hasPermission("MANAGE_INVENTORY") && (
+                <Link to="/admin/inventory" className="text-amber-900 font-semibold hover:underline">
+                  Audit &rarr;
+                </Link>
+              )}
+            </div>
+          </div>
+
+          {/* Metric 3: Active Orders */}
+          <div className="card-flush bg-card p-5 shadow-soft">
+            <div className="flex items-center justify-between">
+              <p className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+                Processing Queue
+              </p>
+              <Clock size={16} strokeWidth={1.5} className="text-moss" />
+            </div>
+            <p className="mt-2 font-display text-3xl tracking-tight text-foreground">
+              {loading ? "—" : pendingOrdersCount}
+            </p>
+            <div className="mt-3 flex items-center justify-between border-t border-border/60 pt-2 font-mono text-[10px]">
+              <span className="text-muted-foreground">Orders awaiting AWB</span>
+              {hasPermission("MANAGE_ORDERS") && (
+                <Link to="/admin/orders" className="text-moss hover:underline">
+                  Dispatches &rarr;
+                </Link>
+              )}
+            </div>
+          </div>
+
+          {/* Metric 4: Assigned Security Clearance */}
+          <div className="card-flush bg-card p-5 shadow-soft">
+            <div className="flex items-center justify-between">
+              <p className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+                Staff Clearance
+              </p>
+              <Shield size={16} strokeWidth={1.5} className="text-moss" />
+            </div>
+            <p className="mt-2 font-display text-2xl tracking-tight text-foreground">
+              {user?.permissions?.length || 0} / 5 Modules
+            </p>
+            <div className="mt-3 flex items-center justify-between border-t border-border/60 pt-2 font-mono text-[10px]">
+              <span className="text-muted-foreground">Active security tokens</span>
+              {hasPermission("MANAGE_USERS") && (
+                <Link to="/admin/users" className="text-moss hover:underline">
+                  Manage &rarr;
+                </Link>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Quick Launchers Section */}
+        <div className="card-flush bg-card p-6 shadow-soft sm:p-8">
+          <h2 className="border-b border-border/80 pb-3 font-mono text-xs font-semibold uppercase tracking-wider text-foreground">
+            Operational Quick Actions
+          </h2>
+          <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {hasPermission("MANAGE_PRODUCTS") && (
+              <Link
+                to="/admin/products/new"
+                className="flex items-center justify-between rounded-sm border border-border/80 p-4 transition-colors hover:border-foreground hover:bg-sand-50/60"
               >
-                <Boxes size={14} strokeWidth={1.5} />
-                <span>Inventory &amp; Stock</span>
-              </button>
+                <div className="flex items-center gap-3">
+                  <div className="grid h-8 w-8 place-items-center rounded-xs bg-sand-100 text-moss">
+                    <PlusCircle size={16} />
+                  </div>
+                  <div>
+                    <p className="font-display text-sm text-foreground">Publish Single Lot</p>
+                    <p className="font-mono text-[10px] text-muted-foreground">Catalog new harvest lot</p>
+                  </div>
+                </div>
+                <ArrowUpRight size={14} className="text-muted-foreground" />
+              </Link>
             )}
 
             {hasPermission("MANAGE_ORDERS") && (
-              <button
-                type="button"
-                onClick={() => handleTabChange("orders")}
-                className={`flex items-center gap-2 rounded-xs px-4 py-2 transition-all duration-200 ${
-                  activeTab === "orders"
-                    ? "border border-foreground bg-foreground font-semibold text-background shadow-xs"
-                    : "border border-transparent text-muted-foreground hover:border-border hover:text-foreground"
-                }`}
+              <Link
+                to="/admin/orders"
+                className="flex items-center justify-between rounded-sm border border-border/80 p-4 transition-colors hover:border-foreground hover:bg-sand-50/60"
               >
-                <ClipboardList size={14} strokeWidth={1.5} />
-                <span>Orders &amp; Fulfilment</span>
-              </button>
+                <div className="flex items-center gap-3">
+                  <div className="grid h-8 w-8 place-items-center rounded-xs bg-sand-100 text-moss">
+                    <ClipboardList size={16} />
+                  </div>
+                  <div>
+                    <p className="font-display text-sm text-foreground">Process Dispatches</p>
+                    <p className="font-mono text-[10px] text-muted-foreground">Assign courier tracking AWBs</p>
+                  </div>
+                </div>
+                <ArrowUpRight size={14} className="text-muted-foreground" />
+              </Link>
+            )}
+
+            {hasPermission("MANAGE_INVENTORY") && (
+              <Link
+                to="/admin/inventory"
+                className="flex items-center justify-between rounded-sm border border-border/80 p-4 transition-colors hover:border-foreground hover:bg-sand-50/60"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="grid h-8 w-8 place-items-center rounded-xs bg-sand-100 text-moss">
+                    <Boxes size={16} />
+                  </div>
+                  <div>
+                    <p className="font-display text-sm text-foreground">Adjust Lot Stock</p>
+                    <p className="font-mono text-[10px] text-muted-foreground">Update volume & valuations</p>
+                  </div>
+                </div>
+                <ArrowUpRight size={14} className="text-muted-foreground" />
+              </Link>
             )}
 
             {hasPermission("MANAGE_JOURNALS") && (
-              <button
-                type="button"
-                onClick={() => handleTabChange("journal")}
-                className={`flex items-center gap-2 rounded-xs px-4 py-2 transition-all duration-200 ${
-                  activeTab === "journal"
-                    ? "border border-foreground bg-foreground font-semibold text-background shadow-xs"
-                    : "border border-transparent text-muted-foreground hover:border-border hover:text-foreground"
-                }`}
+              <Link
+                to="/admin/journal"
+                className="flex items-center justify-between rounded-sm border border-border/80 p-4 transition-colors hover:border-foreground hover:bg-sand-50/60"
               >
-                <BookOpen size={14} strokeWidth={1.5} />
-                <span>Journal Editorial</span>
-              </button>
+                <div className="flex items-center gap-3">
+                  <div className="grid h-8 w-8 place-items-center rounded-xs bg-sand-100 text-moss">
+                    <BookOpen size={16} />
+                  </div>
+                  <div>
+                    <p className="font-display text-sm text-foreground">Editorial Dispatch</p>
+                    <p className="font-mono text-[10px] text-muted-foreground">Publish farm story or ritual</p>
+                  </div>
+                </div>
+                <ArrowUpRight size={14} className="text-muted-foreground" />
+              </Link>
             )}
 
             {hasPermission("MANAGE_USERS") && (
-              <button
-                type="button"
-                onClick={() => handleTabChange("users")}
-                className={`flex items-center gap-2 rounded-xs px-4 py-2 transition-all duration-200 ${
-                  activeTab === "users"
-                    ? "border border-foreground bg-foreground font-semibold text-background shadow-xs"
-                    : "border border-transparent text-muted-foreground hover:border-border hover:text-foreground"
-                }`}
+              <Link
+                to="/admin/users"
+                className="flex items-center justify-between rounded-sm border border-border/80 p-4 transition-colors hover:border-foreground hover:bg-sand-50/60"
               >
-                <Shield size={14} strokeWidth={1.5} />
-                <span>Users &amp; Team</span>
-              </button>
+                <div className="flex items-center gap-3">
+                  <div className="grid h-8 w-8 place-items-center rounded-xs bg-sand-100 text-moss">
+                    <Shield size={16} />
+                  </div>
+                  <div>
+                    <p className="font-display text-sm text-foreground">Personnel Clearance</p>
+                    <p className="font-mono text-[10px] text-muted-foreground">Delegate team capabilities</p>
+                  </div>
+                </div>
+                <ArrowUpRight size={14} className="text-muted-foreground" />
+              </Link>
             )}
-          </nav>
+          </div>
         </div>
 
-        {/* Render Selected View strictly when authorized */}
-        {activeTab === "inventory" && hasPermission("MANAGE_INVENTORY") && (
-          <AdminInventoryPage />
-        )}
-        {activeTab === "orders" && hasPermission("MANAGE_ORDERS") && (
-          <AdminOrdersPage />
-        )}
-        {activeTab === "journal" && hasPermission("MANAGE_JOURNALS") && (
-          <AdminJournalPage />
-        )}
-        {activeTab === "users" && hasPermission("MANAGE_USERS") && (
-          <UserManagementPortal />
-        )}
-
-        {activeTab === "publish" && hasPermission("MANAGE_PRODUCTS") && (
-          <div className="mx-auto max-w-4xl">
-            <header className="border-b border-border/80 pb-6">
-              <div className="flex items-center gap-2 text-moss">
-                <Sparkles size={13} strokeWidth={1.5} />
-                <span className="eyebrow-accent text-[10px] tracking-[0.24em]">
-                  Batch Registry Entry
-                </span>
-              </div>
-              <h1 className="mt-2 text-balance font-display text-3xl tracking-tight text-foreground sm:text-4xl">
-                Publish Single-Origin Lot
-              </h1>
-              <p className="mt-1.5 max-w-[54ch] text-xs leading-relaxed text-muted-foreground sm:text-sm">
-                Add new unblended batches with complete farm provenance, laboratory testing credentials, ritual guides, and nutritional data.
-              </p>
-            </header>
-
-            {successMsg && (
-              <div className="mt-6 flex items-center gap-3 rounded-sm border border-moss/30 bg-moss/10 p-4 font-mono text-xs text-moss">
-                <CheckCircle size={16} strokeWidth={1.5} className="shrink-0" />
-                <span>{successMsg}</span>
-              </div>
-            )}
-
-            {errorMsg && (
-              <div className="mt-6 flex items-center gap-3 rounded-sm border border-clay/30 bg-clay/10 p-4 font-mono text-xs text-clay">
-                <AlertCircle size={16} strokeWidth={1.5} className="shrink-0" />
-                <span>{errorMsg}</span>
-              </div>
-            )}
-
-            <form onSubmit={handleSubmit} className="mt-8 space-y-10">
-              {/* Section 1: Basic Identity */}
-              <div className="card-flush space-y-4 bg-card p-6 shadow-soft sm:p-8">
-                <h2 className="border-b border-border/80 pb-2.5 font-mono text-xs font-semibold uppercase tracking-wider text-foreground">
-                  01. Product Identity &amp; Pricing
-                </h2>
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <div>
-                    <label className="mb-1 block font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
-                      Product Name *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={formData.name}
-                      onChange={handleNameChange}
-                      placeholder="Ceremonial Chia Seeds"
-                      className="input-base text-xs"
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-1 block font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
-                      URL Slug *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      name="slug"
-                      value={formData.slug}
-                      onChange={handleInputChange}
-                      placeholder="ceremonial-chia-seeds"
-                      className="input-base bg-sand-100/50 font-mono text-xs"
-                    />
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className="mb-1 block font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
-                      Tagline *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      name="tagline"
-                      value={formData.tagline}
-                      onChange={handleInputChange}
-                      placeholder="Sun-cured Black Chia from Malwa Plateau"
-                      className="input-base text-xs"
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-1 block font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
-                      Category *
-                    </label>
-                    <select
-                      name="category"
-                      value={formData.category}
-                      onChange={handleInputChange}
-                      className="input-base bg-card text-xs"
-                    >
-                      <option value="seeds">Seeds &amp; Kernels</option>
-                      <option value="staples">Unrefined Staples</option>
-                      <option value="superfoods">Botanical Superfoods</option>
-                      <option value="sweeteners">Raw Sweeteners</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="mb-1 block font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
-                      SKU
-                    </label>
-                    <input
-                      type="text"
-                      name="sku"
-                      value={formData.sku}
-                      onChange={handleInputChange}
-                      placeholder="NR-CHIA-250G"
-                      className="input-base font-mono text-xs"
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-1 block font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
-                      Price (₹ INR) *
-                    </label>
-                    <input
-                      type="number"
-                      required
-                      name="price"
-                      value={formData.price}
-                      onChange={handleInputChange}
-                      placeholder="499"
-                      className="input-base font-mono text-xs"
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-1 block font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
-                      Compare At Price (₹ INR)
-                    </label>
-                    <input
-                      type="number"
-                      name="compareAtPrice"
-                      value={formData.compareAtPrice}
-                      onChange={handleInputChange}
-                      placeholder="599"
-                      className="input-base font-mono text-xs"
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-1 block font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
-                      Net Weight (Grams) *
-                    </label>
-                    <input
-                      type="number"
-                      required
-                      name="weightGrams"
-                      value={formData.weightGrams}
-                      onChange={handleInputChange}
-                      placeholder="250"
-                      className="input-base font-mono text-xs"
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-1 block font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
-                      Stock Quantity *
-                    </label>
-                    <input
-                      type="number"
-                      required
-                      name="stockQuantity"
-                      value={formData.stockQuantity}
-                      onChange={handleInputChange}
-                      placeholder="100"
-                      className="input-base font-mono text-xs"
-                    />
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className="mb-1 block font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
-                      Description *
-                    </label>
-                    <textarea
-                      required
-                      rows={4}
-                      name="description"
-                      value={formData.description}
-                      onChange={handleInputChange}
-                      placeholder="Describe botanical origins, aroma, physical profile, and purity guarantees..."
-                      className="input-base text-xs leading-relaxed"
-                    />
-                  </div>
-                </div>
+        {/* Dual Operational Overview: Low Stock & Recent Orders */}
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          {/* Left Table: Low Volume Alert Feed */}
+          {hasPermission("MANAGE_INVENTORY") && (
+            <div className="card-flush bg-card p-6 shadow-soft">
+              <div className="flex items-center justify-between border-b border-border/80 pb-3">
+                <h3 className="font-mono text-xs font-semibold uppercase tracking-wider text-foreground">
+                  Low Volume Batches
+                </h3>
+                <Link to="/admin/inventory" className="font-mono text-[11px] text-moss hover:underline">
+                  All Items &rarr;
+                </Link>
               </div>
 
-              {/* Section 2: Farm Provenance & Traceability */}
-              <div className="card-flush space-y-4 bg-card p-6 shadow-soft sm:p-8">
-                <h2 className="border-b border-border/80 pb-2.5 font-mono text-xs font-semibold uppercase tracking-wider text-foreground">
-                  02. Farm Provenance &amp; Laboratory Reference
-                </h2>
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <div>
-                    <label className="mb-1 block font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
-                      Farm / Cluster Name *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      name="farmName"
-                      value={formData.farmName}
-                      onChange={handleInputChange}
-                      placeholder="Neemuch Organic Collective"
-                      className="input-base text-xs"
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-1 block font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
-                      State / Region *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      name="farmState"
-                      value={formData.farmState}
-                      onChange={handleInputChange}
-                      placeholder="Madhya Pradesh"
-                      className="input-base text-xs"
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-1 block font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
-                      Elevation
-                    </label>
-                    <input
-                      type="text"
-                      name="farmElevation"
-                      value={formData.farmElevation}
-                      onChange={handleInputChange}
-                      placeholder="490m MSL"
-                      className="input-base font-mono text-xs"
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-1 block font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
-                      Farmer / Collective Leader
-                    </label>
-                    <input
-                      type="text"
-                      name="farmFarmer"
-                      value={formData.farmFarmer}
-                      onChange={handleInputChange}
-                      placeholder="Patidar Family Growers"
-                      className="input-base text-xs"
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-1 block font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
-                      Harvest Period *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      name="harvestPeriod"
-                      value={formData.harvestPeriod}
-                      onChange={handleInputChange}
-                      placeholder="November 2025"
-                      className="input-base font-mono text-xs"
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-1 block font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
-                      Lab Report Batch Ref *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      name="labReportRef"
-                      value={formData.labReportRef}
-                      onChange={handleInputChange}
-                      placeholder="NR-LAB-2025-CH09"
-                      className="input-base font-mono text-xs"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Section 3: Ritual, Usage & Benefits */}
-              <div className="card-flush space-y-4 bg-card p-6 shadow-soft sm:p-8">
-                <h2 className="border-b border-border/80 pb-2.5 font-mono text-xs font-semibold uppercase tracking-wider text-foreground">
-                  03. Daily Ritual Guidance &amp; Benefits
-                </h2>
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <div>
-                    <label className="mb-1 block font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
-                      Ritual Timing
-                    </label>
-                    <select
-                      name="ritualTiming"
-                      value={formData.ritualTiming}
-                      onChange={handleInputChange}
-                      className="input-base bg-card text-xs"
-                    >
-                      <option value="Morning">Morning (Empty Stomach)</option>
-                      <option value="Afternoon">Mid-Day Ritual</option>
-                      <option value="Evening">Sunset / Post-Workout</option>
-                      <option value="Pre-Bed">Evening Wind-Down</option>
-                      <option value="Anytime">Anytime Sips &amp; Bites</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="mb-1 block font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
-                      Shelf Life
-                    </label>
-                    <input
-                      type="text"
-                      name="shelfLife"
-                      value={formData.shelfLife}
-                      onChange={handleInputChange}
-                      placeholder="12 months from packing"
-                      className="input-base text-xs"
-                    />
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className="mb-1 block font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
-                      Ritual Instruction *
-                    </label>
-                    <textarea
-                      required
-                      rows={2}
-                      name="ritualInstruction"
-                      value={formData.ritualInstruction}
-                      onChange={handleInputChange}
-                      placeholder="Soak 1 tablespoon in 200ml ambient water for 15 minutes. Consume before your first meal."
-                      className="input-base text-xs leading-relaxed"
-                    />
-                  </div>
-                </div>
-
-                {/* Dynamic Benefits List */}
-                <div className="mt-4 pt-2">
-                  <div className="mb-2 flex items-center justify-between">
-                    <label className="block font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
-                      Key Nutritional Merits
-                    </label>
-                    <button
-                      type="button"
-                      onClick={handleAddBenefit}
-                      className="inline-flex items-center gap-1 font-mono text-xs uppercase tracking-wider text-moss hover:underline"
-                    >
-                      <Plus size={13} strokeWidth={1.5} /> Add Point
-                    </button>
-                  </div>
-                  <div className="space-y-2.5">
-                    {benefits.map((benefit, idx) => (
-                      <div key={idx} className="flex gap-2">
-                        <input
-                          type="text"
-                          value={benefit}
-                          onChange={(e) =>
-                            handleBenefitChange(idx, e.target.value)
-                          }
-                          placeholder="e.g. 5g omega-3 ALA per serving"
-                          className="input-base flex-1 text-xs"
-                        />
-                        {benefits.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveBenefit(idx)}
-                            className="btn-icon h-9 w-9 border-border/80 text-muted-foreground hover:border-clay hover:text-clay"
-                          >
-                            <Trash2 size={14} strokeWidth={1.5} />
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Section 4: Nutritional Facts */}
-              <div className="card-flush space-y-4 bg-card p-6 shadow-soft sm:p-8">
-                <h2 className="border-b border-border/80 pb-2.5 font-mono text-xs font-semibold uppercase tracking-wider text-foreground">
-                  04. Nutritional Profile
-                </h2>
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-6">
-                  <div>
-                    <label className="mb-1 block font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-                      Serving
-                    </label>
-                    <input
-                      type="text"
-                      name="servingSize"
-                      value={formData.servingSize}
-                      onChange={handleInputChange}
-                      placeholder="10g"
-                      className="input-base font-mono text-xs"
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-1 block font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-                      Energy (kcal)
-                    </label>
-                    <input
-                      type="number"
-                      name="energyKcal"
-                      value={formData.energyKcal}
-                      onChange={handleInputChange}
-                      placeholder="48"
-                      className="input-base font-mono text-xs"
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-1 block font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-                      Protein (g)
-                    </label>
-                    <input
-                      type="number"
-                      step="0.1"
-                      name="proteinGrams"
-                      value={formData.proteinGrams}
-                      onChange={handleInputChange}
-                      placeholder="1.7"
-                      className="input-base font-mono text-xs"
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-1 block font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-                      Fiber (g)
-                    </label>
-                    <input
-                      type="number"
-                      step="0.1"
-                      name="fiberGrams"
-                      value={formData.fiberGrams}
-                      onChange={handleInputChange}
-                      placeholder="3.4"
-                      className="input-base font-mono text-xs"
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-1 block font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-                      Fat (g)
-                    </label>
-                    <input
-                      type="number"
-                      step="0.1"
-                      name="fatGrams"
-                      value={formData.fatGrams}
-                      onChange={handleInputChange}
-                      placeholder="3.1"
-                      className="input-base font-mono text-xs"
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-1 block font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-                      Carbs (g)
-                    </label>
-                    <input
-                      type="number"
-                      step="0.1"
-                      name="carbsGrams"
-                      value={formData.carbsGrams}
-                      onChange={handleInputChange}
-                      placeholder="4.2"
-                      className="input-base font-mono text-xs"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Section 5: Media & Lab Document Uploads */}
-              <div className="card-flush space-y-4 bg-card p-6 shadow-soft sm:p-8">
-                <h2 className="border-b border-border/80 pb-2.5 font-mono text-xs font-semibold uppercase tracking-wider text-foreground">
-                  05. Media &amp; Verification Documents
-                </h2>
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                  {/* Product Images */}
-                  <div className="rounded-sm border border-dashed border-border/80 bg-sand-50/50 p-6 text-center">
-                    <div className="mx-auto mb-2 grid h-10 w-10 place-items-center rounded-full bg-sand-100 text-muted-foreground">
-                      <ImageIcon size={20} strokeWidth={1.5} />
-                    </div>
-                    <p className="font-mono text-xs font-semibold uppercase tracking-wider text-foreground">
-                      Product Images (Max 6) *
-                    </p>
-                    <p className="mt-1 font-mono text-[11px] text-muted-foreground">
-                      JPEG, PNG, WEBP, AVIF
-                    </p>
-                    <input
-                      type="file"
-                      multiple
-                      accept="image/*"
-                      onChange={handleImageChange}
-                      className="mt-4 text-xs file:mr-4 file:rounded-xs file:border-0 file:bg-foreground file:px-4 file:py-2 file:font-mono file:text-xs file:text-background hover:file:opacity-90"
-                    />
-                    {images.length > 0 && (
-                      <p className="mt-3 font-mono text-[11px] text-moss">
-                        ✓ {images.length} image(s) queued for upload
-                      </p>
-                    )}
-                  </div>
-
-                  {/* Lab Report PDF */}
-                  <div className="rounded-sm border border-dashed border-border/80 bg-sand-50/50 p-6 text-center">
-                    <div className="mx-auto mb-2 grid h-10 w-10 place-items-center rounded-full bg-sand-100 text-muted-foreground">
-                      <FileText size={20} strokeWidth={1.5} />
-                    </div>
-                    <p className="font-mono text-xs font-semibold uppercase tracking-wider text-foreground">
-                      Lab Certificate (Optional)
-                    </p>
-                    <p className="mt-1 font-mono text-[11px] text-muted-foreground">
-                      Single PDF Certificate
-                    </p>
-                    <input
-                      type="file"
-                      accept="application/pdf,image/*"
-                      onChange={(e) =>
-                        e.target.files && setLabReport(e.target.files[0])
-                      }
-                      className="mt-4 text-xs file:mr-4 file:rounded-xs file:border file:border-border file:bg-sand-100 file:px-4 file:py-2 file:font-mono file:text-xs file:text-foreground hover:file:bg-border/60"
-                    />
-                    {labReport && (
-                      <p className="mt-3 font-mono text-[11px] text-moss">
-                        ✓ Selected: {labReport.name}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Section 6: Placement Flags */}
-              <div className="card-flush flex flex-wrap gap-8 bg-card p-6 shadow-soft">
-                <label className="flex cursor-pointer items-center gap-2.5 font-mono text-xs uppercase tracking-wide">
-                  <input
-                    type="checkbox"
-                    name="isFeatured"
-                    checked={formData.isFeatured}
-                    onChange={handleInputChange}
-                    className="h-4 w-4 accent-moss"
-                  />
-                  Feature on Homepage
-                </label>
-                <label className="flex cursor-pointer items-center gap-2.5 font-mono text-xs uppercase tracking-wide">
-                  <input
-                    type="checkbox"
-                    name="isBestSeller"
-                    checked={formData.isBestSeller}
-                    onChange={handleInputChange}
-                    className="h-4 w-4 accent-moss"
-                  />
-                  Mark as Best Seller
-                </label>
-              </div>
-
-              {/* Submit Button */}
-              <button
-                type="submit"
-                disabled={loading}
-                className="btn-base btn-primary w-full py-4 text-xs uppercase tracking-[0.16em] disabled:opacity-50"
-              >
+              <div className="mt-4 divide-y divide-border/60">
                 {loading ? (
-                  <span>Publishing batch to registry...</span>
+                  <p className="py-6 text-center font-mono text-xs text-muted-foreground">
+                    Scanning batch inventory...
+                  </p>
+                ) : lowStockItems.length === 0 ? (
+                  <div className="flex items-center gap-2 py-6 text-xs text-moss">
+                    <CheckCircle2 size={16} />
+                    <span>All catalog inventory levels are healthy.</span>
+                  </div>
                 ) : (
-                  <>
-                    <Upload size={15} strokeWidth={1.5} />
-                    <span>Publish Lot to Nirvana Catalog</span>
-                  </>
+                  lowStockItems.map((item) => (
+                    <div key={item._id} className="flex items-center justify-between py-3 text-xs">
+                      <div>
+                        <p className="font-display text-sm text-foreground">{item.name}</p>
+                        <p className="font-mono text-[10px] text-muted-foreground">{item.sku}</p>
+                      </div>
+                      <div className="text-right">
+                        <span className="font-mono font-semibold text-amber-700">
+                          {item.stockQuantity} pouches
+                        </span>
+                        <p className="font-mono text-[10px] text-muted-foreground">{inr(item.price)}</p>
+                      </div>
+                    </div>
+                  ))
                 )}
-              </button>
-            </form>
-          </div>
-        )}
+              </div>
+            </div>
+          )}
+
+          {/* Right Table: Recent Dispatches Feed */}
+          {hasPermission("MANAGE_ORDERS") && (
+            <div className="card-flush bg-card p-6 shadow-soft">
+              <div className="flex items-center justify-between border-b border-border/80 pb-3">
+                <h3 className="font-mono text-xs font-semibold uppercase tracking-wider text-foreground">
+                  Recent Dispatches
+                </h3>
+                <Link to="/admin/orders" className="font-mono text-[11px] text-moss hover:underline">
+                  Manage All &rarr;
+                </Link>
+              </div>
+
+              <div className="mt-4 divide-y divide-border/60">
+                {loading ? (
+                  <p className="py-6 text-center font-mono text-xs text-muted-foreground">
+                    Retrieving consignment records...
+                  </p>
+                ) : orders.length === 0 ? (
+                  <p className="py-6 text-center font-mono text-xs text-muted-foreground">
+                    No recent patron orders found.
+                  </p>
+                ) : (
+                  orders.map((o) => (
+                    <div key={o._id} className="flex items-center justify-between py-3 text-xs">
+                      <div>
+                        <p className="font-mono font-semibold text-foreground">
+                          #{o._id.slice(-8).toUpperCase()}
+                        </p>
+                        <p className="text-[11px] text-muted-foreground">
+                          {o.user?.name || o.shippingAddress?.name || "Patron"}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <span className="font-mono text-xs font-semibold text-foreground">
+                          {inr(o.totalAmount)}
+                        </span>
+                        <span className="mt-0.5 block font-mono text-[9px] uppercase text-moss">
+                          {o.orderStatus}
+                        </span>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </>
   );

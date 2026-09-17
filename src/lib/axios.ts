@@ -8,12 +8,18 @@ const api = axios.create({
   },
 });
 
-// Attach bearer token if stored
+// Attach bearer token and ensure proper multipart headers for FormData
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("nr_access_token");
   if (token && config.headers) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+
+  // If payload is FormData, remove application/json so browser generates multipart boundary
+  if (config.data instanceof FormData && config.headers) {
+    delete config.headers["Content-Type"];
+  }
+
   return config;
 });
 

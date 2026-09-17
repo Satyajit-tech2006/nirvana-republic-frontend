@@ -10,7 +10,7 @@ import {
   Plus,
   Clock,
   Sparkles,
-  ExternalLink,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
@@ -137,11 +137,25 @@ export default function AdminJournalPage() {
           role: formData.authorRole,
         })
       );
+      // Backend Multer expects single file under "coverImage"
       payload.append("coverImage", coverImage);
 
-      await api.post(ENDPOINTS.JOURNAL.CREATE, payload, {
-        headers: { "Content-Type": "multipart/form-data" },
+      // Use native fetch with bearer credentials to guarantee uncorrupted multipart boundaries
+      const token = localStorage.getItem("nr_access_token");
+      const res = await fetch(ENDPOINTS.JOURNAL.CREATE, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: payload,
       });
+
+      const resData = await res.json();
+
+      if (!res.ok) {
+        throw new Error(resData?.message || "Failed to publish journal article.");
+      }
 
       setSuccessMsg(`Dispatch "${formData.title}" published to Sanctuary Journal!`);
       setFormData({
@@ -159,7 +173,7 @@ export default function AdminJournalPage() {
       fetchArticles();
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err: any) {
-      setErrorMsg(err?.response?.data?.message || "Failed to publish journal article.");
+      setErrorMsg(err?.message || "Failed to publish journal article.");
     } finally {
       setSubmitting(false);
     }
@@ -395,9 +409,16 @@ export default function AdminJournalPage() {
             className="mt-4 text-xs file:mr-4 file:rounded-xs file:border-0 file:bg-foreground file:px-4 file:py-2 file:font-mono file:text-xs file:text-background hover:file:opacity-90"
           />
           {coverImage && (
-            <p className="mt-3 font-mono text-[11px] text-moss">
-              ✓ Selected: {coverImage.name}
-            </p>
+            <div className="mt-3 inline-flex items-center gap-2 rounded-xs border border-border bg-card px-2.5 py-1 font-mono text-[11px] text-moss">
+              <span>✓ Selected: {coverImage.name}</span>
+              <button
+                type="button"
+                onClick={() => setCoverImage(null)}
+                className="text-muted-foreground hover:text-clay"
+              >
+                <X size={12} />
+              </button>
+            </div>
           )}
         </div>
 
