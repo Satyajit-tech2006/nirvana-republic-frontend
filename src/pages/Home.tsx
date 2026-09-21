@@ -1,81 +1,201 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowUpRight, Leaf, ShieldCheck, Sprout, Timer } from "lucide-react";
+import { ArrowUpRight, Leaf, FlaskConical, Mountain } from "lucide-react";
 import editorial from "@/assets/editorial-ritual.jpg";
-import { ProductCard } from "@/components/ProductCard";
-import { SectionHead } from "@/components/SectionHead";
-import { Newsletter } from "@/components/Newsletter";
-import { SeedScrollScene } from "@/components/hero/SeedScrollScene";
 import { SEO } from "@/components/SEO";
+import { Newsletter } from "@/components/Newsletter";
 import { Counter } from "@/components/Counter";
-import { categories } from "@/data/products";
 import { useAuth } from "@/context/AuthContext";
 import api from "@/lib/axios";
 import ENDPOINTS from "@/lib/endpoints";
 
-const promises = [
+/* ==========================================================================
+ * Palette Reference
+ * Alabaster  #FDFBF7   Ink        #121212
+ * Forest     #1E3A2B   Terracotta #A64B2A
+ * ========================================================================== */
+
+const manifesto = [
+  {
+    icon: Mountain,
+    label: "Single Origin",
+    copy: "One farm cluster per lot, never blended, never pooled. The coordinates on the pack are the coordinates of the field.",
+  },
   {
     icon: Leaf,
-    title: "Single origin",
-    copy: "Each batch traced to one farm cluster, named on the pack.",
+    label: "Cold Processed",
+    copy: "Below 42°C, always. Heat is the fastest way to destroy the enzymes we grew the crop for in the first place.",
   },
   {
-    icon: ShieldCheck,
-    title: "Lab tested",
-    copy: "Every lot screened for pesticides, metals and microbes.",
-  },
-  {
-    icon: Timer,
-    title: "Two-minute rituals",
-    copy: "One spoon, one glass. No routines to memorise.",
-  },
-  {
-    icon: Sprout,
-    title: "Nothing added",
-    copy: "No fillers, no sulphur, no flavourings. Ever.",
+    icon: FlaskConical,
+    label: "Lab Verified",
+    copy: "Every lot screened for pesticide residue, heavy metals and microbial load before it leaves the warehouse.",
   },
 ];
 
-const values = [
-  {
-    t: "Simplicity",
-    c: "One product, one purpose, one spoon. If a routine takes more than two minutes, we redesign it.",
-  },
-  {
-    t: "Quality you can verify",
-    c: "Farm cluster, harvest month and lab report reference printed on every pouch. No proprietary blends.",
-  },
-  {
-    t: "Everyday, not occasional",
-    c: "Priced and packed for daily use, because consistency beats intensity every single time.",
-  },
-];
+type Product = {
+  _id?: string;
+  id?: string;
+  slug?: string;
+  name?: string;
+  title?: string;
+  thumbnail?: string;
+  image?: string;
+  images?: string[];
+  price?: number;
+  lotNumber?: string;
+  lotNo?: string;
+  farmCluster?: { name?: string; region?: string; elevation?: string } | string;
+  farm?: string;
+  elevationMsl?: number | string;
+  elevation?: number | string;
+  harvestPeriod?: string;
+  harvest?: string;
+  stockQuantity?: number | string;
+  stock?: number;
+  isFeatured?: boolean;
+  featured?: boolean;
+};
 
-const rituals = [
-  ["Morning", "A teaspoon of moringa in water, before chai. Greens handled."],
-  ["Afternoon", "Soaked chia or a small katori of pumpkin seeds instead of a biscuit."],
-  ["Night", "Ashwagandha in warm milk, sweetened with jaggery. Sleep handled."],
-];
+type Article = {
+  _id?: string;
+  slug?: string;
+  title?: string;
+  category?: string;
+  excerpt?: string;
+  coverImage?: string;
+  image?: string;
+  readTimeMinutes?: number;
+  readTime?: string;
+  publishedAt?: string;
+  createdAt?: string;
+};
 
-function ProductGridSkeleton() {
+function registryFields(p: Product) {
+  const farmName =
+    typeof p.farmCluster === "object"
+      ? p.farmCluster?.name
+      : p.farmCluster || p.farm || "Deccan Basalt Plateau";
+
+  const elevationVal =
+    typeof p.farmCluster === "object"
+      ? p.farmCluster?.elevation
+      : p.elevationMsl || p.elevation;
+
+  const stockVal =
+    p.stockQuantity !== undefined ? Number(p.stockQuantity) : p.stock;
+
+  return {
+    lot: p.lotNumber || p.lotNo || (p.slug ? `NR-2025-${p.slug.slice(0, 4).toUpperCase()}` : "NR-LOT-04"),
+    farm: farmName,
+    elevation: elevationVal,
+    harvest: p.harvestPeriod || p.harvest || "Winter Harvest 2025",
+    stock: stockVal,
+  };
+}
+
+function RegistryCardSkeleton() {
   return (
-    <div className="mt-12 grid grid-cols-2 gap-x-5 gap-y-12 sm:gap-x-6 md:gap-y-14 lg:grid-cols-4 lg:gap-x-8">
-      {[1, 2, 3, 4].map((i) => (
-        <div key={i} className="space-y-3">
-          <div className="skeleton aspect-square w-full rounded-sm" />
-          <div className="skeleton h-3 w-1/3 rounded-full" />
-          <div className="skeleton h-4 w-3/4 rounded-full" />
-          <div className="skeleton h-3 w-1/2 rounded-full" />
-        </div>
-      ))}
+    <div className="bg-[#FDFBF7]">
+      <div className="aspect-[4/5] w-full animate-pulse bg-[#121212]/[0.04]" />
+      <div className="space-y-3 p-5">
+        <div className="h-3 w-1/3 animate-pulse bg-[#121212]/[0.06]" />
+        <div className="h-4 w-3/4 animate-pulse bg-[#121212]/[0.06]" />
+        <div className="h-3 w-1/2 animate-pulse bg-[#121212]/[0.06]" />
+      </div>
     </div>
   );
 }
 
-function EmptyShelf({ label }: { label: string }) {
+function RegistryCard({ product }: { product: Product }) {
+  const r = registryFields(product);
+  const soldOut = typeof r.stock === "number" && r.stock <= 0;
+  const img = product.thumbnail || product.image || product.images?.[0];
+  const name = product.name || product.title || "Untitled lot";
+
   return (
-    <div className="mt-12 rounded-sm border border-dashed border-border/80 bg-sand-50/40 py-16 text-center">
-      <p className="eyebrow text-muted-foreground">{label}</p>
+    <Link
+      to={`/shop/${product.slug || product._id || product.id}`}
+      className="group flex flex-col justify-between bg-[#FDFBF7] transition-colors duration-200 hover:bg-[#F8F5EE]"
+    >
+      <div>
+        <div className="relative aspect-[4/5] w-full overflow-hidden bg-[#121212]/[0.03]">
+          {/* Specimen ID Tag */}
+          <div className="absolute left-3 top-3 z-10 border border-[#121212]/15 bg-[#FDFBF7]/90 px-2.5 py-1 backdrop-blur-sm">
+            <p className="font-mono text-[9.5px] uppercase tracking-wider text-[#121212]">
+              {r.lot}
+            </p>
+          </div>
+
+          {img ? (
+            <img
+              src={img}
+              alt={name}
+              loading="lazy"
+              width={800}
+              height={1000}
+              className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+            />
+          ) : null}
+
+          {soldOut && (
+            <div className="absolute inset-x-0 bottom-0 border-t border-[#121212]/10 bg-[#FDFBF7]/95 px-4 py-2">
+              <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-[#121212]/60">
+                Registry closed — lot sold out
+              </p>
+            </div>
+          )}
+        </div>
+
+        <div className="space-y-4 border-t border-[#121212]/10 p-5">
+          <div className="flex items-baseline justify-between gap-3">
+            <h3 className="font-display text-xl font-normal leading-snug text-[#121212] transition-colors group-hover:text-[#1E3A2B]">
+              {name}
+            </h3>
+            {typeof product.price === "number" && (
+              <span className="shrink-0 font-mono text-sm font-medium text-[#121212]">
+                ₹{product.price.toLocaleString("en-IN")}
+              </span>
+            )}
+          </div>
+
+          <dl className="grid grid-cols-2 gap-x-4 gap-y-2 border-t border-dashed border-[#121212]/20 pt-4 font-mono text-[11px] leading-relaxed text-[#121212]/60">
+            <div>
+              <dt className="text-[#121212]/40">Origin</dt>
+              <dd className="truncate text-[#121212]">{r.farm}</dd>
+            </div>
+            <div>
+              <dt className="text-[#121212]/40">Elevation</dt>
+              <dd className="text-[#121212]">{r.elevation ? `${r.elevation}` : "640m MSL"}</dd>
+            </div>
+            <div className="col-span-2">
+              <dt className="text-[#121212]/40">Harvest Season</dt>
+              <dd className="text-[#121212]">{r.harvest}</dd>
+            </div>
+          </dl>
+        </div>
+      </div>
+
+      <div className="border-t border-[#121212]/10 px-5 py-3">
+        <div className="flex items-center justify-between text-xs font-mono uppercase tracking-wider text-[#1E3A2B]">
+          <span>{soldOut ? "Inquire Lot" : "Inspect Pouch"}</span>
+          <ArrowUpRight
+            size={13}
+            strokeWidth={1.5}
+            className="transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+          />
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+function EmptyRegistry() {
+  return (
+    <div className="border border-[#121212]/10 py-20 text-center">
+      <p className="font-mono text-xs uppercase tracking-[0.16em] text-[#121212]/40">
+        No lots currently registered
+      </p>
     </div>
   );
 }
@@ -83,8 +203,8 @@ function EmptyShelf({ label }: { label: string }) {
 export default function Home() {
   const { user } = useAuth();
 
-  const [products, setProducts] = useState<any[]>([]);
-  const [journalPosts, setJournalPosts] = useState<any[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [journalPosts, setJournalPosts] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -129,16 +249,12 @@ export default function Home() {
     };
   }, []);
 
-  const featured = products.filter((p) => p.isFeatured || p.featured).slice(0, 4);
-  const displayFeatured = featured.length > 0 ? featured : products.slice(0, 4);
-
-  const bestSellers = products.filter((p) => p.isBestSeller || p.bestSeller).slice(0, 4);
-  const displayBestSellers =
-    bestSellers.length > 0
-      ? bestSellers
-      : products.slice(4, 8).length > 0
-      ? products.slice(4, 8)
-      : products.slice(0, 4);
+  // Consistently balances 4 products cleanly by combining featured and catalog items
+  const displayFeatured = (() => {
+    const featuredItems = products.filter((p) => p.isFeatured || p.featured);
+    const nonFeaturedItems = products.filter((p) => !p.isFeatured && !p.featured);
+    return [...featuredItems, ...nonFeaturedItems].slice(0, 4);
+  })();
 
   const homeSchema = [
     {
@@ -148,7 +264,7 @@ export default function Home() {
       url: "https://nirvanarepublic.in",
       logo: "https://nirvanarepublic.in/logo.png",
       description:
-        "Clean, single-origin everyday wellness staples, ceremonial seeds, and superfoods sourced from Indian farms.",
+        "Single-origin, unblended agricultural lots — ceremonial seeds, wild honey and cold-processed superfoods sourced directly from named farm clusters across India.",
       address: {
         "@type": "PostalAddress",
         addressLocality: "Bengaluru",
@@ -165,295 +281,286 @@ export default function Home() {
   ];
 
   return (
-    <>
+    <div className="bg-[#FDFBF7] text-[#121212]">
       <SEO
-        title="Better food. Made simple."
-        description="Single-origin ceremonial seeds, lab-tested pantry staples, and simple daily wellness rituals."
+        title="Nirvana Republic — Single-Origin Agricultural Lots"
+        description="Unblended seeds, honey and superfoods, each traced to one named farm cluster and lab-verified before release."
         canonical="/"
         schema={homeSchema}
       />
 
-      {/* Top Promotional Strip */}
       {!user && (
-        <div className="border-b border-border/70 bg-sand-50/80 py-2.5 text-center text-xs text-muted-foreground">
-          <span>First-time ritual? </span>
-          <Link
-            to="/auth"
-            className="link-underline font-medium text-foreground transition-colors hover:text-moss"
-          >
-            Sign in or create an account
+        <div className="border-b border-[#121212]/10 py-2.5 text-center font-mono text-[11px] tracking-[0.02em] text-[#121212]/60">
+          <span>Register an account to track your lot history and lab certificates. </span>
+          <Link to="/auth" className="text-[#1E3A2B] underline underline-offset-4 transition-colors hover:text-[#A64B2A]">
+            Sign in
           </Link>
-          <span> to save your farm batches &amp; track orders.</span>
         </div>
       )}
 
-      {/* 3D Scroll Hero */}
-      <SeedScrollScene />
+      {/* ================= HERO ================= */}
+      <section className="container-page pb-16 pt-12 md:pb-24 md:pt-16">
+        <div className="grid gap-12 md:grid-cols-12 md:gap-10">
+          <div className="flex flex-col justify-between md:col-span-7 lg:col-span-6">
+            <div>
+              <div className="inline-flex items-center gap-2 border border-[#A64B2A]/30 bg-[#A64B2A]/[0.04] px-2.5 py-1 font-mono text-[10.5px] uppercase tracking-[0.18em] text-[#A64B2A]">
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#A64B2A]" />
+                Dispatch 04 · Winter Harvest Active
+              </div>
 
-      {/* Provenance Strip */}
-      <section className="border-y border-border/80 bg-card/60 backdrop-blur-xs">
-        <div className="container-page grid grid-cols-2 divide-x divide-border/80 md:grid-cols-4">
-          {[
-            { value: 18, suffix: "+", label: "Verified Farm Clusters" },
-            { value: 100, suffix: "%", label: "Lab-Tested Purity" },
-            { value: 12500, suffix: "+", label: "Daily Rituals Served" },
-            { value: 0, suffix: "%", label: "Preservatives or Fillers" },
-          ].map((stat, i) => (
-            <div
-              key={stat.label}
-              className={`flex flex-col items-center justify-center px-4 py-8 text-center md:px-8 md:py-10 ${
-                i >= 2 ? "border-t border-border/80 md:border-t-0" : ""
-              }`}
-            >
-              <p className="font-display text-3xl font-medium tracking-tight text-foreground md:text-4xl">
-                <Counter value={stat.value} suffix={stat.suffix} duration={1600} />
+              <h1 className="mt-6 max-w-[13ch] text-balance font-display text-5xl font-light leading-[1.02] tracking-[-0.03em] text-[#121212] md:text-6xl lg:text-[4.5rem]">
+                Grown on one farm. <span className="italic text-[#1E3A2B]/85">Traced to one field.</span>
+              </h1>
+
+              <p className="mt-6 max-w-[42ch] text-[16px] leading-[1.7] text-[#121212]/75">
+                We refuse to pool crops into generic commodity batches. Every pouch carries the exact farm coordinates,
+                elevation MSL, cold-pressing ceiling, and independent third-party lab assay.
               </p>
-              <p className="mt-2 text-[10px] font-medium tracking-[0.18em] uppercase text-muted-foreground">
-                {stat.label}
-              </p>
-            </div>
-          ))}
-        </div>
-      </section>
 
-      {/* Promises Strip */}
-      <section className="border-b border-border/60 bg-background/50">
-        <div className="container-page py-12 md:py-16">
-          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4 lg:gap-10">
-            {promises.map(({ icon: Icon, title, copy }) => (
-              <div key={title} className="group flex items-start gap-4">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sand-100 text-moss transition-colors duration-300 group-hover:bg-moss group-hover:text-sand-50">
-                  <Icon size={18} strokeWidth={1.5} />
-                </div>
-                <div>
-                  <p className="font-sans text-sm font-semibold tracking-tight text-foreground">
-                    {title}
-                  </p>
-                  <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                    {copy}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Featured Products */}
-      <section className="container-page py-16 md:py-24">
-        <SectionHead
-          eyebrow="Featured"
-          title="Start with the essentials"
-          intro="Four products that cover most of what a day actually needs — energy, fibre, greens and clean sweetness."
-          linkTo="/shop"
-          linkLabel="Shop all products"
-        />
-        {loading ? (
-          <ProductGridSkeleton />
-        ) : displayFeatured.length === 0 ? (
-          <EmptyShelf label="No featured products published yet" />
-        ) : (
-          <div className="mt-12 grid grid-cols-2 gap-x-5 gap-y-12 sm:gap-x-6 md:gap-y-14 lg:grid-cols-4 lg:gap-x-8">
-            {displayFeatured.map((p) => (
-              <div
-                key={p._id || p.id}
-                className="transition-transform duration-300 ease-out hover:-translate-y-1"
-              >
-                <ProductCard product={p} />
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
-
-      {/* Categories Shelf */}
-      <section className="border-y border-border/70 bg-sand-50/60 py-16 md:py-24">
-        <div className="container-page">
-          <SectionHead eyebrow="Shop by category" title="Find your shelf" />
-          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {categories.map((c) => (
-              <Link
-                key={c.id}
-                to={`/shop?category=${c.id}`}
-                className="card-flush group relative block aspect-[4/5] overflow-hidden shadow-xs transition-shadow duration-300 hover:shadow-soft"
-              >
-                <img
-                  src={c.image}
-                  alt={c.name}
-                  loading="lazy"
-                  width={900}
-                  height={900}
-                  className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
-                />
-                <div className="overlay-scrim absolute inset-0" />
-                <div className="absolute inset-x-0 bottom-0 p-6">
-                  <p className="font-display text-xl text-primary-foreground">{c.name}</p>
-                  <p className="mt-1 max-w-[28ch] text-xs leading-snug text-primary-foreground/75">
-                    {c.blurb}
-                  </p>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Brand Values — Editorial Split */}
-      <section className="container-page py-16 md:py-24">
-        <div className="grid gap-12 md:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] md:gap-20">
-          <div>
-            <p className="eyebrow-accent">Why Nirvana Republic</p>
-            <h2 className="mt-4 max-w-[16ch] text-balance font-display text-3xl leading-tight tracking-tight text-foreground md:text-display-md">
-              We removed everything that made eating well feel like work.
-            </h2>
-            <p className="mt-5 max-w-[42ch] text-[15px] leading-relaxed text-muted-foreground">
-              Most wellness brands sell you a protocol. We'd rather sell you one honest ingredient
-              and tell you exactly what to do with it — in a sentence, not a supplement schedule.
-            </p>
-          </div>
-          <div className="grid divide-y divide-border/80">
-            {values.map((item) => (
-              <div key={item.t} className="py-6 first:pt-0">
-                <p className="font-display text-xl text-foreground">{item.t}</p>
-                <p className="mt-2 max-w-[48ch] text-sm leading-relaxed text-muted-foreground">
-                  {item.c}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Best Sellers */}
-      <section className="container-page pb-16 md:pb-24">
-        <SectionHead
-          eyebrow="Best sellers"
-          title="What India keeps reordering"
-          linkTo="/shop"
-          linkLabel="See the full range"
-        />
-        {loading ? (
-          <ProductGridSkeleton />
-        ) : displayBestSellers.length === 0 ? (
-          <EmptyShelf label="No products available on this shelf" />
-        ) : (
-          <div className="mt-12 grid grid-cols-2 gap-x-5 gap-y-12 sm:gap-x-6 md:gap-y-14 lg:grid-cols-4 lg:gap-x-8">
-            {displayBestSellers.map((p) => (
-              <div
-                key={p._id || p.id}
-                className="transition-transform duration-300 ease-out hover:-translate-y-1"
-              >
-                <ProductCard product={p} />
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
-
-      {/* Editorial Ritual Section */}
-      <section className="bg-primary text-primary-foreground">
-        <div className="container-page grid items-center gap-12 py-20 md:grid-cols-2 md:gap-16 md:py-28">
-          <img
-            src={editorial}
-            alt="Stirring moringa powder into a glass of water in a bright kitchen"
-            loading="lazy"
-            width={1408}
-            height={1008}
-            className="aspect-[4/3] w-full rounded-sm object-cover shadow-soft"
-          />
-          <div>
-            <p className="eyebrow text-primary-foreground/60">The two-minute method</p>
-            <h2 className="mt-4 text-balance font-display text-3xl leading-[1.1] tracking-tight md:text-5xl">
-              Three spoons is the entire wellness routine.
-            </h2>
-            <div className="mt-8 space-y-0">
-              {rituals.map(([time, copy]) => (
-                <div
-                  key={time}
-                  className="flex gap-6 border-t border-primary-foreground/15 py-5 first:pt-0"
+              <div className="mt-9 flex flex-wrap items-center gap-4">
+                <Link
+                  to="/shop"
+                  className="inline-flex items-center gap-3 border border-[#121212] bg-[#121212] px-7 py-3.5 text-sm text-[#FDFBF7] transition-all duration-200 hover:bg-transparent hover:text-[#121212]"
                 >
-                  <span className="w-24 shrink-0 pt-0.5 text-xs uppercase tracking-widest text-primary-foreground/60">
-                    {time}
-                  </span>
-                  <span className="text-[15px] leading-relaxed text-primary-foreground/85">
-                    {copy}
-                  </span>
-                </div>
-              ))}
+                  Browse open lots
+                  <ArrowUpRight size={14} strokeWidth={1.5} />
+                </Link>
+                <Link
+                  to="/journal"
+                  className="inline-flex items-center gap-2 border border-[#121212]/20 px-6 py-3.5 text-sm text-[#121212] transition-colors duration-200 hover:border-[#121212]"
+                >
+                  Read field assays
+                </Link>
+              </div>
             </div>
-            <Link
-              to="/journal"
-              className="group mt-8 inline-flex items-center gap-1.5 border-b border-primary-foreground/30 pb-1 text-sm text-primary-foreground transition-colors duration-200 hover:border-primary-foreground"
-            >
-              <span>Read the wellness journal</span>
-              <ArrowUpRight
-                size={14}
-                strokeWidth={1.5}
-                className="transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
-              />
-            </Link>
+
+            {/* Active Lot Micro-Ledger */}
+            <div className="mt-12 border-t border-[#121212]/10 pt-6">
+              <p className="font-mono text-[10.5px] uppercase tracking-wider text-[#121212]/40">Active Lot In Focus</p>
+              <div className="mt-2 flex flex-wrap items-baseline justify-between gap-4 font-mono text-xs text-[#121212]">
+                <span>LOT #NR-2025-09 (Raw Black Chia)</span>
+                <span className="text-[#121212]/60">17°41′ N, 74°01′ E · 490m MSL</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="md:col-span-5 md:col-start-8 lg:col-span-6 lg:col-start-7">
+            <div className="border border-[#121212]/10 bg-[#FAF7F0] p-3 md:p-4">
+              <div className="relative overflow-hidden">
+                <img
+                  src={editorial}
+                  alt="Wild harvest inspected and cold-processed"
+                  loading="eager"
+                  width={1200}
+                  height={1500}
+                  className="aspect-[4/5] w-full object-cover grayscale-[0.1] contrast-[1.05]"
+                />
+              </div>
+              <div className="mt-3 flex items-center justify-between font-mono text-[11px] text-[#121212]/60">
+                <span>Plate I — Cold Stirred Moringa</span>
+                <span>Kollegal Cluster · Assay Verified</span>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Editorial Journal Feed */}
-      <section className="container-page py-16 md:py-24">
-        <SectionHead
-          eyebrow="From the community"
-          title="Notes from our kitchen and our farms"
-          linkTo="/journal"
-          linkLabel="All journal entries"
-        />
+      {/* ================= PROVENANCE COUNTER SECTION ================= */}
+      <section className="border-y border-[#121212]/10 bg-[#F5F2EB]/50">
+        <div className="container-page py-10">
+          <div className="grid grid-cols-2 gap-8 md:grid-cols-4 md:gap-12">
+            <div className="border-l border-[#121212]/15 pl-4 md:pl-6">
+              <p className="font-mono text-[11px] uppercase tracking-widest text-[#121212]/50">Farm Clusters</p>
+              <div className="mt-1">
+                <Counter value={18} duration={1400} className="text-3xl md:text-4xl text-[#121212]" />
+              </div>
+              <p className="mt-1 text-xs text-[#121212]/60">Direct estate relationships</p>
+            </div>
+
+            <div className="border-l border-[#121212]/15 pl-4 md:pl-6">
+              <p className="font-mono text-[11px] uppercase tracking-widest text-[#121212]/50">Batches Tested</p>
+              <div className="mt-1">
+                <Counter value={100} suffix="%" duration={1600} className="text-3xl md:text-4xl text-[#1E3A2B]" />
+              </div>
+              <p className="mt-1 text-xs text-[#121212]/60">Independent lab screened</p>
+            </div>
+
+            <div className="border-l border-[#121212]/15 pl-4 md:pl-6">
+              <p className="font-mono text-[11px] uppercase tracking-widest text-[#121212]/50">Thermal Ceiling</p>
+              <div className="mt-1">
+                <Counter value={42} suffix="°C" duration={1200} className="text-3xl md:text-4xl text-[#121212]" />
+              </div>
+              <p className="mt-1 text-xs text-[#121212]/60">Zero heat-induced oxidation</p>
+            </div>
+
+            <div className="border-l border-[#121212]/15 pl-4 md:pl-6">
+              <p className="font-mono text-[11px] uppercase tracking-widest text-[#121212]/50">Additives & Fillers</p>
+              <div className="mt-1">
+                <Counter value={0} duration={800} className="text-3xl md:text-4xl text-[#A64B2A]" />
+              </div>
+              <p className="mt-1 text-xs text-[#121212]/60">100% single ingredient lots</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ================= CURRENT SEASON REGISTRY ================= */}
+      <section className="container-page py-20 md:py-28">
+        <div className="flex items-end justify-between gap-6 border-b border-[#121212]/10 pb-6">
+          <div>
+            <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-[#A64B2A]">
+              Seasonal Registry
+            </p>
+            <h2 className="mt-3 font-display text-3xl font-light leading-tight tracking-tight text-[#121212] md:text-4xl">
+              Active Lots on the Shelf
+            </h2>
+          </div>
+          <Link
+            to="/shop"
+            className="group hidden shrink-0 items-center gap-2 border-b border-[#121212]/25 pb-1 font-mono text-xs uppercase tracking-wider text-[#121212] transition-colors hover:border-[#121212] sm:inline-flex"
+          >
+            <span>Inspect All Open Lots</span>
+            <ArrowUpRight size={13} strokeWidth={1.5} className="transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+          </Link>
+        </div>
+
         {loading ? (
-          <div className="mt-12 grid gap-8 md:grid-cols-3">
+          <div className="mt-10 grid grid-cols-2 gap-px bg-[#121212]/10 sm:grid-cols-2 lg:grid-cols-4">
+            {[1, 2, 3, 4].map((i) => (
+              <RegistryCardSkeleton key={i} />
+            ))}
+          </div>
+        ) : displayFeatured.length === 0 ? (
+          <div className="mt-10">
+            <EmptyRegistry />
+          </div>
+        ) : (
+          <div className="mt-10 grid grid-cols-1 border border-[#121212]/15 bg-[#121212]/15 sm:grid-cols-2 lg:grid-cols-4 gap-px">
+            {displayFeatured.map((p) => (
+              <RegistryCard key={p._id || p.id} product={p} />
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* ================= TERROIR / PURITY MANIFESTO ================= */}
+      <section className="bg-[#1E3A2B] text-[#FDFBF7]">
+        <div className="container-page py-20 md:py-28">
+          <div className="grid gap-14 md:grid-cols-12 md:gap-10">
+            <div className="md:col-span-5">
+              <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-[#FDFBF7]/50">
+                Purity Protocol
+              </p>
+              <h2 className="mt-5 max-w-[14ch] text-balance font-display text-3xl font-light leading-[1.12] tracking-tight md:text-5xl">
+                Purity isn't marketing. It's a certificate.
+              </h2>
+              <p className="mt-6 max-w-[38ch] text-[15px] leading-[1.75] text-[#FDFBF7]/75">
+                Commodity brands pool batches from hundreds of unknown farms to standardize yield.
+                We preserve variations in rainfall, basalt minerals, and sun curing, stamping each lot's complete pedigree on the pouch.
+              </p>
+            </div>
+
+            <div className="md:col-span-7 md:col-start-6">
+              <div className="grid divide-y divide-[#FDFBF7]/15 border-t border-[#FDFBF7]/15">
+                {manifesto.map(({ icon: Icon, label, copy }) => (
+                  <div key={label} className="grid gap-4 py-8 sm:grid-cols-[3rem_1fr] sm:gap-6">
+                    <div className="mt-0.5">
+                      <Icon size={24} strokeWidth={1.25} className="text-[#A64B2A]" />
+                    </div>
+                    <div>
+                      <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-[#FDFBF7]/50">
+                        {label}
+                      </p>
+                      <p className="mt-2 max-w-[46ch] text-[15px] leading-relaxed text-[#FDFBF7]/90">
+                        {copy}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ================= FIELD NOTES (JOURNAL) ================= */}
+      <section className="container-page py-20 md:py-28">
+        <div className="flex items-end justify-between gap-6 border-b border-[#121212]/10 pb-6">
+          <div>
+            <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-[#A64B2A]">
+              Sanctuary Dispatches
+            </p>
+            <h2 className="mt-3 font-display text-3xl font-light leading-tight tracking-tight text-[#121212] md:text-4xl">
+              Field Notes & Assays
+            </h2>
+          </div>
+          <Link
+            to="/journal"
+            className="group hidden shrink-0 items-center gap-2 border-b border-[#121212]/25 pb-1 font-mono text-xs uppercase tracking-wider text-[#121212] transition-colors hover:border-[#121212] sm:inline-flex"
+          >
+            <span>All Dispatches</span>
+            <ArrowUpRight size={13} strokeWidth={1.5} className="transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+          </Link>
+        </div>
+
+        {loading ? (
+          <div className="mt-10 grid gap-px bg-[#121212]/10 sm:grid-cols-3">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="space-y-3">
-                <div className="skeleton aspect-[4/3] w-full rounded-sm" />
-                <div className="skeleton h-2.5 w-1/4 rounded-full" />
-                <div className="skeleton h-4 w-3/4 rounded-full" />
+              <div key={i} className="bg-[#FDFBF7] p-1">
+                <div className="aspect-[4/3] w-full animate-pulse bg-[#121212]/[0.04]" />
+                <div className="space-y-3 p-4">
+                  <div className="h-2.5 w-1/4 animate-pulse bg-[#121212]/[0.06]" />
+                  <div className="h-4 w-3/4 animate-pulse bg-[#121212]/[0.06]" />
+                </div>
               </div>
             ))}
           </div>
         ) : journalPosts.length === 0 ? (
-          <EmptyShelf label="No journal dispatches published yet" />
+          <div className="mt-10">
+            <EmptyRegistry />
+          </div>
         ) : (
-          <div className="mt-12 grid gap-8 md:grid-cols-3">
+          <div className="mt-10 grid border border-[#121212]/15 bg-[#121212]/15 sm:grid-cols-3 gap-px">
             {journalPosts.map((post) => (
               <Link
                 key={post.slug || post._id}
                 to={`/journal/${post.slug}`}
-                className="group block"
+                className="group block bg-[#FDFBF7] p-2 transition-colors hover:bg-[#FAF8F2]"
               >
-                <div className="overflow-hidden rounded-sm bg-sand-100">
+                <div className="aspect-[4/3] overflow-hidden">
                   <img
                     src={post.coverImage || post.image}
                     alt={post.title}
                     loading="lazy"
-                    width={1000}
-                    height={750}
-                    className="aspect-[4/3] w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+                    width={900}
+                    height={675}
+                    className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                   />
                 </div>
-                <p className="eyebrow-accent mt-4">{post.category}</p>
-                <h3 className="mt-2 text-balance font-display text-xl leading-snug text-foreground transition-colors duration-300 group-hover:text-moss">
-                  {post.title}
-                </h3>
-                <p className="mt-2 line-clamp-2 max-w-[42ch] text-sm leading-relaxed text-muted-foreground">
-                  {post.excerpt}
-                </p>
-                <p className="mt-3 font-mono text-xs text-muted-foreground">
-                  {new Date(post.publishedAt || post.createdAt || Date.now()).toLocaleDateString(
-                    "en-IN",
-                    {
-                      month: "short",
-                      year: "numeric",
-                    }
-                  )}{" "}
-                  ·{" "}
-                  {post.readTimeMinutes
-                    ? `${post.readTimeMinutes} min read`
-                    : post.readTime || "4 min read"}
-                </p>
+                <div className="p-4">
+                  <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-[#A64B2A]">
+                    {post.category || "Field Note"}
+                  </p>
+                  <h3 className="mt-2 text-balance font-display text-lg font-normal leading-snug text-[#121212] transition-colors group-hover:text-[#1E3A2B]">
+                    {post.title}
+                  </h3>
+                  <p className="mt-2 line-clamp-2 max-w-[42ch] text-sm leading-relaxed text-[#121212]/60">
+                    {post.excerpt}
+                  </p>
+                  <div className="mt-4 flex items-center justify-between font-mono text-[11px] text-[#121212]/45">
+                    <span>
+                      {new Date(
+                        post.publishedAt || post.createdAt || Date.now()
+                      ).toLocaleDateString("en-IN", { month: "short", year: "numeric" })}{" "}
+                      · {post.readTimeMinutes ? `${post.readTimeMinutes} min` : post.readTime || "4 min"}
+                    </span>
+                    <ArrowUpRight
+                      size={13}
+                      strokeWidth={1.5}
+                      className="text-[#121212]/40 transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-[#121212]"
+                    />
+                  </div>
+                </div>
               </Link>
             ))}
           </div>
@@ -461,6 +568,6 @@ export default function Home() {
       </section>
 
       <Newsletter />
-    </>
+    </div>
   );
 }

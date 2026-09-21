@@ -8,6 +8,7 @@ import {
   ShoppingBag,
   User as UserIcon,
   X,
+  ArrowRight,
 } from "lucide-react";
 import logo from "@/assets/logo-mark.png";
 import { categories } from "@/data/products";
@@ -15,9 +16,9 @@ import { useStore } from "@/lib/store";
 import { useAuth } from "@/context/AuthContext";
 
 const navLinks = [
-  { label: "Shop all", to: "/shop" },
+  { label: "All Harvests", to: "/shop" },
   { label: "Journal", to: "/journal" },
-  { label: "Our story", to: "/about" },
+  { label: "Our Story", to: "/about" },
 ];
 
 export function Header() {
@@ -26,28 +27,35 @@ export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [term, setTerm] = useState("");
+  const [isScrolled, setIsScrolled] = useState(false);
   const navigate = useNavigate();
   const { pathname } = useLocation();
 
-  // Close menus on route changes
+  // Scroll listener for translucent blur transition
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Close overlays on route navigation
   useEffect(() => {
     setMenuOpen(false);
     setSearchOpen(false);
   }, [pathname]);
 
-  // Lock body scroll when mobile menu is open
+  // Lock body scroll when mobile index is open
   useEffect(() => {
-    if (menuOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
+    document.body.style.overflow = menuOpen ? "hidden" : "";
     return () => {
       document.body.style.overflow = "";
     };
   }, [menuOpen]);
 
-  // Keyboard shortcut listener for search overlay (Cmd/Ctrl + K)
+  // Keyboard shortcut listener (Cmd/Ctrl + K & Esc)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
@@ -78,158 +86,172 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border/80 bg-background/90 backdrop-blur-md">
-      {/* Announcement Bar */}
-      <div className="bg-primary py-2 text-center text-[10px] font-medium uppercase tracking-[0.2em] text-primary-foreground">
-        Free delivery across India on orders above ₹799
+    <header
+      className={`sticky top-0 z-40 text-[#FDFBF7] transition-all duration-300 ${
+        isScrolled
+          ? "bg-[#162B20]/85 backdrop-blur-md shadow-sm border-b border-[#FDFBF7]/10"
+          : "bg-[#162B20] border-b border-transparent"
+      }`}
+    >
+      {/* Top Banner: High-contrast Dark Forest Strip */}
+      <div className="border-b border-[#FDFBF7]/10 bg-[#102018] px-4 py-2 text-center font-mono text-[11px] font-medium tracking-[0.18em] text-[#FDFBF7]/90 uppercase">
+        <span className="inline-flex items-center gap-2">
+          <span className="h-1.5 w-1.5 rounded-full bg-[#E58866] animate-pulse" />
+          <span>Winter Harvest Active</span>
+          <span className="text-[#FDFBF7]/30">|</span>
+          <span>Free Delivery Across India On Orders Above ₹799</span>
+        </span>
       </div>
 
-      <div className="container-page flex h-16 items-center gap-4 md:h-20">
-        {/* Mobile Menu Button */}
+      {/* Main Navigation Bar */}
+      <div className="container-page flex h-16 items-center justify-between gap-4 md:h-20">
+        {/* Mobile Menu Trigger */}
         <button
           type="button"
-          className="btn-icon -ml-2 border-transparent text-foreground md:hidden hover:border-transparent hover:bg-secondary"
+          className="flex h-10 w-10 items-center justify-center border border-[#FDFBF7]/20 text-[#FDFBF7] hover:border-[#FDFBF7] md:hidden"
           aria-label="Open menu"
           onClick={() => setMenuOpen(true)}
         >
-          <Menu size={20} strokeWidth={1.25} />
+          <Menu size={20} strokeWidth={1.5} />
         </button>
 
-        {/* Brand Logo */}
-        <Link to="/" className="group flex items-center gap-3 md:w-[16rem]">
+        {/* Brand Logo & Name */}
+        <Link to="/" className="group flex items-center gap-3">
           <img
             src={logo}
             alt="Nirvana Republic"
             width={512}
             height={512}
-            className="h-8 w-8 object-contain transition-transform duration-500 group-hover:scale-105"
+            className="h-8 w-8 object-contain transition-transform duration-300 group-hover:scale-105 brightness-0 invert"
           />
-          <span className="font-display text-lg tracking-tight text-foreground md:text-xl">
-            Nirvana Republic
-          </span>
+          <div className="flex flex-col">
+            <span className="font-display text-xl font-medium tracking-tight text-[#FDFBF7] md:text-2xl">
+              Nirvana Republic
+            </span>
+            <span className="font-mono text-[9px] uppercase tracking-[0.22em] text-[#FDFBF7]/60">
+              Single-Origin Botanicals
+            </span>
+          </div>
         </Link>
 
-        {/* Desktop Navigation Links */}
-        <nav className="mx-auto hidden items-center gap-8 md:flex">
+        {/* Desktop Links */}
+        <nav className="hidden items-center gap-7 lg:gap-9 md:flex">
           {categories.map((c) => (
             <Link
               key={c.id}
               to={`/shop?category=${c.id}`}
-              className="link-underline text-xs uppercase tracking-[0.14em] text-muted-foreground transition-colors duration-200 hover:text-foreground"
+              className="group relative font-sans text-xs uppercase tracking-[0.16em] text-[#FDFBF7]/85 transition-colors hover:text-[#FFFFFF]"
             >
-              {c.name}
+              <span>{c.name}</span>
+              <span className="absolute -bottom-1 left-0 h-[1.5px] w-0 bg-[#E58866] transition-all duration-200 group-hover:w-full" />
             </Link>
           ))}
           <Link
             to="/journal"
-            className="link-underline text-xs uppercase tracking-[0.14em] text-muted-foreground transition-colors duration-200 hover:text-foreground"
+            className="group relative font-sans text-xs uppercase tracking-[0.16em] text-[#FDFBF7]/85 transition-colors hover:text-[#FFFFFF]"
           >
-            Journal
+            <span>Journal</span>
+            <span className="absolute -bottom-1 left-0 h-[1.5px] w-0 bg-[#E58866] transition-all duration-200 group-hover:w-full" />
           </Link>
         </nav>
 
-        {/* Action Icons */}
-        <div className="ml-auto flex items-center gap-1.5 md:w-[16rem] md:justify-end">
-          {/* Search Toggle */}
+        {/* Utility Actions */}
+        <div className="flex items-center gap-2">
+          {/* Search Trigger */}
           <button
             type="button"
-            aria-label="Search products"
+            aria-label="Search"
             onClick={() => setSearchOpen((v) => !v)}
-            className="btn-icon h-9 w-9 border-transparent text-foreground hover:border-transparent hover:bg-secondary"
+            className="flex h-9 w-9 items-center justify-center text-[#FDFBF7]/80 transition-colors hover:text-[#FFFFFF]"
           >
-            <Search size={18} strokeWidth={1.25} />
+            <Search size={18} strokeWidth={1.5} />
           </button>
 
           {/* Wishlist Link */}
           <Link
             to="/wishlist"
             aria-label="Wishlist"
-            className="btn-icon relative hidden h-9 w-9 border-transparent text-foreground hover:border-transparent hover:bg-secondary sm:inline-flex"
+            className="relative hidden h-9 w-9 items-center justify-center text-[#FDFBF7]/80 transition-colors hover:text-[#FFFFFF] sm:flex"
           >
-            <Heart size={18} strokeWidth={1.25} />
+            <Heart size={18} strokeWidth={1.5} />
             {wishlist.length > 0 && (
-              <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-clay" />
+              <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-[#E58866]" />
             )}
           </Link>
 
-          {/* User Account / Auth Link */}
+          {/* User Account / Auth */}
           {user ? (
-            <div className="hidden items-center gap-1 sm:flex">
+            <div className="hidden items-center gap-1.5 sm:flex">
               <Link
                 to="/account"
-                aria-label="Your account"
                 title={`Logged in as ${user.name}`}
-                className="btn-icon h-9 w-9 border-transparent hover:border-transparent hover:bg-secondary"
+                className="flex items-center gap-2 border border-[#FDFBF7]/25 px-2.5 py-1 font-mono text-[11px] uppercase tracking-wider text-[#FDFBF7] transition-colors hover:border-[#FDFBF7] hover:bg-[#FDFBF7]/10"
               >
-                <span className="grid h-7 w-7 place-items-center rounded-full bg-primary/10 font-mono text-[11px] font-semibold uppercase text-primary border border-primary/20">
-                  {user.name.charAt(0)}
-                </span>
+                <span className="h-1.5 w-1.5 rounded-full bg-[#52B788]" />
+                <span className="truncate max-w-[90px]">{user.name.split(" ")[0]}</span>
               </Link>
               <button
                 type="button"
                 onClick={handleLogout}
-                aria-label="Sign out"
                 title="Sign out"
-                className="btn-icon h-9 w-9 border-transparent text-muted-foreground hover:border-transparent hover:bg-secondary hover:text-foreground"
+                className="flex h-8 w-8 items-center justify-center text-[#FDFBF7]/60 transition-colors hover:text-[#E58866]"
               >
-                <LogOut size={16} strokeWidth={1.25} />
+                <LogOut size={16} strokeWidth={1.5} />
               </button>
             </div>
           ) : (
             <Link
               to="/auth"
-              aria-label="Sign in or register"
-              title="Sign in or register"
-              className="btn-icon hidden h-9 w-9 border-transparent text-foreground hover:border-transparent hover:bg-secondary sm:inline-flex"
+              title="Sign in"
+              className="hidden h-9 w-9 items-center justify-center text-[#FDFBF7]/80 transition-colors hover:text-[#FFFFFF] sm:flex"
             >
-              <UserIcon size={18} strokeWidth={1.25} />
+              <UserIcon size={18} strokeWidth={1.5} />
             </Link>
           )}
 
-          {/* Cart Drawer Trigger */}
+          {/* Luxury Ivory Bag Button */}
           <button
             type="button"
-            aria-label="Open pantry cart drawer"
+            aria-label="Open Cart"
             onClick={() => setCartOpen(true)}
-            className="btn-icon relative h-9 w-9 border-transparent text-foreground hover:border-transparent hover:bg-secondary"
+            className="group ml-2 flex h-9 items-center gap-2 border border-[#FAF8F5] bg-[#FAF8F5] px-3.5 text-xs font-mono font-medium tracking-wider text-[#121212] transition-all hover:bg-transparent hover:text-[#FAF8F5]"
           >
-            <ShoppingBag size={18} strokeWidth={1.25} />
-            {cartCount > 0 && (
-              <span className="absolute right-1 top-1 grid h-4 min-w-[1rem] place-items-center rounded-full bg-primary px-1 font-mono text-[9px] font-semibold text-primary-foreground">
-                {cartCount}
-              </span>
-            )}
+            <ShoppingBag size={14} strokeWidth={1.75} className="transition-transform group-hover:scale-110" />
+            <span className="uppercase">Bag</span>
+            <span className="font-semibold text-[#121212] group-hover:text-[#E58866]">[{cartCount}]</span>
           </button>
         </div>
       </div>
 
-      {/* Expandable Search Input Bar */}
+      {/* Expandable Search Drawer */}
       {searchOpen && (
-        <div className="fade-in border-t border-border bg-card/95 py-3 shadow-soft backdrop-blur-xs">
-          <form onSubmit={submitSearch} className="container-page flex items-center gap-3">
-            <Search size={16} strokeWidth={1.5} className="shrink-0 text-muted-foreground" />
-            <input
-              autoFocus
-              type="search"
-              value={term}
-              onChange={(e) => setTerm(e.target.value)}
-              placeholder="Search by single-origin ingredient, ritual, or seed..."
-              className="w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground font-sans"
-            />
-            <button
-              type="submit"
-              className="btn-base btn-primary btn-sm rounded-xs font-mono text-xs uppercase tracking-wider"
-            >
-              Search
-            </button>
-            <button
-              type="button"
-              onClick={() => setSearchOpen(false)}
-              className="p-1.5 text-muted-foreground transition-colors hover:text-foreground"
-            >
-              <X size={16} />
-            </button>
-          </form>
+        <div className="border-t border-[#FDFBF7]/15 bg-[#122219]/95 backdrop-blur-md py-4">
+          <div className="container-page">
+            <form onSubmit={submitSearch} className="flex items-center gap-4">
+              <Search size={18} strokeWidth={1.5} className="text-[#FDFBF7]/50" />
+              <input
+                autoFocus
+                type="search"
+                value={term}
+                onChange={(e) => setTerm(e.target.value)}
+                placeholder="Search single-origin lots, seeds, powders, rituals..."
+                className="w-full bg-transparent font-sans text-sm text-[#FDFBF7] outline-none placeholder:text-[#FDFBF7]/40"
+              />
+              <button
+                type="submit"
+                className="shrink-0 border border-[#FAF8F5] bg-[#FAF8F5] px-4 py-1.5 font-mono text-[11px] uppercase tracking-wider text-[#121212] hover:bg-transparent hover:text-[#FAF8F5] transition-colors"
+              >
+                Search
+              </button>
+              <button
+                type="button"
+                onClick={() => setSearchOpen(false)}
+                className="p-1 text-[#FDFBF7]/50 hover:text-[#FDFBF7]"
+              >
+                <X size={18} />
+              </button>
+            </form>
+          </div>
         </div>
       )}
 
@@ -242,82 +264,79 @@ export function Header() {
       >
         <div
           onClick={() => setMenuOpen(false)}
-          className="overlay-scrim absolute inset-0 backdrop-blur-xs"
+          className="absolute inset-0 bg-[#000000]/60 backdrop-blur-sm"
         />
         <nav
-          className={`absolute left-0 top-0 flex h-dvh w-[86%] max-w-sm flex-col justify-between border-r border-border bg-background p-6 shadow-lift transition-transform duration-300 ease-out ${
+          className={`absolute left-0 top-0 flex h-dvh w-[85%] max-w-sm flex-col justify-between border-r border-[#FDFBF7]/15 bg-[#162B20] p-6 text-[#FDFBF7] transition-transform duration-300 ease-out ${
             menuOpen ? "translate-x-0" : "-translate-x-full"
           }`}
         >
-          <div className="space-y-6 overflow-y-auto pr-1">
-            <div className="flex items-center justify-between border-b border-border pb-4">
-              <span className="font-display text-lg text-foreground">Shelves</span>
+          <div className="space-y-6 overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-[#FDFBF7]/15 pb-4">
+              <span className="font-display text-lg text-[#FDFBF7]">Nirvana Republic</span>
               <button
                 type="button"
-                aria-label="Close menu"
                 onClick={() => setMenuOpen(false)}
-                className="btn-icon h-8 w-8 border-transparent text-muted-foreground hover:border-transparent hover:text-foreground"
+                className="flex h-8 w-8 items-center justify-center border border-[#FDFBF7]/20 text-[#FDFBF7]"
               >
-                <X size={18} strokeWidth={1.5} />
+                <X size={18} />
               </button>
             </div>
 
-            {/* Shelves List */}
+            {/* Shelves */}
             <div className="space-y-1">
-              <p className="eyebrow-accent">Collections</p>
+              <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#E58866]">
+                Collections
+              </p>
               {categories.map((c) => (
                 <Link
                   key={c.id}
                   to={`/shop?category=${c.id}`}
                   onClick={() => setMenuOpen(false)}
-                  className="block border-b border-border/50 py-3 font-display text-lg text-foreground transition-colors hover:text-moss"
+                  className="flex items-center justify-between border-b border-[#FDFBF7]/10 py-3 font-display text-lg text-[#FDFBF7] hover:text-[#E58866] transition-colors"
                 >
-                  {c.name}
+                  <span>{c.name}</span>
+                  <ArrowRight size={15} className="text-[#FDFBF7]/40" />
                 </Link>
               ))}
             </div>
 
-            {/* General Navigation */}
+            {/* Navigation */}
             <div className="space-y-2 pt-2">
-              <p className="eyebrow">Explore</p>
+              <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#FDFBF7]/50">
+                Explore
+              </p>
               {navLinks.map((l) => (
                 <Link
                   key={l.to}
                   to={l.to}
                   onClick={() => setMenuOpen(false)}
-                  className="block py-1.5 text-xs uppercase tracking-wider text-muted-foreground transition-colors hover:text-foreground"
+                  className="block py-1.5 font-mono text-xs uppercase tracking-wider text-[#FDFBF7]/80 hover:text-[#FFFFFF]"
                 >
                   {l.label}
                 </Link>
               ))}
               <Link
-                to="/cart"
-                onClick={() => setMenuOpen(false)}
-                className="flex items-center justify-between py-1.5 text-xs uppercase tracking-wider text-muted-foreground transition-colors hover:text-foreground"
-              >
-                <span>Cart</span>
-                {cartCount > 0 && (
-                  <span className="badge-base badge-bestseller font-mono">{cartCount}</span>
-                )}
-              </Link>
-              <Link
                 to="/wishlist"
                 onClick={() => setMenuOpen(false)}
-                className="block py-1.5 text-xs uppercase tracking-wider text-muted-foreground transition-colors hover:text-foreground"
+                className="flex items-center justify-between py-1.5 font-mono text-xs uppercase tracking-wider text-[#FDFBF7]/80 hover:text-[#FFFFFF]"
               >
-                Saved Wishlist
+                <span>Saved Wishlist</span>
+                {wishlist.length > 0 && (
+                  <span className="text-[#E58866]">({wishlist.length})</span>
+                )}
               </Link>
             </div>
           </div>
 
-          {/* User Profile / Auth Footer in Drawer */}
-          <div className="border-t border-border pt-4">
+          {/* Drawer Footer */}
+          <div className="border-t border-[#FDFBF7]/15 pt-4">
             {user ? (
               <div className="space-y-2">
                 <Link
                   to="/account"
                   onClick={() => setMenuOpen(false)}
-                  className="block text-xs uppercase tracking-wider text-foreground font-medium"
+                  className="block font-mono text-xs uppercase tracking-wider text-[#FDFBF7]"
                 >
                   Account ({user.name})
                 </Link>
@@ -327,7 +346,7 @@ export function Header() {
                     setMenuOpen(false);
                     handleLogout();
                   }}
-                  className="block w-full text-left text-xs uppercase tracking-wider text-destructive transition-colors hover:underline"
+                  className="block font-mono text-xs uppercase tracking-wider text-[#E58866] hover:underline"
                 >
                   Sign Out
                 </button>
@@ -336,7 +355,7 @@ export function Header() {
               <Link
                 to="/auth"
                 onClick={() => setMenuOpen(false)}
-                className="btn-base btn-primary w-full py-2.5 text-xs uppercase tracking-wider"
+                className="flex w-full items-center justify-center border border-[#FAF8F5] bg-[#FAF8F5] py-3 font-mono text-xs uppercase tracking-widest text-[#121212] font-medium"
               >
                 Sign In / Register
               </Link>
