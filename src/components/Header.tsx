@@ -31,7 +31,6 @@ export function Header() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
 
-  // Scroll listener for translucent blur transition
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
@@ -41,13 +40,11 @@ export function Header() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Close overlays on route navigation
   useEffect(() => {
     setMenuOpen(false);
     setSearchOpen(false);
   }, [pathname]);
 
-  // Lock body scroll when mobile index is open
   useEffect(() => {
     document.body.style.overflow = menuOpen ? "hidden" : "";
     return () => {
@@ -55,7 +52,6 @@ export function Header() {
     };
   }, [menuOpen]);
 
-  // Keyboard shortcut listener (Cmd/Ctrl + K & Esc)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
@@ -87,60 +83,50 @@ export function Header() {
 
   return (
     <header
-      className={`sticky top-0 z-40 text-[#FDFBF7] transition-all duration-300 ${
+      className={`sticky top-0 z-40 w-full max-w-full text-[#FDFBF7] transition-all duration-300 ${
         isScrolled
-          ? "bg-[#162B20]/85 backdrop-blur-md shadow-sm border-b border-[#FDFBF7]/10"
+          ? "bg-[#162B20]/90 backdrop-blur-md shadow-sm border-b border-[#FDFBF7]/10"
           : "bg-[#162B20] border-b border-transparent"
       }`}
     >
-      {/* Top Banner: High-contrast Dark Forest Strip */}
-      <div className="border-b border-[#FDFBF7]/10 bg-[#102018] px-4 py-2 text-center font-mono text-[11px] font-medium tracking-[0.18em] text-[#FDFBF7]/90 uppercase">
-        <span className="inline-flex items-center gap-2">
-          <span className="h-1.5 w-1.5 rounded-full bg-[#E58866] animate-pulse" />
-          <span>Winter Harvest Active</span>
-          <span className="text-[#FDFBF7]/30">|</span>
-          <span>Free Delivery Across India On Orders Above ₹799</span>
-        </span>
-      </div>
+      <div className="container-page flex min-h-[4.25rem] w-full items-center justify-between gap-3 py-2.5 sm:min-h-[4.5rem] md:h-20 md:py-0">
+        {/* Left: Mobile/Tablet Menu Trigger & Logo */}
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            className="flex h-9 w-9 shrink-0 items-center justify-center border border-[#FDFBF7]/20 text-[#FDFBF7] transition-colors hover:border-[#FDFBF7] lg:hidden"
+            aria-label="Open menu"
+            onClick={() => setMenuOpen(true)}
+          >
+            <Menu size={18} strokeWidth={1.5} />
+          </button>
 
-      {/* Main Navigation Bar */}
-      <div className="container-page flex h-16 items-center justify-between gap-4 md:h-20">
-        {/* Mobile Menu Trigger */}
-        <button
-          type="button"
-          className="flex h-10 w-10 items-center justify-center border border-[#FDFBF7]/20 text-[#FDFBF7] hover:border-[#FDFBF7] md:hidden"
-          aria-label="Open menu"
-          onClick={() => setMenuOpen(true)}
-        >
-          <Menu size={20} strokeWidth={1.5} />
-        </button>
+          <Link to="/" className="group flex shrink-0 items-center gap-2.5">
+            <img
+              src={logo}
+              alt="Nirvana Republic"
+              width={512}
+              height={512}
+              className="h-7 w-7 object-contain brightness-0 invert transition-transform duration-300 group-hover:scale-105 sm:h-8 sm:w-8"
+            />
+            <div className="flex flex-col justify-center">
+              <span className="font-display text-base font-normal leading-tight tracking-tight text-[#FDFBF7] sm:text-xl md:text-2xl">
+                Nirvana Republic
+              </span>
+              <span className="hidden font-mono text-[8.5px] uppercase tracking-[0.22em] text-[#FDFBF7]/60 xl:block">
+                Single-Origin Botanicals
+              </span>
+            </div>
+          </Link>
+        </div>
 
-        {/* Brand Logo & Name */}
-        <Link to="/" className="group flex items-center gap-3">
-          <img
-            src={logo}
-            alt="Nirvana Republic"
-            width={512}
-            height={512}
-            className="h-8 w-8 object-contain transition-transform duration-300 group-hover:scale-105 brightness-0 invert"
-          />
-          <div className="flex flex-col">
-            <span className="font-display text-xl font-medium tracking-tight text-[#FDFBF7] md:text-2xl">
-              Nirvana Republic
-            </span>
-            <span className="font-mono text-[9px] uppercase tracking-[0.22em] text-[#FDFBF7]/60">
-              Single-Origin Botanicals
-            </span>
-          </div>
-        </Link>
-
-        {/* Desktop Links */}
-        <nav className="hidden items-center gap-7 lg:gap-9 md:flex">
+        {/* Center: Desktop Links (Visible ONLY on lg/xl screens to prevent tablet squeeze) */}
+        <nav className="hidden items-center gap-6 xl:gap-8 lg:flex">
           {categories.map((c) => (
             <Link
               key={c.id}
               to={`/shop?category=${c.id}`}
-              className="group relative font-sans text-xs uppercase tracking-[0.16em] text-[#FDFBF7]/85 transition-colors hover:text-[#FFFFFF]"
+              className="group relative font-sans text-xs uppercase tracking-[0.14em] text-[#FDFBF7]/85 transition-colors hover:text-[#FFFFFF]"
             >
               <span>{c.name}</span>
               <span className="absolute -bottom-1 left-0 h-[1.5px] w-0 bg-[#E58866] transition-all duration-200 group-hover:w-full" />
@@ -148,30 +134,28 @@ export function Header() {
           ))}
           <Link
             to="/journal"
-            className="group relative font-sans text-xs uppercase tracking-[0.16em] text-[#FDFBF7]/85 transition-colors hover:text-[#FFFFFF]"
+            className="group relative font-sans text-xs uppercase tracking-[0.14em] text-[#FDFBF7]/85 transition-colors hover:text-[#FFFFFF]"
           >
             <span>Journal</span>
             <span className="absolute -bottom-1 left-0 h-[1.5px] w-0 bg-[#E58866] transition-all duration-200 group-hover:w-full" />
           </Link>
         </nav>
 
-        {/* Utility Actions */}
-        <div className="flex items-center gap-2">
-          {/* Search Trigger */}
+        {/* Right: Utility Controls */}
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
           <button
             type="button"
             aria-label="Search"
             onClick={() => setSearchOpen((v) => !v)}
-            className="flex h-9 w-9 items-center justify-center text-[#FDFBF7]/80 transition-colors hover:text-[#FFFFFF]"
+            className="flex h-8 w-8 items-center justify-center text-[#FDFBF7]/80 transition-colors hover:text-[#FFFFFF] sm:h-9 sm:w-9"
           >
-            <Search size={18} strokeWidth={1.5} />
+            <Search size={17} strokeWidth={1.5} />
           </button>
 
-          {/* Wishlist Link */}
           <Link
             to="/wishlist"
             aria-label="Wishlist"
-            className="relative hidden h-9 w-9 items-center justify-center text-[#FDFBF7]/80 transition-colors hover:text-[#FFFFFF] sm:flex"
+            className="relative hidden h-9 w-9 items-center justify-center text-[#FDFBF7]/80 transition-colors hover:text-[#FFFFFF] md:flex"
           >
             <Heart size={18} strokeWidth={1.5} />
             {wishlist.length > 0 && (
@@ -179,16 +163,15 @@ export function Header() {
             )}
           </Link>
 
-          {/* User Account / Auth */}
           {user ? (
-            <div className="hidden items-center gap-1.5 sm:flex">
+            <div className="hidden items-center gap-1 sm:flex">
               <Link
                 to="/account"
                 title={`Logged in as ${user.name}`}
                 className="flex items-center gap-2 border border-[#FDFBF7]/25 px-2.5 py-1 font-mono text-[11px] uppercase tracking-wider text-[#FDFBF7] transition-colors hover:border-[#FDFBF7] hover:bg-[#FDFBF7]/10"
               >
                 <span className="h-1.5 w-1.5 rounded-full bg-[#52B788]" />
-                <span className="truncate max-w-[90px]">{user.name.split(" ")[0]}</span>
+                <span className="truncate max-w-[80px]">{user.name.split(" ")[0]}</span>
               </Link>
               <button
                 type="button"
@@ -196,7 +179,7 @@ export function Header() {
                 title="Sign out"
                 className="flex h-8 w-8 items-center justify-center text-[#FDFBF7]/60 transition-colors hover:text-[#E58866]"
               >
-                <LogOut size={16} strokeWidth={1.5} />
+                <LogOut size={15} strokeWidth={1.5} />
               </button>
             </div>
           ) : (
@@ -209,15 +192,14 @@ export function Header() {
             </Link>
           )}
 
-          {/* Luxury Ivory Bag Button */}
           <button
             type="button"
             aria-label="Open Cart"
             onClick={() => setCartOpen(true)}
-            className="group ml-2 flex h-9 items-center gap-2 border border-[#FAF8F5] bg-[#FAF8F5] px-3.5 text-xs font-mono font-medium tracking-wider text-[#121212] transition-all hover:bg-transparent hover:text-[#FAF8F5]"
+            className="group ml-1 flex h-8 items-center gap-1.5 border border-[#FAF8F5] bg-[#FAF8F5] px-2.5 text-xs font-mono font-medium tracking-wider text-[#121212] transition-all hover:bg-transparent hover:text-[#FAF8F5] sm:h-9 sm:gap-2 sm:px-3.5"
           >
-            <ShoppingBag size={14} strokeWidth={1.75} className="transition-transform group-hover:scale-110" />
-            <span className="uppercase">Bag</span>
+            <ShoppingBag size={13} strokeWidth={1.75} className="transition-transform group-hover:scale-110 sm:size-[14px]" />
+            <span className="text-[11px] uppercase sm:text-xs">Bag</span>
             <span className="font-semibold text-[#121212] group-hover:text-[#E58866]">[{cartCount}]</span>
           </button>
         </div>
@@ -225,21 +207,21 @@ export function Header() {
 
       {/* Expandable Search Drawer */}
       {searchOpen && (
-        <div className="border-t border-[#FDFBF7]/15 bg-[#122219]/95 backdrop-blur-md py-4">
+        <div className="border-t border-[#FDFBF7]/15 bg-[#122219]/95 backdrop-blur-md py-3 sm:py-4">
           <div className="container-page">
-            <form onSubmit={submitSearch} className="flex items-center gap-4">
-              <Search size={18} strokeWidth={1.5} className="text-[#FDFBF7]/50" />
+            <form onSubmit={submitSearch} className="flex items-center gap-3 sm:gap-4">
+              <Search size={16} strokeWidth={1.5} className="text-[#FDFBF7]/50 sm:size-[18px]" />
               <input
                 autoFocus
                 type="search"
                 value={term}
                 onChange={(e) => setTerm(e.target.value)}
-                placeholder="Search single-origin lots, seeds, powders, rituals..."
-                className="w-full bg-transparent font-sans text-sm text-[#FDFBF7] outline-none placeholder:text-[#FDFBF7]/40"
+                placeholder="Search lots, seeds, powders..."
+                className="w-full bg-transparent font-sans text-xs text-[#FDFBF7] outline-none placeholder:text-[#FDFBF7]/40 sm:text-sm"
               />
               <button
                 type="submit"
-                className="shrink-0 border border-[#FAF8F5] bg-[#FAF8F5] px-4 py-1.5 font-mono text-[11px] uppercase tracking-wider text-[#121212] hover:bg-transparent hover:text-[#FAF8F5] transition-colors"
+                className="shrink-0 border border-[#FAF8F5] bg-[#FAF8F5] px-3 py-1 font-mono text-[10px] uppercase tracking-wider text-[#121212] hover:bg-transparent hover:text-[#FAF8F5] transition-colors sm:px-4 sm:py-1.5 sm:text-[11px]"
               >
                 Search
               </button>
@@ -248,16 +230,16 @@ export function Header() {
                 onClick={() => setSearchOpen(false)}
                 className="p-1 text-[#FDFBF7]/50 hover:text-[#FDFBF7]"
               >
-                <X size={18} />
+                <X size={16} />
               </button>
             </form>
           </div>
         </div>
       )}
 
-      {/* Mobile Drawer Menu */}
+      {/* Mobile / Tablet Drawer Menu */}
       <div
-        className={`fixed inset-0 z-50 transition-opacity duration-300 md:hidden ${
+        className={`fixed inset-0 z-50 transition-opacity duration-300 lg:hidden ${
           menuOpen ? "opacity-100" : "pointer-events-none opacity-0"
         }`}
         aria-hidden={!menuOpen}
@@ -283,7 +265,6 @@ export function Header() {
               </button>
             </div>
 
-            {/* Shelves */}
             <div className="space-y-1">
               <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#E58866]">
                 Collections
@@ -301,7 +282,6 @@ export function Header() {
               ))}
             </div>
 
-            {/* Navigation */}
             <div className="space-y-2 pt-2">
               <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#FDFBF7]/50">
                 Explore
@@ -329,7 +309,6 @@ export function Header() {
             </div>
           </div>
 
-          {/* Drawer Footer */}
           <div className="border-t border-[#FDFBF7]/15 pt-4">
             {user ? (
               <div className="space-y-2">
