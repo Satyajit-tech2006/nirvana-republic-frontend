@@ -110,7 +110,6 @@ export default function AdminProductPublishPage() {
         setErrorMsg("");
         return combined;
       });
-      // Reset input value so re-selecting identical files still triggers onChange
       e.target.value = "";
     }
   };
@@ -223,51 +222,51 @@ export default function AdminProductPublishPage() {
   };
 
   return (
-    <div className="mx-auto max-w-4xl space-y-8">
+    <div className="mx-auto max-w-4xl space-y-8 text-[#121212]">
       <SEO
         title="Publish Lot — Nirvana Backoffice"
         description="Catalog and publish single-origin agricultural lots."
         canonical="/admin/products/new"
       />
 
-      <header className="border-b border-border/80 pb-6">
-        <div className="flex items-center gap-2 text-moss">
+      <header className="border-b border-[#121212]/15 pb-6">
+        <div className="flex items-center gap-2 text-[#1E3A2B]">
           <Sparkles size={13} strokeWidth={1.5} />
-          <span className="eyebrow-accent text-[10px] tracking-[0.24em]">
+          <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.24em]">
             Batch Registry Entry
           </span>
         </div>
-        <h1 className="mt-2 text-balance font-display text-3xl tracking-tight text-foreground sm:text-4xl">
+        <h1 className="mt-2 text-balance font-display text-3xl font-normal tracking-tight text-[#121212] sm:text-4xl">
           Publish Single-Origin Lot
         </h1>
-        <p className="mt-1.5 max-w-[54ch] text-xs leading-relaxed text-muted-foreground sm:text-sm">
+        <p className="mt-1.5 max-w-[58ch] text-xs leading-relaxed text-[#121212]/70 sm:text-sm">
           Add new unblended batches with complete farm provenance, laboratory testing credentials, ritual guides, and nutritional data.
         </p>
       </header>
 
       {successMsg && (
-        <div className="flex items-center gap-3 rounded-sm border border-moss/30 bg-moss/10 p-4 font-mono text-xs text-moss">
+        <div className="flex items-center gap-3 border border-[#1E3A2B]/30 bg-[#1E3A2B]/10 p-4 font-mono text-xs text-[#1E3A2B]">
           <CheckCircle size={16} strokeWidth={1.5} className="shrink-0" />
           <span>{successMsg}</span>
         </div>
       )}
 
       {errorMsg && (
-        <div className="flex items-center gap-3 rounded-sm border border-clay/30 bg-clay/10 p-4 font-mono text-xs text-clay">
+        <div className="flex items-center gap-3 border border-[#B5502B]/30 bg-[#B5502B]/10 p-4 font-mono text-xs text-[#B5502B]">
           <AlertCircle size={16} strokeWidth={1.5} className="shrink-0" />
           <span>{errorMsg}</span>
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-10">
-        {/* Section 1 */}
-        <div className="card-flush space-y-4 bg-card p-6 shadow-soft sm:p-8">
-          <h2 className="border-b border-border/80 pb-2.5 font-mono text-xs font-semibold uppercase tracking-wider text-foreground">
+      <form onSubmit={handleSubmit} className="space-y-8">
+        {/* Section 1: Product Identity & Pricing */}
+        <div className="border border-[#121212]/10 bg-white p-6 shadow-sm sm:p-8 space-y-5">
+          <h2 className="border-b border-[#121212]/15 pb-3 font-mono text-xs font-semibold uppercase tracking-wider text-[#121212]">
             01. Product Identity &amp; Pricing
           </h2>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
-              <label className="mb-1 block font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+              <label className="mb-1.5 block font-mono text-[11px] uppercase tracking-wider text-[#121212]/70">
                 Product Name *
               </label>
               <input
@@ -276,11 +275,11 @@ export default function AdminProductPublishPage() {
                 value={formData.name}
                 onChange={handleNameChange}
                 placeholder="Ceremonial Chia Seeds"
-                className="input-base text-xs"
+                className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3.5 py-2.5 font-sans text-xs text-[#121212] placeholder:text-[#121212]/40 outline-none transition-colors focus:border-[#121212] focus:bg-white"
               />
             </div>
             <div>
-              <label className="mb-1 block font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+              <label className="mb-1.5 block font-mono text-[11px] uppercase tracking-wider text-[#121212]/70">
                 URL Slug *
               </label>
               <input
@@ -290,11 +289,11 @@ export default function AdminProductPublishPage() {
                 value={formData.slug}
                 onChange={handleInputChange}
                 placeholder="ceremonial-chia-seeds"
-                className="input-base bg-sand-100/50 font-mono text-xs"
+                className="w-full border border-[#121212]/15 bg-[#F4F1EA]/60 px-3.5 py-2.5 font-mono text-xs text-[#121212] placeholder:text-[#121212]/40 outline-none transition-colors focus:border-[#121212] focus:bg-white"
               />
             </div>
             <div className="md:col-span-2">
-              <label className="mb-1 block font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+              <label className="mb-1.5 block font-mono text-[11px] uppercase tracking-wider text-[#121212]/70">
                 Tagline *
               </label>
               <input
@@ -304,18 +303,18 @@ export default function AdminProductPublishPage() {
                 value={formData.tagline}
                 onChange={handleInputChange}
                 placeholder="Sun-cured Black Chia from Malwa Plateau"
-                className="input-base text-xs"
+                className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3.5 py-2.5 font-sans text-xs text-[#121212] placeholder:text-[#121212]/40 outline-none transition-colors focus:border-[#121212] focus:bg-white"
               />
             </div>
             <div>
-              <label className="mb-1 block font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+              <label className="mb-1.5 block font-mono text-[11px] uppercase tracking-wider text-[#121212]/70">
                 Category *
               </label>
               <select
                 name="category"
                 value={formData.category}
                 onChange={handleInputChange}
-                className="input-base bg-card text-xs"
+                className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3 py-2.5 font-sans text-xs text-[#121212] outline-none transition-colors focus:border-[#121212] focus:bg-white"
               >
                 <option value="seeds">Seeds &amp; Kernels</option>
                 <option value="staples">Unrefined Staples</option>
@@ -324,7 +323,7 @@ export default function AdminProductPublishPage() {
               </select>
             </div>
             <div>
-              <label className="mb-1 block font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+              <label className="mb-1.5 block font-mono text-[11px] uppercase tracking-wider text-[#121212]/70">
                 SKU
               </label>
               <input
@@ -333,11 +332,11 @@ export default function AdminProductPublishPage() {
                 value={formData.sku}
                 onChange={handleInputChange}
                 placeholder="NR-CHIA-250G"
-                className="input-base font-mono text-xs"
+                className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3.5 py-2.5 font-mono text-xs text-[#121212] placeholder:text-[#121212]/40 outline-none transition-colors focus:border-[#121212] focus:bg-white"
               />
             </div>
             <div>
-              <label className="mb-1 block font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+              <label className="mb-1.5 block font-mono text-[11px] uppercase tracking-wider text-[#121212]/70">
                 Price (₹ INR) *
               </label>
               <input
@@ -347,11 +346,11 @@ export default function AdminProductPublishPage() {
                 value={formData.price}
                 onChange={handleInputChange}
                 placeholder="499"
-                className="input-base font-mono text-xs"
+                className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3.5 py-2.5 font-mono text-xs text-[#121212] placeholder:text-[#121212]/40 outline-none transition-colors focus:border-[#121212] focus:bg-white"
               />
             </div>
             <div>
-              <label className="mb-1 block font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+              <label className="mb-1.5 block font-mono text-[11px] uppercase tracking-wider text-[#121212]/70">
                 Compare At Price (₹ INR)
               </label>
               <input
@@ -360,11 +359,11 @@ export default function AdminProductPublishPage() {
                 value={formData.compareAtPrice}
                 onChange={handleInputChange}
                 placeholder="599"
-                className="input-base font-mono text-xs"
+                className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3.5 py-2.5 font-mono text-xs text-[#121212] placeholder:text-[#121212]/40 outline-none transition-colors focus:border-[#121212] focus:bg-white"
               />
             </div>
             <div>
-              <label className="mb-1 block font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+              <label className="mb-1.5 block font-mono text-[11px] uppercase tracking-wider text-[#121212]/70">
                 Net Weight (Grams) *
               </label>
               <input
@@ -374,11 +373,11 @@ export default function AdminProductPublishPage() {
                 value={formData.weightGrams}
                 onChange={handleInputChange}
                 placeholder="250"
-                className="input-base font-mono text-xs"
+                className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3.5 py-2.5 font-mono text-xs text-[#121212] placeholder:text-[#121212]/40 outline-none transition-colors focus:border-[#121212] focus:bg-white"
               />
             </div>
             <div>
-              <label className="mb-1 block font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+              <label className="mb-1.5 block font-mono text-[11px] uppercase tracking-wider text-[#121212]/70">
                 Stock Quantity *
               </label>
               <input
@@ -388,11 +387,11 @@ export default function AdminProductPublishPage() {
                 value={formData.stockQuantity}
                 onChange={handleInputChange}
                 placeholder="100"
-                className="input-base font-mono text-xs"
+                className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3.5 py-2.5 font-mono text-xs text-[#121212] placeholder:text-[#121212]/40 outline-none transition-colors focus:border-[#121212] focus:bg-white"
               />
             </div>
             <div className="md:col-span-2">
-              <label className="mb-1 block font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+              <label className="mb-1.5 block font-mono text-[11px] uppercase tracking-wider text-[#121212]/70">
                 Description *
               </label>
               <textarea
@@ -402,20 +401,20 @@ export default function AdminProductPublishPage() {
                 value={formData.description}
                 onChange={handleInputChange}
                 placeholder="Describe botanical origins, aroma, physical profile, and purity guarantees..."
-                className="input-base text-xs leading-relaxed"
+                className="w-full border border-[#121212]/15 bg-[#FAF8F5] p-3 font-sans text-xs leading-relaxed text-[#121212] placeholder:text-[#121212]/40 outline-none transition-colors focus:border-[#121212] focus:bg-white"
               />
             </div>
           </div>
         </div>
 
-        {/* Section 2 */}
-        <div className="card-flush space-y-4 bg-card p-6 shadow-soft sm:p-8">
-          <h2 className="border-b border-border/80 pb-2.5 font-mono text-xs font-semibold uppercase tracking-wider text-foreground">
+        {/* Section 2: Farm Provenance & Laboratory Reference */}
+        <div className="border border-[#121212]/10 bg-white p-6 shadow-sm sm:p-8 space-y-5">
+          <h2 className="border-b border-[#121212]/15 pb-3 font-mono text-xs font-semibold uppercase tracking-wider text-[#121212]">
             02. Farm Provenance &amp; Laboratory Reference
           </h2>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
-              <label className="mb-1 block font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+              <label className="mb-1.5 block font-mono text-[11px] uppercase tracking-wider text-[#121212]/70">
                 Farm / Cluster Name *
               </label>
               <input
@@ -425,11 +424,11 @@ export default function AdminProductPublishPage() {
                 value={formData.farmName}
                 onChange={handleInputChange}
                 placeholder="Neemuch Organic Collective"
-                className="input-base text-xs"
+                className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3.5 py-2.5 font-sans text-xs text-[#121212] placeholder:text-[#121212]/40 outline-none transition-colors focus:border-[#121212] focus:bg-white"
               />
             </div>
             <div>
-              <label className="mb-1 block font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+              <label className="mb-1.5 block font-mono text-[11px] uppercase tracking-wider text-[#121212]/70">
                 State / Region *
               </label>
               <input
@@ -439,11 +438,11 @@ export default function AdminProductPublishPage() {
                 value={formData.farmState}
                 onChange={handleInputChange}
                 placeholder="Madhya Pradesh"
-                className="input-base text-xs"
+                className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3.5 py-2.5 font-sans text-xs text-[#121212] placeholder:text-[#121212]/40 outline-none transition-colors focus:border-[#121212] focus:bg-white"
               />
             </div>
             <div>
-              <label className="mb-1 block font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+              <label className="mb-1.5 block font-mono text-[11px] uppercase tracking-wider text-[#121212]/70">
                 Elevation
               </label>
               <input
@@ -452,11 +451,11 @@ export default function AdminProductPublishPage() {
                 value={formData.farmElevation}
                 onChange={handleInputChange}
                 placeholder="490m MSL"
-                className="input-base font-mono text-xs"
+                className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3.5 py-2.5 font-mono text-xs text-[#121212] placeholder:text-[#121212]/40 outline-none transition-colors focus:border-[#121212] focus:bg-white"
               />
             </div>
             <div>
-              <label className="mb-1 block font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+              <label className="mb-1.5 block font-mono text-[11px] uppercase tracking-wider text-[#121212]/70">
                 Farmer / Collective Leader
               </label>
               <input
@@ -465,11 +464,11 @@ export default function AdminProductPublishPage() {
                 value={formData.farmFarmer}
                 onChange={handleInputChange}
                 placeholder="Patidar Family Growers"
-                className="input-base text-xs"
+                className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3.5 py-2.5 font-sans text-xs text-[#121212] placeholder:text-[#121212]/40 outline-none transition-colors focus:border-[#121212] focus:bg-white"
               />
             </div>
             <div>
-              <label className="mb-1 block font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+              <label className="mb-1.5 block font-mono text-[11px] uppercase tracking-wider text-[#121212]/70">
                 Harvest Period *
               </label>
               <input
@@ -479,11 +478,11 @@ export default function AdminProductPublishPage() {
                 value={formData.harvestPeriod}
                 onChange={handleInputChange}
                 placeholder="November 2025"
-                className="input-base font-mono text-xs"
+                className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3.5 py-2.5 font-mono text-xs text-[#121212] placeholder:text-[#121212]/40 outline-none transition-colors focus:border-[#121212] focus:bg-white"
               />
             </div>
             <div>
-              <label className="mb-1 block font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+              <label className="mb-1.5 block font-mono text-[11px] uppercase tracking-wider text-[#121212]/70">
                 Lab Report Batch Ref *
               </label>
               <input
@@ -493,27 +492,27 @@ export default function AdminProductPublishPage() {
                 value={formData.labReportRef}
                 onChange={handleInputChange}
                 placeholder="NR-LAB-2025-CH09"
-                className="input-base font-mono text-xs"
+                className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3.5 py-2.5 font-mono text-xs text-[#121212] placeholder:text-[#121212]/40 outline-none transition-colors focus:border-[#121212] focus:bg-white"
               />
             </div>
           </div>
         </div>
 
-        {/* Section 3 */}
-        <div className="card-flush space-y-4 bg-card p-6 shadow-soft sm:p-8">
-          <h2 className="border-b border-border/80 pb-2.5 font-mono text-xs font-semibold uppercase tracking-wider text-foreground">
+        {/* Section 3: Daily Ritual Guidance & Benefits */}
+        <div className="border border-[#121212]/10 bg-white p-6 shadow-sm sm:p-8 space-y-5">
+          <h2 className="border-b border-[#121212]/15 pb-3 font-mono text-xs font-semibold uppercase tracking-wider text-[#121212]">
             03. Daily Ritual Guidance &amp; Benefits
           </h2>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
-              <label className="mb-1 block font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+              <label className="mb-1.5 block font-mono text-[11px] uppercase tracking-wider text-[#121212]/70">
                 Ritual Timing
               </label>
               <select
                 name="ritualTiming"
                 value={formData.ritualTiming}
                 onChange={handleInputChange}
-                className="input-base bg-card text-xs"
+                className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3 py-2.5 font-sans text-xs text-[#121212] outline-none transition-colors focus:border-[#121212] focus:bg-white"
               >
                 <option value="Morning">Morning (Empty Stomach)</option>
                 <option value="Afternoon">Mid-Day Ritual</option>
@@ -523,7 +522,7 @@ export default function AdminProductPublishPage() {
               </select>
             </div>
             <div>
-              <label className="mb-1 block font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+              <label className="mb-1.5 block font-mono text-[11px] uppercase tracking-wider text-[#121212]/70">
                 Shelf Life
               </label>
               <input
@@ -532,11 +531,11 @@ export default function AdminProductPublishPage() {
                 value={formData.shelfLife}
                 onChange={handleInputChange}
                 placeholder="12 months from packing"
-                className="input-base text-xs"
+                className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3.5 py-2.5 font-sans text-xs text-[#121212] placeholder:text-[#121212]/40 outline-none transition-colors focus:border-[#121212] focus:bg-white"
               />
             </div>
             <div className="md:col-span-2">
-              <label className="mb-1 block font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+              <label className="mb-1.5 block font-mono text-[11px] uppercase tracking-wider text-[#121212]/70">
                 Ritual Instruction *
               </label>
               <textarea
@@ -546,20 +545,20 @@ export default function AdminProductPublishPage() {
                 value={formData.ritualInstruction}
                 onChange={handleInputChange}
                 placeholder="Soak 1 tablespoon in 200ml ambient water for 15 minutes. Consume before your first meal."
-                className="input-base text-xs leading-relaxed"
+                className="w-full border border-[#121212]/15 bg-[#FAF8F5] p-3 font-sans text-xs leading-relaxed text-[#121212] placeholder:text-[#121212]/40 outline-none transition-colors focus:border-[#121212] focus:bg-white"
               />
             </div>
           </div>
 
           <div className="mt-4 pt-2">
-            <div className="mb-2 flex items-center justify-between">
-              <label className="block font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+            <div className="mb-2.5 flex items-center justify-between">
+              <label className="block font-mono text-[11px] uppercase tracking-wider text-[#121212]/70">
                 Key Nutritional Merits
               </label>
               <button
                 type="button"
                 onClick={handleAddBenefit}
-                className="inline-flex items-center gap-1 font-mono text-xs uppercase tracking-wider text-moss hover:underline"
+                className="inline-flex items-center gap-1 font-mono text-xs uppercase tracking-wider text-[#1E3A2B] hover:text-[#E58866]"
               >
                 <Plus size={13} strokeWidth={1.5} /> Add Point
               </button>
@@ -572,15 +571,15 @@ export default function AdminProductPublishPage() {
                     value={benefit}
                     onChange={(e) => handleBenefitChange(idx, e.target.value)}
                     placeholder="e.g. 5g omega-3 ALA per serving"
-                    className="input-base flex-1 text-xs"
+                    className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3.5 py-2 font-sans text-xs text-[#121212] placeholder:text-[#121212]/40 outline-none transition-colors focus:border-[#121212] focus:bg-white"
                   />
                   {benefits.length > 1 && (
                     <button
                       type="button"
                       onClick={() => handleRemoveBenefit(idx)}
-                      className="btn-icon h-9 w-9 border-border/80 text-muted-foreground hover:border-clay hover:text-clay"
+                      className="flex h-9 w-9 shrink-0 items-center justify-center border border-[#121212]/15 text-[#121212]/50 hover:border-[#B5502B] hover:text-[#B5502B]"
                     >
-                      <Trash2 size={14} strokeWidth={1.5} />
+                      <Trash2 size={13} strokeWidth={1.5} />
                     </button>
                   )}
                 </div>
@@ -589,14 +588,14 @@ export default function AdminProductPublishPage() {
           </div>
         </div>
 
-        {/* Section 4 */}
-        <div className="card-flush space-y-4 bg-card p-6 shadow-soft sm:p-8">
-          <h2 className="border-b border-border/80 pb-2.5 font-mono text-xs font-semibold uppercase tracking-wider text-foreground">
+        {/* Section 4: Nutritional Profile */}
+        <div className="border border-[#121212]/10 bg-white p-6 shadow-sm sm:p-8 space-y-5">
+          <h2 className="border-b border-[#121212]/15 pb-3 font-mono text-xs font-semibold uppercase tracking-wider text-[#121212]">
             04. Nutritional Profile
           </h2>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-6">
             <div>
-              <label className="mb-1 block font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+              <label className="mb-1.5 block font-mono text-[10px] uppercase tracking-wider text-[#121212]/70">
                 Serving
               </label>
               <input
@@ -605,11 +604,11 @@ export default function AdminProductPublishPage() {
                 value={formData.servingSize}
                 onChange={handleInputChange}
                 placeholder="10g"
-                className="input-base font-mono text-xs"
+                className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3 py-2 font-mono text-xs text-[#121212] outline-none transition-colors focus:border-[#121212] focus:bg-white"
               />
             </div>
             <div>
-              <label className="mb-1 block font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+              <label className="mb-1.5 block font-mono text-[10px] uppercase tracking-wider text-[#121212]/70">
                 Energy (kcal)
               </label>
               <input
@@ -618,11 +617,11 @@ export default function AdminProductPublishPage() {
                 value={formData.energyKcal}
                 onChange={handleInputChange}
                 placeholder="48"
-                className="input-base font-mono text-xs"
+                className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3 py-2 font-mono text-xs text-[#121212] outline-none transition-colors focus:border-[#121212] focus:bg-white"
               />
             </div>
             <div>
-              <label className="mb-1 block font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+              <label className="mb-1.5 block font-mono text-[10px] uppercase tracking-wider text-[#121212]/70">
                 Protein (g)
               </label>
               <input
@@ -632,11 +631,11 @@ export default function AdminProductPublishPage() {
                 value={formData.proteinGrams}
                 onChange={handleInputChange}
                 placeholder="1.7"
-                className="input-base font-mono text-xs"
+                className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3 py-2 font-mono text-xs text-[#121212] outline-none transition-colors focus:border-[#121212] focus:bg-white"
               />
             </div>
             <div>
-              <label className="mb-1 block font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+              <label className="mb-1.5 block font-mono text-[10px] uppercase tracking-wider text-[#121212]/70">
                 Fiber (g)
               </label>
               <input
@@ -646,11 +645,11 @@ export default function AdminProductPublishPage() {
                 value={formData.fiberGrams}
                 onChange={handleInputChange}
                 placeholder="3.4"
-                className="input-base font-mono text-xs"
+                className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3 py-2 font-mono text-xs text-[#121212] outline-none transition-colors focus:border-[#121212] focus:bg-white"
               />
             </div>
             <div>
-              <label className="mb-1 block font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+              <label className="mb-1.5 block font-mono text-[10px] uppercase tracking-wider text-[#121212]/70">
                 Fat (g)
               </label>
               <input
@@ -660,11 +659,11 @@ export default function AdminProductPublishPage() {
                 value={formData.fatGrams}
                 onChange={handleInputChange}
                 placeholder="3.1"
-                className="input-base font-mono text-xs"
+                className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3 py-2 font-mono text-xs text-[#121212] outline-none transition-colors focus:border-[#121212] focus:bg-white"
               />
             </div>
             <div>
-              <label className="mb-1 block font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+              <label className="mb-1.5 block font-mono text-[10px] uppercase tracking-wider text-[#121212]/70">
                 Carbs (g)
               </label>
               <input
@@ -674,24 +673,24 @@ export default function AdminProductPublishPage() {
                 value={formData.carbsGrams}
                 onChange={handleInputChange}
                 placeholder="4.2"
-                className="input-base font-mono text-xs"
+                className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3 py-2 font-mono text-xs text-[#121212] outline-none transition-colors focus:border-[#121212] focus:bg-white"
               />
             </div>
           </div>
         </div>
 
-        {/* Section 5 */}
-        <div className="card-flush space-y-4 bg-card p-6 shadow-soft sm:p-8">
-          <h2 className="border-b border-border/80 pb-2.5 font-mono text-xs font-semibold uppercase tracking-wider text-foreground">
+        {/* Section 5: Media & Verification Documents */}
+        <div className="border border-[#121212]/10 bg-white p-6 shadow-sm sm:p-8 space-y-5">
+          <h2 className="border-b border-[#121212]/15 pb-3 font-mono text-xs font-semibold uppercase tracking-wider text-[#121212]">
             05. Media &amp; Verification Documents
           </h2>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             {/* Product Images Selector */}
-            <div className="rounded-sm border border-dashed border-border/80 bg-sand-50/50 p-6 text-center">
-              <div className="mx-auto mb-2 grid h-10 w-10 place-items-center rounded-full bg-sand-100 text-muted-foreground">
-                <ImageIcon size={20} strokeWidth={1.5} />
+            <div className="border border-dashed border-[#121212]/20 bg-[#FAF8F5] p-6 text-center">
+              <div className="mx-auto mb-2 grid h-10 w-10 place-items-center rounded-full border border-[#121212]/10 bg-white text-[#121212]/60">
+                <ImageIcon size={18} strokeWidth={1.5} />
               </div>
-              <p className="font-mono text-xs font-semibold uppercase tracking-wider text-foreground">
+              <p className="font-mono text-xs font-semibold uppercase tracking-wider text-[#121212]">
                 Product Images (Max 6) *
               </p>
               <input
@@ -700,26 +699,26 @@ export default function AdminProductPublishPage() {
                 accept="image/*"
                 disabled={images.length >= 6}
                 onChange={handleImageChange}
-                className="mt-4 text-xs file:mr-4 file:rounded-xs file:border-0 file:bg-foreground file:px-4 file:py-2 file:font-mono file:text-xs file:text-background hover:file:opacity-90 disabled:opacity-50"
+                className="mt-4 text-xs file:mr-4 file:rounded-full file:border file:border-[#121212] file:bg-[#121212] file:px-4 file:py-2 file:font-mono file:text-xs file:uppercase file:tracking-wider file:text-[#FAF8F5] hover:file:bg-transparent hover:file:text-[#121212] disabled:opacity-50"
               />
 
               {/* Queued Photos List */}
               {images.length > 0 && (
                 <div className="mt-4 space-y-2 text-left">
-                  <p className="font-mono text-[11px] text-moss">
+                  <p className="font-mono text-[11px] text-[#1E3A2B]">
                     ✓ {images.length} of 6 photo(s) queued:
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {images.map((img, idx) => (
                       <div
                         key={idx}
-                        className="flex items-center gap-1.5 rounded-xs border border-border bg-card px-2.5 py-1 font-mono text-[10px]"
+                        className="flex items-center gap-1.5 border border-[#1E3A2B]/30 bg-[#1E3A2B]/10 px-2.5 py-1 font-mono text-[10px] text-[#1E3A2B]"
                       >
                         <span className="max-w-[130px] truncate">{img.name}</span>
                         <button
                           type="button"
                           onClick={() => handleRemoveImage(idx)}
-                          className="text-muted-foreground hover:text-clay"
+                          className="text-[#1E3A2B]/60 hover:text-[#B5502B]"
                           title="Remove image"
                         >
                           <X size={12} strokeWidth={2} />
@@ -732,11 +731,11 @@ export default function AdminProductPublishPage() {
             </div>
 
             {/* Lab Report Selector */}
-            <div className="rounded-sm border border-dashed border-border/80 bg-sand-50/50 p-6 text-center">
-              <div className="mx-auto mb-2 grid h-10 w-10 place-items-center rounded-full bg-sand-100 text-muted-foreground">
-                <FileText size={20} strokeWidth={1.5} />
+            <div className="border border-dashed border-[#121212]/20 bg-[#FAF8F5] p-6 text-center">
+              <div className="mx-auto mb-2 grid h-10 w-10 place-items-center rounded-full border border-[#121212]/10 bg-white text-[#121212]/60">
+                <FileText size={18} strokeWidth={1.5} />
               </div>
-              <p className="font-mono text-xs font-semibold uppercase tracking-wider text-foreground">
+              <p className="font-mono text-xs font-semibold uppercase tracking-wider text-[#121212]">
                 Lab Certificate (Optional)
               </p>
               <input
@@ -745,15 +744,15 @@ export default function AdminProductPublishPage() {
                 onChange={(e) =>
                   e.target.files && setLabReport(e.target.files[0])
                 }
-                className="mt-4 text-xs file:mr-4 file:rounded-xs file:border file:border-border file:bg-sand-100 file:px-4 file:py-2 file:font-mono file:text-xs file:text-foreground hover:file:bg-border/60"
+                className="mt-4 text-xs file:mr-4 file:rounded-full file:border file:border-[#121212]/20 file:bg-white file:px-4 file:py-2 file:font-mono file:text-xs file:uppercase file:tracking-wider file:text-[#121212] hover:file:border-[#121212]"
               />
               {labReport && (
-                <div className="mt-4 flex items-center justify-between rounded-xs border border-border bg-card px-2.5 py-1 font-mono text-[10px] text-moss">
+                <div className="mt-4 flex items-center justify-between border border-[#1E3A2B]/30 bg-[#1E3A2B]/10 px-2.5 py-1 font-mono text-[10px] text-[#1E3A2B]">
                   <span className="truncate">✓ {labReport.name}</span>
                   <button
                     type="button"
                     onClick={() => setLabReport(null)}
-                    className="ml-2 text-muted-foreground hover:text-clay"
+                    className="ml-2 text-[#1E3A2B]/60 hover:text-[#B5502B]"
                     title="Remove lab report"
                   >
                     <X size={12} strokeWidth={2} />
@@ -764,34 +763,35 @@ export default function AdminProductPublishPage() {
           </div>
         </div>
 
-        {/* Section 6 */}
-        <div className="card-flush flex flex-wrap gap-8 bg-card p-6 shadow-soft">
-          <label className="flex cursor-pointer items-center gap-2.5 font-mono text-xs uppercase tracking-wide">
+        {/* Section 6: Promotion & Flags */}
+        <div className="flex flex-wrap gap-8 border border-[#121212]/10 bg-white p-6 shadow-sm">
+          <label className="flex cursor-pointer items-center gap-2.5 font-mono text-xs uppercase tracking-wide text-[#121212]">
             <input
               type="checkbox"
               name="isFeatured"
               checked={formData.isFeatured}
               onChange={handleInputChange}
-              className="h-4 w-4 accent-moss"
+              className="h-4 w-4 rounded-xs border-[#121212]/30 accent-[#14261C]"
             />
             Feature on Homepage
           </label>
-          <label className="flex cursor-pointer items-center gap-2.5 font-mono text-xs uppercase tracking-wide">
+          <label className="flex cursor-pointer items-center gap-2.5 font-mono text-xs uppercase tracking-wide text-[#121212]">
             <input
               type="checkbox"
               name="isBestSeller"
               checked={formData.isBestSeller}
               onChange={handleInputChange}
-              className="h-4 w-4 accent-moss"
+              className="h-4 w-4 rounded-xs border-[#121212]/30 accent-[#14261C]"
             />
             Mark as Best Seller
           </label>
         </div>
 
+        {/* Submit Button */}
         <button
           type="submit"
           disabled={loading}
-          className="btn-base btn-primary w-full py-4 text-xs uppercase tracking-[0.16em] disabled:opacity-50"
+          className="flex w-full items-center justify-center gap-2 rounded-full border border-[#14261C] bg-[#14261C] py-4 font-mono text-xs uppercase tracking-[0.18em] text-[#FAF8F5] transition-colors hover:border-[#E58866] hover:bg-[#E58866] hover:text-[#14261C] disabled:opacity-50"
         >
           {loading ? (
             <span>Publishing batch to registry...</span>

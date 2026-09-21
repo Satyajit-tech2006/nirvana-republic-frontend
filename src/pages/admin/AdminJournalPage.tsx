@@ -11,6 +11,7 @@ import {
   Clock,
   Sparkles,
   X,
+  ArrowUpRight,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
@@ -191,42 +192,44 @@ export default function AdminJournalPage() {
   };
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-10 text-[#121212]">
       {/* Header */}
-      <div className="border-b border-border/80 pb-6">
-        <div className="flex items-center gap-2 text-moss">
+      <div className="border-b border-[#121212]/15 pb-6">
+        <div className="flex items-center gap-2 text-[#1E3A2B]">
           <Sparkles size={13} strokeWidth={1.5} />
-          <span className="eyebrow-accent text-[10px] tracking-[0.24em]">
+          <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.24em]">
             Editorial &amp; Field Dispatches
           </span>
         </div>
-        <h1 className="mt-2 text-balance font-display text-3xl tracking-tight text-foreground sm:text-4xl">
+        <h1 className="mt-2 text-balance font-display text-3xl font-normal tracking-tight text-[#121212] sm:text-4xl">
           Publish Journal Entry
         </h1>
-        <p className="mt-1.5 max-w-[54ch] text-xs leading-relaxed text-muted-foreground sm:text-sm">
-          Publish single-origin dispatches, botanical nutrition profiles, and unhurried daily rituals.
+        <p className="mt-1.5 max-w-[58ch] text-xs leading-relaxed text-[#121212]/70 sm:text-sm">
+          Publish single-origin dispatches, botanical extraction assays, and unhurried daily rituals.
         </p>
       </div>
 
+      {/* Feedback Alerts */}
       {successMsg && (
-        <div className="flex items-center gap-3 rounded-sm border border-moss/30 bg-moss/10 p-4 font-mono text-xs text-moss">
+        <div className="flex items-center gap-3 border border-[#1E3A2B]/30 bg-[#1E3A2B]/10 p-4 font-mono text-xs text-[#1E3A2B]">
           <CheckCircle size={16} strokeWidth={1.5} className="shrink-0" />
           <span>{successMsg}</span>
         </div>
       )}
 
       {errorMsg && (
-        <div className="flex items-center gap-3 rounded-sm border border-clay/30 bg-clay/10 p-4 font-mono text-xs text-clay">
+        <div className="flex items-center gap-3 border border-[#B5502B]/30 bg-[#B5502B]/10 p-4 font-mono text-xs text-[#B5502B]">
           <AlertCircle size={16} strokeWidth={1.5} className="shrink-0" />
           <span>{errorMsg}</span>
         </div>
       )}
 
       {/* Editor Form */}
-      <form onSubmit={handleSubmit} className="card-flush space-y-8 bg-card p-6 shadow-soft md:p-8">
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <form onSubmit={handleSubmit} className="border border-[#121212]/10 bg-white p-6 shadow-sm md:p-8 space-y-8">
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+          {/* Article Title */}
           <div>
-            <label className="mb-1 block font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+            <label className="mb-1.5 block font-mono text-[11px] uppercase tracking-wider text-[#121212]/70">
               Article Title *
             </label>
             <input
@@ -235,12 +238,13 @@ export default function AdminJournalPage() {
               value={formData.title}
               onChange={handleTitleChange}
               placeholder="The Neemuch Winter Harvest: Tracing Black Chia"
-              className="input-base text-xs"
+              className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3.5 py-2.5 font-sans text-xs text-[#121212] placeholder:text-[#121212]/40 outline-none transition-colors focus:border-[#121212] focus:bg-white"
             />
           </div>
 
+          {/* URL Slug */}
           <div>
-            <label className="mb-1 block font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+            <label className="mb-1.5 block font-mono text-[11px] uppercase tracking-wider text-[#121212]/70">
               URL Slug *
             </label>
             <input
@@ -250,19 +254,20 @@ export default function AdminJournalPage() {
               value={formData.slug}
               onChange={handleInputChange}
               placeholder="the-neemuch-winter-harvest"
-              className="input-base bg-sand-100/50 font-mono text-xs"
+              className="w-full border border-[#121212]/15 bg-[#F4F1EA]/60 px-3.5 py-2.5 font-mono text-xs text-[#121212] placeholder:text-[#121212]/40 outline-none transition-colors focus:border-[#121212] focus:bg-white"
             />
           </div>
 
+          {/* Category */}
           <div>
-            <label className="mb-1 block font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+            <label className="mb-1.5 block font-mono text-[11px] uppercase tracking-wider text-[#121212]/70">
               Category *
             </label>
             <select
               name="category"
               value={formData.category}
               onChange={handleInputChange}
-              className="input-base bg-card text-xs"
+              className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3 py-2.5 font-sans text-xs text-[#121212] outline-none transition-colors focus:border-[#121212] focus:bg-white"
             >
               <option value="Farm Stories">Farm Stories</option>
               <option value="Rituals">Rituals &amp; Daily Use</option>
@@ -271,8 +276,9 @@ export default function AdminJournalPage() {
             </select>
           </div>
 
+          {/* Read Time */}
           <div>
-            <label className="mb-1 block font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+            <label className="mb-1.5 block font-mono text-[11px] uppercase tracking-wider text-[#121212]/70">
               Read Time (Minutes) *
             </label>
             <input
@@ -283,12 +289,13 @@ export default function AdminJournalPage() {
               value={formData.readTimeMinutes}
               onChange={handleInputChange}
               placeholder="4"
-              className="input-base font-mono text-xs"
+              className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3.5 py-2.5 font-mono text-xs text-[#121212] placeholder:text-[#121212]/40 outline-none transition-colors focus:border-[#121212] focus:bg-white"
             />
           </div>
 
+          {/* Excerpt */}
           <div className="md:col-span-2">
-            <label className="mb-1 block font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+            <label className="mb-1.5 block font-mono text-[11px] uppercase tracking-wider text-[#121212]/70">
               Article Excerpt (Max 300 Chars) *
             </label>
             <textarea
@@ -299,13 +306,14 @@ export default function AdminJournalPage() {
               value={formData.excerpt}
               onChange={handleInputChange}
               placeholder="A field dispatch exploring how basalt soil and cold nights shape seed density..."
-              className="input-base text-xs leading-relaxed"
+              className="w-full border border-[#121212]/15 bg-[#FAF8F5] p-3 font-sans text-xs leading-relaxed text-[#121212] placeholder:text-[#121212]/40 outline-none transition-colors focus:border-[#121212] focus:bg-white"
             />
           </div>
 
+          {/* Full Article Body */}
           <div className="md:col-span-2">
-            <label className="mb-1 block font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
-              Full Article Body *
+            <label className="mb-1.5 block font-mono text-[11px] uppercase tracking-wider text-[#121212]/70">
+              Full Article Body (Markdown / Prose) *
             </label>
             <textarea
               required
@@ -313,13 +321,14 @@ export default function AdminJournalPage() {
               name="content"
               value={formData.content}
               onChange={handleInputChange}
-              placeholder="Write the full journal article body here in Markdown or plain editorial prose..."
-              className="input-base text-xs leading-relaxed"
+              placeholder="Write the full journal dispatch body here in Markdown or plain editorial prose..."
+              className="w-full border border-[#121212]/15 bg-[#FAF8F5] p-3 font-sans text-xs leading-relaxed text-[#121212] placeholder:text-[#121212]/40 outline-none transition-colors focus:border-[#121212] focus:bg-white"
             />
           </div>
 
+          {/* Author Name */}
           <div>
-            <label className="mb-1 block font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+            <label className="mb-1.5 block font-mono text-[11px] uppercase tracking-wider text-[#121212]/70">
               Author Name
             </label>
             <input
@@ -328,12 +337,13 @@ export default function AdminJournalPage() {
               value={formData.authorName}
               onChange={handleInputChange}
               placeholder="Nirvana Editorial"
-              className="input-base text-xs"
+              className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3.5 py-2.5 font-sans text-xs text-[#121212] placeholder:text-[#121212]/40 outline-none transition-colors focus:border-[#121212] focus:bg-white"
             />
           </div>
 
+          {/* Author Role */}
           <div>
-            <label className="mb-1 block font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+            <label className="mb-1.5 block font-mono text-[11px] uppercase tracking-wider text-[#121212]/70">
               Author Title / Role
             </label>
             <input
@@ -342,14 +352,14 @@ export default function AdminJournalPage() {
               value={formData.authorRole}
               onChange={handleInputChange}
               placeholder="Botanical Research Lead"
-              className="input-base text-xs"
+              className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3.5 py-2.5 font-sans text-xs text-[#121212] placeholder:text-[#121212]/40 outline-none transition-colors focus:border-[#121212] focus:bg-white"
             />
           </div>
         </div>
 
-        {/* Tags */}
+        {/* Editorial Tags */}
         <div>
-          <label className="mb-1.5 block font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+          <label className="mb-1.5 block font-mono text-[11px] uppercase tracking-wider text-[#121212]/70">
             Editorial Tags
           </label>
           <div className="mb-3 flex max-w-md gap-2">
@@ -364,12 +374,12 @@ export default function AdminJournalPage() {
                 }
               }}
               placeholder="Add tag and press Enter"
-              className="input-base text-xs"
+              className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3 py-2 font-mono text-xs text-[#121212] placeholder:text-[#121212]/40 outline-none transition-colors focus:border-[#121212] focus:bg-white"
             />
             <button
               type="button"
               onClick={handleAddTag}
-              className="btn-base btn-outline btn-sm font-mono text-xs uppercase tracking-wider"
+              className="inline-flex shrink-0 items-center gap-1 rounded-full border border-[#121212]/30 px-3.5 py-1.5 font-mono text-xs uppercase tracking-wider text-[#121212] transition-colors hover:border-[#121212] hover:bg-[#121212] hover:text-[#FAF8F5]"
             >
               <Plus size={13} strokeWidth={1.5} /> Add
             </button>
@@ -378,43 +388,45 @@ export default function AdminJournalPage() {
             {tags.map((tag) => (
               <span
                 key={tag}
-                className="badge-base inline-flex items-center gap-1.5 py-1 text-[11px]"
+                className="inline-flex items-center gap-1.5 rounded-full border border-[#121212]/15 bg-[#FAF8F5] px-3 py-1 font-mono text-[10.5px] uppercase tracking-wider text-[#121212]/80"
               >
                 #{tag}
                 <button
                   type="button"
                   onClick={() => handleRemoveTag(tag)}
-                  className="text-muted-foreground hover:text-clay"
+                  className="text-[#121212]/40 hover:text-[#B5502B]"
+                  aria-label={`Remove tag ${tag}`}
                 >
-                  &times;
+                  <X size={11} />
                 </button>
               </span>
             ))}
           </div>
         </div>
 
-        {/* Cover Image Upload */}
-        <div className="rounded-sm border border-dashed border-border/80 bg-sand-50/50 p-6 text-center">
-          <div className="mx-auto mb-2 grid h-10 w-10 place-items-center rounded-full bg-sand-100 text-muted-foreground">
-            <ImageIcon size={20} strokeWidth={1.5} />
+        {/* Cover Image Upload Area */}
+        <div className="border border-dashed border-[#121212]/20 bg-[#FAF8F5] p-6 text-center">
+          <div className="mx-auto mb-2 grid h-10 w-10 place-items-center rounded-full border border-[#121212]/10 bg-white text-[#121212]/60">
+            <ImageIcon size={18} strokeWidth={1.5} />
           </div>
-          <p className="font-mono text-xs font-semibold uppercase tracking-wider text-foreground">
+          <p className="font-mono text-xs font-semibold uppercase tracking-wider text-[#121212]">
             Cover Editorial Photography *
           </p>
-          <p className="mt-1 font-mono text-[11px] text-muted-foreground">JPEG, PNG, WEBP</p>
+          <p className="mt-1 font-mono text-[11px] text-[#121212]/50">JPEG, PNG, WEBP</p>
           <input
             type="file"
             accept="image/*"
             onChange={(e) => e.target.files && setCoverImage(e.target.files[0])}
-            className="mt-4 text-xs file:mr-4 file:rounded-xs file:border-0 file:bg-foreground file:px-4 file:py-2 file:font-mono file:text-xs file:text-background hover:file:opacity-90"
+            className="mt-4 text-xs file:mr-4 file:rounded-full file:border file:border-[#121212] file:bg-[#121212] file:px-4 file:py-2 file:font-mono file:text-xs file:uppercase file:tracking-wider file:text-[#FAF8F5] hover:file:bg-transparent hover:file:text-[#121212]"
           />
           {coverImage && (
-            <div className="mt-3 inline-flex items-center gap-2 rounded-xs border border-border bg-card px-2.5 py-1 font-mono text-[11px] text-moss">
+            <div className="mt-3 inline-flex items-center gap-2 border border-[#1E3A2B]/30 bg-[#1E3A2B]/10 px-3 py-1 font-mono text-[11px] text-[#1E3A2B]">
               <span>✓ Selected: {coverImage.name}</span>
               <button
                 type="button"
                 onClick={() => setCoverImage(null)}
-                className="text-muted-foreground hover:text-clay"
+                className="text-[#1E3A2B]/60 hover:text-[#B5502B]"
+                aria-label="Clear staged file"
               >
                 <X size={12} />
               </button>
@@ -423,13 +435,13 @@ export default function AdminJournalPage() {
         </div>
 
         {/* Publish Immediate Flag */}
-        <label className="flex cursor-pointer items-center gap-2.5 font-mono text-xs uppercase tracking-wide">
+        <label className="flex cursor-pointer items-center gap-2.5 font-mono text-xs uppercase tracking-wide text-[#121212]">
           <input
             type="checkbox"
             name="isPublished"
             checked={formData.isPublished}
             onChange={handleInputChange}
-            className="h-4 w-4 accent-moss"
+            className="h-4 w-4 rounded-xs border-[#121212]/30 accent-[#14261C]"
           />
           Publish immediately (Make visible in Public Journal)
         </label>
@@ -438,7 +450,7 @@ export default function AdminJournalPage() {
         <button
           type="submit"
           disabled={submitting}
-          className="btn-base btn-primary w-full py-4 text-xs uppercase tracking-[0.16em] disabled:opacity-50"
+          className="flex w-full items-center justify-center gap-2 rounded-full border border-[#14261C] bg-[#14261C] py-4 font-mono text-xs uppercase tracking-[0.18em] text-[#FAF8F5] transition-colors hover:border-[#E58866] hover:bg-[#E58866] hover:text-[#14261C] disabled:opacity-50"
         >
           {submitting ? (
             <span>Publishing entry to Cloudinary &amp; Journal...</span>
@@ -453,21 +465,21 @@ export default function AdminJournalPage() {
 
       {/* Published Entries List */}
       <div className="space-y-4 pt-6">
-        <h2 className="font-display text-2xl tracking-tight text-foreground">
+        <h2 className="font-display text-2xl font-normal tracking-tight text-[#121212]">
           Published Journal Entries ({articles.length})
         </h2>
 
         {loadingList ? (
-          <div className="card-flush py-12 text-center font-mono text-xs text-muted-foreground shadow-soft">
+          <div className="border border-[#121212]/10 bg-white py-12 text-center font-mono text-xs text-[#121212]/60">
             <div className="flex flex-col items-center justify-center gap-2">
-              <div className="h-5 w-5 animate-spin rounded-full border-2 border-border border-t-primary" />
+              <div className="h-5 w-5 animate-spin rounded-full border-2 border-[#121212]/20 border-t-[#14261C]" />
               <span>Retrieving published dispatches...</span>
             </div>
           </div>
         ) : articles.length === 0 ? (
-          <div className="card-flush border-dashed bg-sand-50/40 p-12 text-center shadow-soft">
-            <p className="font-display text-lg text-foreground">No entries cataloged yet</p>
-            <p className="mt-1 text-xs text-muted-foreground">
+          <div className="border border-dashed border-[#121212]/15 bg-[#FAF8F5] p-12 text-center">
+            <p className="font-display text-lg text-[#121212]">No entries cataloged yet</p>
+            <p className="mt-1 text-xs text-[#121212]/60">
               Create your first harvest dispatch above.
             </p>
           </div>
@@ -476,39 +488,40 @@ export default function AdminJournalPage() {
             {articles.map((article) => (
               <div
                 key={article._id}
-                className="card-flush flex gap-4 bg-card p-4 shadow-soft transition-all hover:bg-sand-50/40"
+                className="group flex gap-4 border border-[#121212]/10 bg-white p-4 transition-all hover:bg-[#FAF8F5]/80 hover:shadow-xs"
               >
                 <img
                   src={article.coverImage}
                   alt={article.title}
-                  className="h-20 w-20 shrink-0 rounded-xs border border-border/80 object-cover"
+                  className="h-20 w-20 shrink-0 border border-[#121212]/15 object-cover grayscale-[0.05]"
                 />
                 <div className="flex min-w-0 flex-1 flex-col justify-between">
                   <div>
-                    <span className="eyebrow-accent text-[10px] tracking-[0.2em]">
+                    <span className="font-mono text-[9.5px] uppercase tracking-[0.2em] text-[#B5502B]">
                       {article.category}
                     </span>
                     <Link
                       to={`/journal/${article.slug}`}
                       target="_blank"
-                      className="mt-0.5 block truncate font-display text-sm text-foreground transition-colors hover:text-moss"
+                      className="mt-0.5 inline-flex items-center gap-1 font-display text-sm text-[#121212] transition-colors hover:text-[#1E3A2B]"
                     >
-                      {article.title}
+                      <span className="truncate">{article.title}</span>
+                      <ArrowUpRight size={12} strokeWidth={1.5} className="shrink-0 text-[#121212]/40" />
                     </Link>
-                    <p className="mt-1 line-clamp-1 text-[11px] leading-relaxed text-muted-foreground">
+                    <p className="mt-1 line-clamp-1 text-[11px] leading-relaxed text-[#121212]/65">
                       {article.excerpt}
                     </p>
                   </div>
 
-                  <div className="mt-3 flex items-center justify-between border-t border-border/60 pt-2 font-mono text-[10px] text-muted-foreground">
+                  <div className="mt-3 flex items-center justify-between border-t border-[#121212]/10 pt-2 font-mono text-[10px] text-[#121212]/60">
                     <span className="flex items-center gap-1">
-                      <Clock size={11} strokeWidth={1.5} className="text-moss" />
+                      <Clock size={11} strokeWidth={1.5} className="text-[#1E3A2B]" />
                       {article.readTimeMinutes} min read
                     </span>
                     <button
                       type="button"
                       onClick={() => handleDeleteArticle(article._id, article.title)}
-                      className="inline-flex items-center gap-1 font-mono uppercase tracking-wider text-clay hover:underline"
+                      className="inline-flex items-center gap-1 font-mono uppercase tracking-wider text-[#B5502B] hover:underline"
                     >
                       <Trash2 size={12} strokeWidth={1.5} /> Delete
                     </button>
