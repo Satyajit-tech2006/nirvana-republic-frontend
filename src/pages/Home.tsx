@@ -1,36 +1,33 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowUpRight, Leaf, FlaskConical, Mountain, BookOpen } from "lucide-react";
+import { ArrowUpRight, Check, Heart, Minus, Plus, Star, X, Sparkles } from "lucide-react";
+import { toast } from "sonner";
 import editorial from "@/assets/editorial-ritual.jpg";
 import { SEO } from "@/components/SEO";
 import { Newsletter } from "@/components/Newsletter";
 import { Counter } from "@/components/Counter";
 import { useAuth } from "@/context/AuthContext";
+import { useStore } from "@/lib/store";
 import api from "@/lib/axios";
 import ENDPOINTS from "@/lib/endpoints";
 
 /* ==========================================================================
  * Palette Reference
- * Alabaster  #FDFBF7   Ink        #121212
- * Forest     #1E3A2B   Terracotta #A64B2A
+ * Deep Forest #14261C   Alabaster #FAF8F5   Shelf Sand #F4EFE6
+ * Spotlight Sand #EDE6DC   Terracotta #E58866   Ink #121212
  * ========================================================================== */
 
-const manifesto = [
-  {
-    icon: Mountain,
-    label: "Single Origin",
-    copy: "One farm cluster per lot, never blended, never pooled. The coordinates on the pack are the coordinates of the field.",
-  },
-  {
-    icon: Leaf,
-    label: "Cold Processed",
-    copy: "Below 42°C, always. Heat is the fastest way to destroy the enzymes we grew the crop for in the first place.",
-  },
-  {
-    icon: FlaskConical,
-    label: "Lab Verified",
-    copy: "Every lot screened for pesticide residue, heavy metals and microbial load before it leaves the warehouse.",
-  },
+const SERIF = "font-['Fraunces',ui-serif,Georgia,serif]";
+
+const HERO_COPY =
+  "At Nirvana Republic, we believe wellness should be simple, accessible, and part of everyday life. As a one stop destination for health and wellness, we offer a thoughtfully curated range of products that support your journey towards a healthier lifestyle.";
+
+const PROVENANCE_BULLETS = [
+  "Wild-harvested single-origin botanicals",
+  "Single-estate sourcing across regional clusters",
+  "No added sugar, fillers, or artificial dilution",
+  "Artisanal small-batch cold curing <42°C",
+  "Sustainable, regeneratively grown harvest",
 ];
 
 type Product = {
@@ -43,14 +40,14 @@ type Product = {
   image?: string;
   images?: string[];
   price?: number;
-  lotNumber?: string;
-  lotNo?: string;
+  weight?: string;
+  netWeight?: string;
+  weightGrams?: number | string;
+  rating?: number;
+  averageRating?: number;
+  reviewCount?: number;
   farmCluster?: { name?: string; region?: string; elevation?: string } | string;
   farm?: string;
-  elevationMsl?: number | string;
-  elevation?: number | string;
-  harvestPeriod?: string;
-  harvest?: string;
   stockQuantity?: number | string;
   stock?: number;
   isFeatured?: boolean;
@@ -71,133 +68,49 @@ type Article = {
   createdAt?: string;
 };
 
-function registryFields(p: Product) {
-  const farmName =
-    typeof p.farmCluster === "object"
-      ? p.farmCluster?.name
-      : p.farmCluster || p.farm || "Nilgiri Foothills";
+const inr = (n: number) =>
+  new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    maximumFractionDigits: 0,
+  }).format(n);
 
-  const elevationVal =
-    typeof p.farmCluster === "object"
-      ? p.farmCluster?.elevation
-      : p.elevationMsl || p.elevation || "640m MSL";
+const productName = (p: Product) => p.name || p.title || "Single Lot";
+const productKey = (p: Product) => p._id || p.id || p.slug || productName(p);
+const productHref = (p: Product) => `/shop/${p.slug || p._id || p.id || ""}`;
+const productImage = (p: Product) => p.thumbnail || p.image || p.images?.[0];
+const productWeight = (p: Product) =>
+  p.netWeight || p.weight || (p.weightGrams ? `${p.weightGrams}g` : "250g");
+const productRating = (p: Product) => {
+  const r = p.rating ?? p.averageRating ?? 5;
+  return Math.min(5, Math.max(0, Number.isFinite(r) ? r : 5));
+};
+const productFarm = (p: Product) =>
+  typeof p.farmCluster === "object"
+    ? p.farmCluster?.name || "Single Origin"
+    : p.farmCluster || p.farm || "Single Origin";
+const productStock = (p: Product): number | undefined => {
+  const raw = p.stockQuantity !== undefined ? Number(p.stockQuantity) : p.stock;
+  return typeof raw === "number" && !Number.isNaN(raw) ? raw : undefined;
+};
+const isSoldOut = (p: Product) => {
+  const s = productStock(p);
+  return typeof s === "number" && s <= 0;
+};
 
-  const stockVal =
-    p.stockQuantity !== undefined ? Number(p.stockQuantity) : p.stock;
-
-  return {
-    lot: p.lotNumber || p.lotNo || (p.slug ? `NR-${p.slug.slice(0, 4).toUpperCase()}` : "NR-LOT-04"),
-    farm: farmName,
-    elevation: elevationVal,
-    harvest: p.harvestPeriod || p.harvest || "Winter '26",
-    stock: stockVal,
-  };
-}
-
-function RegistryCardSkeleton() {
+function Stars({ rating, size = 12 }: { rating: number; size?: number }) {
   return (
-    <div className="bg-[#FAF8F5] p-4 border border-[#121212]/10">
-      <div className="aspect-[4/5] w-full animate-pulse bg-[#121212]/[0.05]" />
-      <div className="mt-4 space-y-2">
-        <div className="h-3 w-1/3 animate-pulse bg-[#121212]/[0.06]" />
-        <div className="h-4 w-3/4 animate-pulse bg-[#121212]/[0.06]" />
-        <div className="h-3 w-1/2 animate-pulse bg-[#121212]/[0.06]" />
-      </div>
-    </div>
+    <span className="inline-flex items-center gap-0.5 text-[#E58866]" role="img" aria-label={`${rating} out of 5 stars`}>
+      {[1, 2, 3, 4, 5].map((i) => (
+        <Star key={i} size={size} strokeWidth={1.5} fill={i <= Math.round(rating) ? "currentColor" : "none"} />
+      ))}
+    </span>
   );
 }
 
-function RegistryCard({ product }: { product: Product }) {
-  const r = registryFields(product);
-  const soldOut = typeof r.stock === "number" && r.stock <= 0;
-  const img = product.thumbnail || product.image || product.images?.[0];
-  const name = product.name || product.title || "Untitled lot";
-
+function EmptyState() {
   return (
-    <div className="group relative flex flex-col justify-between border border-[#121212]/10 bg-[#FAF8F5] transition-all duration-300 hover:bg-[#FFFFFF] hover:shadow-lg">
-      <Link
-        to={`/shop/${product.slug || product._id || product.id}`}
-        className="flex flex-col flex-1"
-      >
-        <div className="relative aspect-[4/5] w-full overflow-hidden bg-[#EFECE6]/50">
-          <div className="absolute left-3 top-3 z-10 flex items-center gap-1.5 border border-[#121212]/20 bg-[#FAF8F5]/90 px-2 py-0.5 backdrop-blur-xs">
-            <span className="h-1.5 w-1.5 rounded-full bg-[#1E3A2B]" />
-            <span className="font-mono text-[9.5px] font-medium tracking-wider text-[#121212]">
-              {r.lot}
-            </span>
-          </div>
-
-          {img ? (
-            <img
-              src={img}
-              alt={name}
-              loading="lazy"
-              width={800}
-              height={1000}
-              className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-            />
-          ) : null}
-
-          {soldOut && (
-            <div className="absolute inset-x-0 bottom-0 border-t border-[#121212]/10 bg-[#FAF8F5]/95 px-3 py-1.5">
-              <p className="font-mono text-[10px] uppercase tracking-widest text-[#A64B2A]">
-                Registry Closed · Sold Out
-              </p>
-            </div>
-          )}
-        </div>
-
-        <div className="flex flex-col flex-1 justify-between p-4 sm:p-5">
-          <div>
-            <div className="flex items-start justify-between gap-3">
-              <h3 className="line-clamp-2 font-display text-base font-normal leading-snug text-[#121212] transition-colors group-hover:text-[#1E3A2B] sm:text-lg">
-                {name}
-              </h3>
-              {typeof product.price === "number" && (
-                <span className="shrink-0 font-mono text-sm font-semibold text-[#121212]">
-                  ₹{product.price.toLocaleString("en-IN")}
-                </span>
-              )}
-            </div>
-
-            <dl className="mt-4 grid grid-cols-2 gap-x-3 gap-y-2 border-t border-[#121212]/15 pt-3 font-mono text-[11px] leading-snug">
-              <div>
-                <dt className="text-[#121212]/55 uppercase tracking-wider text-[9.5px]">Origin</dt>
-                <dd className="truncate font-medium text-[#121212]">{r.farm}</dd>
-              </div>
-              <div>
-                <dt className="text-[#121212]/55 uppercase tracking-wider text-[9.5px]">Elevation</dt>
-                <dd className="truncate font-medium text-[#121212]">{r.elevation}</dd>
-              </div>
-              <div className="col-span-2 pt-1 border-t border-dashed border-[#121212]/10">
-                <dt className="text-[#121212]/55 uppercase tracking-wider text-[9.5px]">Harvest Period</dt>
-                <dd className="truncate font-medium text-[#121212]">{r.harvest}</dd>
-              </div>
-            </dl>
-          </div>
-        </div>
-      </Link>
-
-      <div className="border-t border-[#121212]/15 bg-[#F4F1EA]/60 px-4 py-3 transition-colors group-hover:bg-[#1E3A2B] group-hover:text-[#FDFBF7]">
-        <Link
-          to={`/shop/${product.slug || product._id || product.id}`}
-          className="flex items-center justify-between font-mono text-xs uppercase tracking-wider text-[#121212] group-hover:text-[#FDFBF7]"
-        >
-          <span>{soldOut ? "Join Waitlist" : "Inspect Assay"}</span>
-          <ArrowUpRight
-            size={14}
-            strokeWidth={1.5}
-            className="transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
-          />
-        </Link>
-      </div>
-    </div>
-  );
-}
-
-function EmptyRegistry() {
-  return (
-    <div className="border border-[#121212]/10 py-16 text-center sm:py-20">
+    <div className="rounded-3xl border border-[#121212]/10 py-16 text-center sm:py-20">
       <p className="font-mono text-xs uppercase tracking-[0.16em] text-[#121212]/40">
         No records currently available
       </p>
@@ -205,16 +118,101 @@ function EmptyRegistry() {
   );
 }
 
+function ProductCard({
+  product,
+  wished,
+  onToggleWish,
+  onQuickView,
+}: {
+  product: Product;
+  wished: boolean;
+  onToggleWish: () => void;
+  onQuickView: () => void;
+}) {
+  const img = productImage(product);
+  const name = productName(product);
+  const soldOut = isSoldOut(product);
+
+  return (
+    <div className="group flex min-w-0 flex-col justify-between rounded-3xl border border-[#121212]/10 bg-[#F4EFE6] p-4 transition hover:bg-white hover:shadow-xl sm:p-5">
+      <div className="relative aspect-square w-full overflow-hidden rounded-2xl bg-[#E8E1D5]">
+        {img && (
+          <img
+            src={img}
+            alt={name}
+            loading="lazy"
+            width={800}
+            height={800}
+            className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+          />
+        )}
+
+        <button
+          type="button"
+          onClick={onToggleWish}
+          aria-pressed={wished}
+          aria-label={wished ? `Remove ${name} from wishlist` : `Save ${name} to wishlist`}
+          className="absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-[#121212]/70 shadow-sm backdrop-blur-sm transition hover:scale-110 hover:text-[#E58866] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#14261C]"
+        >
+          <Heart size={15} fill={wished ? "#E58866" : "none"} className={wished ? "text-[#E58866]" : ""} />
+        </button>
+
+        <div className="pointer-events-none absolute inset-0 flex items-end justify-center pb-3">
+          <button
+            type="button"
+            onClick={onQuickView}
+            className="pointer-events-auto rounded-full border border-white/40 bg-white/85 px-4 py-2 font-mono text-[10px] uppercase tracking-wider text-[#121212] opacity-0 shadow-md backdrop-blur-md transition-all duration-200 hover:bg-[#121212] hover:text-[#FAF8F5] group-hover:opacity-100"
+          >
+            Quick View
+          </button>
+        </div>
+
+        {soldOut && (
+          <span className="absolute bottom-3 left-3 rounded-full bg-[#FAF8F5]/95 px-3 py-1 font-mono text-[10px] uppercase tracking-widest text-[#A64B2A]">
+            Sold out
+          </span>
+        )}
+      </div>
+
+      <div className="mt-4 flex flex-1 flex-col justify-between">
+        <div>
+          <div className="flex items-baseline justify-between gap-2">
+            <h3 className={`${SERIF} line-clamp-1 text-base font-normal text-[#121212] sm:text-lg`}>{name}</h3>
+            <span className="shrink-0 font-mono text-[11px] text-[#121212]/50">{productWeight(product)}</span>
+          </div>
+          <div className="mt-1.5 flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
+            <Stars rating={productRating(product)} />
+            <span className="font-mono text-sm font-semibold text-[#121212]">{inr(product.price || 0)}</span>
+          </div>
+        </div>
+
+        <Link
+          to={productHref(product)}
+          className="mt-5 flex w-full min-w-0 items-center justify-center gap-1.5 rounded-full bg-[#14261C] px-4 py-3 font-mono text-[11px] uppercase tracking-wider text-[#FAF8F5] transition-all hover:bg-[#E58866] hover:text-[#14261C] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#14261C]"
+        >
+          <span className="truncate">{soldOut ? "Join Waitlist" : `Shop ${name}`}</span>
+          {!soldOut && <span aria-hidden>↗</span>}
+        </Link>
+      </div>
+    </div>
+  );
+}
+
 export default function Home() {
   const { user } = useAuth();
+  const { addToCart, setCartOpen } = useStore();
 
   const [products, setProducts] = useState<Product[]>([]);
   const [journalPosts, setJournalPosts] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const [wishlist, setWishlist] = useState<Set<string>>(new Set());
+  const [spotlightQty, setSpotlightQty] = useState(1);
+  const [justAdded, setJustAdded] = useState(false);
+  const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
+
   useEffect(() => {
     let isMounted = true;
-
     const fetchHomeData = async () => {
       try {
         setLoading(true);
@@ -231,7 +229,6 @@ export default function Home() {
               [];
             setProducts(Array.isArray(raw) ? raw : []);
           }
-
           if (journalRes.status === "fulfilled") {
             const rawArticles =
               journalRes.value.data?.data?.articles ||
@@ -241,14 +238,13 @@ export default function Home() {
           }
         }
       } catch (err) {
-        console.error("Failed to load homepage data from backend:", err);
+        console.error("Failed to load home data:", err);
       } finally {
         if (isMounted) setLoading(false);
       }
     };
 
     fetchHomeData();
-
     return () => {
       isMounted = false;
     };
@@ -260,326 +256,336 @@ export default function Home() {
     return [...featuredItems, ...nonFeaturedItems].slice(0, 4);
   })();
 
-  const homeSchema = [
-    {
-      "@context": "https://schema.org",
-      "@type": "Organization",
-      name: "Nirvana Republic",
-      url: "https://nirvanarepublic.in",
-      logo: "https://nirvanarepublic.in/logo.png",
-      description:
-        "Single-origin, unblended agricultural lots — ceremonial seeds, wild honey and cold-processed superfoods sourced directly from named farm clusters across India.",
-      address: {
-        "@type": "PostalAddress",
-        addressLocality: "Bengaluru",
-        addressRegion: "Karnataka",
-        addressCountry: "IN",
-      },
-    },
-    {
-      "@context": "https://schema.org",
-      "@type": "WebSite",
-      name: "Nirvana Republic",
-      url: "https://nirvanarepublic.in",
-    },
-  ];
+  const spotlight: Product | undefined =
+    products.find((p) => (p.isFeatured || p.featured) && !isSoldOut(p)) ||
+    products.find((p) => !isSoldOut(p)) ||
+    products[0];
+  const spotlightSoldOut = spotlight ? isSoldOut(spotlight) : false;
+  const spotlightStock = spotlight ? productStock(spotlight) : undefined;
+  const maxQty = typeof spotlightStock === "number" && spotlightStock > 0 ? spotlightStock : 99;
+
+  const toggleWish = (key: string) => {
+    setWishlist((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+    toast(wishlist.has(key) ? "Removed from wishlist" : "Saved to wishlist");
+  };
+
+  const handleSpotlightAdd = () => {
+    if (!spotlight || spotlightSoldOut) return;
+    addToCart(spotlight, spotlightQty);
+    setCartOpen(true);
+    setJustAdded(true);
+    toast.success(`Added ${spotlightQty} × ${productName(spotlight)} to bag`);
+    window.setTimeout(() => setJustAdded(false), 1800);
+  };
+
+  const handleQuickViewAdd = () => {
+    if (!quickViewProduct || isSoldOut(quickViewProduct)) return;
+    addToCart(quickViewProduct, 1);
+    setCartOpen(true);
+    toast.success(`Added ${productName(quickViewProduct)} to bag`);
+    setQuickViewProduct(null);
+  };
 
   return (
-    <div className="w-full max-w-full overflow-x-hidden bg-[#FDFBF7] text-[#121212]">
+    <div className="w-full max-w-full overflow-x-hidden bg-[#FAF8F5] text-[#121212]">
       <SEO
-        title="Nirvana Republic — Single-Origin Agricultural Lots"
-        description="Unblended seeds, honey and superfoods, each traced to one named farm cluster and lab-verified before release."
+        title="Nirvana Republic — The Botanical Specialist"
+        description="Single-origin raw seeds, cold-cured superfoods, and artisanal agricultural lots."
         canonical="/"
-        schema={homeSchema}
       />
 
       {!user && (
-        <div className="border-b border-[#121212]/10 px-4 py-2.5 text-center font-mono text-[10px] tracking-[0.02em] text-[#121212]/60 sm:text-[11px]">
-          <span>Register an account to track your lot history and lab certificates. </span>
-          <Link to="/auth" className="text-[#1E3A2B] underline underline-offset-4 transition-colors hover:text-[#E58866]">
-            Sign in
+        <div className="border-b border-[#121212]/10 bg-[#FAF8F5] px-4 py-2 text-center font-mono text-[10.5px] uppercase tracking-wider text-[#121212]/70">
+          <span>70% off first seasonal harvest dispatch · </span>
+          <Link to="/auth" className="font-semibold text-[#14261C] underline underline-offset-4 hover:text-[#E58866]">
+            Start Harvest
           </Link>
         </div>
       )}
 
-      {/* ================= HERO ================= */}
-      <section className="container-page pb-12 pt-8 sm:pb-20 sm:pt-14 md:pb-24 md:pt-16">
-        <div className="grid gap-8 md:grid-cols-12 md:gap-10">
-          <div className="flex flex-col justify-between md:col-span-7 lg:col-span-6">
-            <div>
-              <div className="inline-flex items-center gap-2 border border-[#E58866]/30 bg-[#E58866]/[0.05] px-2.5 py-1 font-mono text-[9.5px] uppercase tracking-[0.16em] text-[#A64B2A] sm:text-[10.5px]">
-                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#E58866]" />
-                Dispatch 04 · Winter Harvest Active
+      {/* ================= 1. HERO SECTION ================= */}
+      <section className="relative w-full bg-[#14261C] text-[#FAF8F5]">
+        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-24 lg:px-8 lg:py-28">
+          <div className="grid items-center gap-12 lg:grid-cols-12 lg:gap-14">
+            {/* Left column */}
+            <div className="lg:col-span-6">
+              <div className="inline-flex items-center gap-2 rounded-full border border-[#FAF8F5]/20 bg-[#FAF8F5]/10 px-3.5 py-1 font-mono text-[10.5px] uppercase tracking-[0.2em] text-[#FAF8F5]">
+                <Sparkles size={12} className="text-[#E58866]" />
+                <span>The Botanical Specialist</span>
               </div>
 
-              <h1 className="mt-4 max-w-[14ch] text-balance font-display text-3xl font-light leading-[1.08] tracking-[-0.03em] text-[#121212] sm:text-5xl md:text-6xl lg:text-[4.25rem]">
-                Grown on one farm. <span className="italic text-[#1E3A2B]/85">Traced to one field.</span>
+              <h1
+                className={`${SERIF} mt-6 text-4xl font-normal leading-[1.08] tracking-tight text-[#FAF8F5] sm:text-5xl lg:text-[4.25rem]`}
+              >
+                Cultivated resilience, <br />
+                <span className="italic text-[#E58866]">from Indian fields.</span>
               </h1>
 
-              <p className="mt-4 max-w-[42ch] text-sm leading-relaxed text-[#121212]/75 sm:mt-6 sm:text-[16px] sm:leading-[1.7]">
-                We refuse to pool crops into generic commodity batches. Every pouch carries the exact farm coordinates,
-                elevation MSL, cold-pressing ceiling, and independent third-party lab assay.
-              </p>
+              <p className="mt-6 max-w-xl text-sm leading-relaxed text-[#FAF8F5]/85 sm:text-base">{HERO_COPY}</p>
 
-              <div className="mt-6 flex flex-wrap items-center gap-3 sm:mt-9 sm:gap-4">
+              <ul className="mt-8 space-y-3 font-mono text-xs text-[#FAF8F5]/90 sm:text-sm">
+                {PROVENANCE_BULLETS.map((bullet) => (
+                  <li key={bullet} className="flex items-center gap-3">
+                    <span className="flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full bg-[#E58866] text-[#14261C]">
+                      <Check size={11} strokeWidth={3} />
+                    </span>
+                    <span>{bullet}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <div className="mt-10 flex flex-wrap items-center gap-4">
                 <Link
                   to="/shop"
-                  className="inline-flex items-center gap-2 border border-[#121212] bg-[#121212] px-5 py-3 text-xs font-medium text-[#FDFBF7] transition-all hover:bg-transparent hover:text-[#121212] sm:px-7 sm:py-3.5 sm:text-sm"
+                  className="rounded-full bg-[#FAF8F5] px-10 py-4 font-mono text-xs font-bold uppercase tracking-widest text-[#121212] shadow-xl transition-all hover:bg-[#E58866] hover:text-[#14261C]"
                 >
-                  Browse open lots
-                  <ArrowUpRight size={14} strokeWidth={1.5} />
+                  Shop Now
                 </Link>
                 <Link
-                  to="/journal"
-                  className="inline-flex items-center gap-1.5 border border-[#121212]/20 px-4 py-3 text-xs font-medium text-[#121212] transition-colors hover:border-[#121212] sm:px-6 sm:py-3.5 sm:text-sm"
+                  to="/about"
+                  className="rounded-full border border-[#FAF8F5]/30 px-7 py-4 font-mono text-xs uppercase tracking-wider text-[#FAF8F5] transition-colors hover:border-[#FAF8F5]"
                 >
-                  Read field assays
+                  Learn More
                 </Link>
               </div>
             </div>
 
-            {/* Active Lot Micro-Ledger */}
-            <div className="mt-8 border-t border-[#121212]/10 pt-4 sm:mt-12 sm:pt-6">
-              <p className="font-mono text-[9.5px] uppercase tracking-wider text-[#121212]/40 sm:text-[10.5px]">
-                Active Lot In Focus
-              </p>
-              <div className="mt-1.5 flex flex-col gap-1 font-mono text-[11px] text-[#121212] sm:flex-row sm:items-baseline sm:justify-between sm:text-xs">
-                <span>LOT #NR-2025-09 (Raw Black Chia)</span>
-                <span className="text-[#121212]/60">17°41′ N, 74°01′ E · 490m MSL</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="md:col-span-5 md:col-start-8 lg:col-span-6 lg:col-start-7">
-            <div className="border border-[#121212]/10 bg-[#FAF7F0] p-2 sm:p-3 md:p-4">
-              <div className="relative overflow-hidden">
-                <img
-                  src={editorial}
-                  alt="Wild harvest inspected and cold-processed"
-                  loading="eager"
-                  width={1200}
-                  height={1500}
-                  className="aspect-[4/5] w-full object-cover grayscale-[0.1] contrast-[1.05]"
-                />
-              </div>
-              <div className="mt-2.5 flex items-center justify-between font-mono text-[10px] text-[#121212]/60 sm:text-[11px]">
-                <span>Plate I — Cold Stirred Moringa</span>
-                <span>Kollegal Cluster · Assay Verified</span>
+            {/* Right column: Original Editorial Visual (Natural, No Masking) */}
+            <div className="relative mx-auto w-full max-w-md lg:col-span-6 lg:max-w-none">
+              <div className="relative overflow-hidden rounded-3xl border border-[#FAF8F5]/15 bg-[#1A3024] p-3 shadow-2xl sm:p-4">
+                <div className="relative overflow-hidden rounded-2xl">
+                  <img
+                    src={editorial}
+                    alt="Single-origin botanical harvest ritual"
+                    className="aspect-[4/5] w-full object-cover"
+                  />
+                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#14261C]/80 via-transparent to-transparent" />
+                </div>
+                <div className="flex items-center justify-between px-2 pb-1 pt-3.5 font-mono text-xs text-[#FAF8F5]">
+                  <span>Plate I · Daily Ritual In Focus</span>
+                  <span className="text-[#E58866]">Cold-Milled Verified</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ================= PROVENANCE COUNTER SECTION ================= */}
-      <section className="border-y border-[#121212]/10 bg-[#F5F2EB]/50">
-        <div className="container-page py-6 sm:py-10">
-          <div className="grid grid-cols-2 gap-4 sm:gap-8 md:grid-cols-4 md:gap-12">
-            <div className="border-l border-[#121212]/15 pl-3 sm:pl-6">
-              <p className="font-mono text-[9.5px] uppercase tracking-widest text-[#121212]/50 sm:text-[11px]">
-                Farm Clusters
-              </p>
-              <div className="mt-0.5 sm:mt-1">
-                <Counter value={18} duration={1400} className="text-2xl sm:text-3xl md:text-4xl text-[#121212]" />
-              </div>
-              <p className="mt-0.5 text-[10.5px] text-[#121212]/60 sm:text-xs">Direct estate partners</p>
-            </div>
-
-            <div className="border-l border-[#121212]/15 pl-3 sm:pl-6">
-              <p className="font-mono text-[9.5px] uppercase tracking-widest text-[#121212]/50 sm:text-[11px]">
-                Batches Tested
-              </p>
-              <div className="mt-0.5 sm:mt-1">
-                <Counter value={100} suffix="%" duration={1600} className="text-2xl sm:text-3xl md:text-4xl text-[#1E3A2B]" />
-              </div>
-              <p className="mt-0.5 text-[10.5px] text-[#121212]/60 sm:text-xs">Third-party screened</p>
-            </div>
-
-            <div className="border-l border-[#121212]/15 pl-3 sm:pl-6">
-              <p className="font-mono text-[9.5px] uppercase tracking-widest text-[#121212]/50 sm:text-[11px]">
-                Thermal Ceiling
-              </p>
-              <div className="mt-0.5 sm:mt-1">
-                <Counter value={42} suffix="°C" duration={1200} className="text-2xl sm:text-3xl md:text-4xl text-[#121212]" />
-              </div>
-              <p className="mt-0.5 text-[10.5px] text-[#121212]/60 sm:text-xs">Zero heat oxidation</p>
-            </div>
-
-            <div className="border-l border-[#121212]/15 pl-3 sm:pl-6">
-              <p className="font-mono text-[9.5px] uppercase tracking-widest text-[#121212]/50 sm:text-[11px]">
-                Additives
-              </p>
-              <div className="mt-0.5 sm:mt-1">
-                <Counter value={0} duration={800} className="text-2xl sm:text-3xl md:text-4xl text-[#A64B2A]" />
-              </div>
-              <p className="mt-0.5 text-[10.5px] text-[#121212]/60 sm:text-xs">Single-origin purity</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ================= CURRENT SEASON REGISTRY ================= */}
-      <section className="container-page py-12 sm:py-20 md:py-28">
-        <div className="flex items-end justify-between gap-4 border-b border-[#121212]/15 pb-4 sm:pb-6">
-          <div>
-            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#A64B2A] sm:text-[11px]">
-              Seasonal Registry
-            </p>
-            <h2 className="mt-1.5 font-display text-2xl font-light leading-tight tracking-tight text-[#121212] sm:mt-3 sm:text-3xl md:text-4xl">
-              Active Lots on the Shelf
+      {/* ================= 2. OUR PRODUCTS ================= */}
+      <section className="relative w-full max-w-full bg-[#FAF8F5] py-20 lg:py-28">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <h2 className={`${SERIF} text-3xl font-normal tracking-tight text-[#121212] sm:text-4xl lg:text-5xl`}>
+              Our Products
             </h2>
+            <p className="mt-2.5 text-sm text-[#121212]/60 sm:text-base">
+              Premium quality single-origin botanicals and cold-milled seeds.
+            </p>
           </div>
-          <Link
-            to="/shop"
-            className="group flex shrink-0 items-center gap-1.5 border-b border-[#121212]/25 pb-0.5 font-mono text-[11px] uppercase tracking-wider text-[#121212] transition-colors hover:border-[#121212] sm:text-xs"
-          >
-            <span>All Lots</span>
-            <ArrowUpRight size={13} strokeWidth={1.5} className="transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-          </Link>
-        </div>
 
-        {loading ? (
-          <div className="mt-6 grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-4 sm:mt-10">
-            {[1, 2, 3, 4].map((i) => (
-              <RegistryCardSkeleton key={i} />
-            ))}
-          </div>
-        ) : displayFeatured.length === 0 ? (
-          <div className="mt-6 sm:mt-10">
-            <EmptyRegistry />
-          </div>
-        ) : (
-          <div className="mt-6 grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-4 sm:mt-10">
-            {displayFeatured.map((p) => (
-              <RegistryCard key={p._id || p.id} product={p} />
-            ))}
-          </div>
-        )}
+          {loading ? (
+            <div className="mt-14 grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-4">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="animate-pulse space-y-4 rounded-3xl border border-[#121212]/10 bg-[#F4EFE6] p-4 sm:p-5">
+                  <div className="aspect-square w-full rounded-2xl bg-[#121212]/[0.05]" />
+                  <div className="h-4 w-3/4 rounded bg-[#121212]/[0.06]" />
+                  <div className="h-11 w-full rounded-full bg-[#121212]/[0.06]" />
+                </div>
+              ))}
+            </div>
+          ) : displayFeatured.length === 0 ? (
+            <div className="mt-14">
+              <EmptyState />
+            </div>
+          ) : (
+            <div className="mt-14 grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-4">
+              {displayFeatured.map((p) => {
+                const key = productKey(p);
+                return (
+                  <ProductCard
+                    key={key}
+                    product={p}
+                    wished={wishlist.has(key)}
+                    onToggleWish={() => toggleWish(key)}
+                    onQuickView={() => setQuickViewProduct(p)}
+                  />
+                );
+              })}
+            </div>
+          )}
+        </div>
       </section>
 
-      {/* ================= TERROIR / PURITY MANIFESTO ================= */}
-      <section className="bg-[#1E3A2B] text-[#FDFBF7]">
-        <div className="container-page py-12 sm:py-20 md:py-28">
-          <div className="grid gap-10 md:grid-cols-12 md:gap-10">
-            <div className="md:col-span-5">
-              <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-[#FDFBF7]/50 sm:text-[11px]">
-                Purity Protocol
-              </p>
-              <h2 className="mt-3 max-w-[14ch] text-balance font-display text-2xl font-light leading-[1.15] tracking-tight sm:mt-5 sm:text-3xl md:text-5xl">
-                Purity isn't marketing. It's a certificate.
-              </h2>
-              <p className="mt-3 max-w-[38ch] text-sm leading-relaxed text-[#FDFBF7]/75 sm:mt-6 sm:text-[15px] sm:leading-[1.75]">
-                Commodity brands pool batches from hundreds of unknown farms to standardize yield.
-                We preserve variations in rainfall, basalt minerals, and sun curing, stamping each lot's complete pedigree on the pouch.
-              </p>
-            </div>
-
-            <div className="md:col-span-7 md:col-start-6">
-              <div className="grid divide-y divide-[#FDFBF7]/15 border-t border-[#FDFBF7]/15">
-                {manifesto.map(({ icon: Icon, label, copy }) => (
-                  <div key={label} className="grid gap-3 py-5 sm:grid-cols-[3rem_1fr] sm:gap-6 sm:py-8">
-                    <div className="mt-0.5">
-                      <Icon size={20} strokeWidth={1.25} className="text-[#E58866] sm:size-6" />
-                    </div>
-                    <div>
-                      <p className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-[#FDFBF7]/50 sm:text-[11px]">
-                        {label}
-                      </p>
-                      <p className="mt-1 text-xs leading-relaxed text-[#FDFBF7]/90 sm:mt-2 sm:text-[15px]">
-                        {copy}
-                      </p>
-                    </div>
+      {/* ================= 3. FEATURED SPOTLIGHT ================= */}
+      {spotlight && (
+        <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+          <div className="rounded-3xl border border-[#121212]/10 bg-[#EDE6DC] p-8 sm:p-12">
+            <div className="grid items-center gap-10 lg:grid-cols-12 lg:gap-14">
+              <div className="relative mx-auto w-full max-w-md min-w-0 lg:col-span-6 lg:max-w-none">
+                <div className="relative aspect-[4/5] overflow-hidden rounded-2xl bg-[#E2D8CC] shadow-md">
+                  <img
+                    src={productImage(spotlight) || editorial}
+                    alt={productName(spotlight)}
+                    loading="lazy"
+                    className="h-full w-full object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => toggleWish(productKey(spotlight))}
+                    className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-[#121212]/70 shadow-sm"
+                  >
+                    <Heart size={16} fill={wishlist.has(productKey(spotlight)) ? "#E58866" : "none"} className={wishlist.has(productKey(spotlight)) ? "text-[#E58866]" : ""} />
+                  </button>
+                  <div className="absolute bottom-4 left-4 max-w-[80%] truncate rounded-full bg-white/90 px-3 py-1 font-mono text-[10px] text-[#121212]">
+                    {productFarm(spotlight)}
                   </div>
-                ))}
+                </div>
+              </div>
+
+              <div className="min-w-0 lg:col-span-6">
+                <span className="font-mono text-xs uppercase tracking-widest text-[#A64B2A]">
+                  Harvest Focus Lot
+                </span>
+                <h2 className={`${SERIF} mt-2 text-3xl font-normal tracking-tight text-[#121212] sm:text-4xl lg:text-5xl`}>
+                  {productName(spotlight)}
+                </h2>
+
+                <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-xs text-[#121212]/60">
+                  <span>{productWeight(spotlight)} Pouch</span>
+                  <Stars rating={productRating(spotlight)} size={14} />
+                  <span>5.0 (Single Farm Batch)</span>
+                </div>
+
+                <div className="mt-5 font-mono text-2xl font-bold text-[#121212]">
+                  {inr(spotlight.price || 0)} <span className="text-sm font-normal text-[#121212]/50">/ Pouch</span>
+                </div>
+
+                <div className="mt-8 flex items-center gap-4">
+                  <div className="flex items-center rounded-full border border-[#121212]/20 bg-white px-2 py-1.5 font-mono text-sm">
+                    <button
+                      type="button"
+                      onClick={() => setSpotlightQty((q) => Math.max(1, q - 1))}
+                      disabled={spotlightQty <= 1}
+                      className="flex h-8 w-8 items-center justify-center rounded-full text-[#121212]/60"
+                    >
+                      <Minus size={14} />
+                    </button>
+                    <span className="w-8 text-center font-bold">{spotlightQty}</span>
+                    <button
+                      type="button"
+                      onClick={() => setSpotlightQty((q) => Math.min(maxQty, q + 1))}
+                      disabled={spotlightQty >= maxQty}
+                      className="flex h-8 w-8 items-center justify-center rounded-full text-[#121212]/60"
+                    >
+                      <Plus size={14} />
+                    </button>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleSpotlightAdd}
+                  disabled={spotlightSoldOut}
+                  className="mt-4 flex w-full items-center justify-center rounded-full bg-[#14261C] px-8 py-4 font-mono text-xs uppercase tracking-wider text-[#FAF8F5] transition-all hover:bg-[#E58866] hover:text-[#14261C]"
+                >
+                  {spotlightSoldOut ? "Sold Out" : justAdded ? "Added to Cart ✓" : "Add to Cart"}
+                </button>
               </div>
             </div>
           </div>
+        </section>
+      )}
+
+      {/* ================= 4. PROVENANCE COUNTERS ================= */}
+      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-2 gap-y-8 rounded-3xl border border-[#121212]/10 bg-[#F4EFE6] p-8 md:grid-cols-4 md:divide-x md:divide-[#121212]/10">
+          {[
+            { label: "Farm Clusters", note: "Direct estate partners", node: <Counter value={18} duration={1400} className="text-3xl font-bold text-[#121212] md:text-4xl" /> },
+            { label: "Batches Tested", note: "Third-party screened", node: <Counter value={100} suffix="%" duration={1600} className="text-3xl font-bold text-[#1E3A2B] md:text-4xl" /> },
+            { label: "Thermal Ceiling", note: "Zero heat oxidation", node: <Counter value={42} suffix="°C" duration={1200} className="text-3xl font-bold text-[#121212] md:text-4xl" /> },
+            { label: "Additives", note: "Single-origin purity", node: <Counter value={0} duration={800} className="text-3xl font-bold text-[#A64B2A] md:text-4xl" /> },
+          ].map((m) => (
+            <div key={m.label} className="px-2 sm:px-6">
+              <p className="font-mono text-[10px] uppercase tracking-widest text-[#121212]/50 sm:text-[11px]">{m.label}</p>
+              <div className="mt-1">{m.node}</div>
+              <p className="mt-1 text-xs text-[#121212]/60">{m.note}</p>
+            </div>
+          ))}
         </div>
       </section>
 
-      {/* ================= REFINED FIELD NOTES (JOURNAL) ================= */}
-      <section className="container-page py-14 sm:py-20 md:py-28">
-        <div className="flex items-end justify-between gap-4 border-b border-[#121212]/15 pb-4 sm:pb-6">
+      {/* ================= 5. SANCTUARY DISPATCHES (JOURNAL SHOWCASE) ================= */}
+      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
+        <div className="flex items-end justify-between border-b border-[#121212]/15 pb-6">
           <div>
-            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#A64B2A] sm:text-[11px]">
-              Sanctuary Dispatches
-            </p>
-            <h2 className="mt-1.5 font-display text-2xl font-light leading-tight tracking-tight text-[#121212] sm:mt-3 sm:text-3xl md:text-4xl">
-              Field Notes & Lab Assays
+            <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-[#A64B2A]">Sanctuary Dispatches</p>
+            <h2 className={`${SERIF} mt-2 text-3xl font-normal tracking-tight text-[#121212] sm:text-4xl`}>
+              Field Notes &amp; Assays
             </h2>
           </div>
           <Link
             to="/journal"
-            className="group flex shrink-0 items-center gap-1.5 border-b border-[#121212]/25 pb-0.5 font-mono text-[11px] uppercase tracking-wider text-[#121212] transition-colors hover:border-[#121212] sm:text-xs"
+            className="hidden shrink-0 items-center gap-1.5 font-mono text-xs uppercase tracking-wider text-[#121212] underline underline-offset-4 hover:text-[#E58866] sm:flex"
           >
             <span>All Dispatches</span>
-            <ArrowUpRight size={13} strokeWidth={1.5} className="transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+            <ArrowUpRight size={13} strokeWidth={1.5} />
           </Link>
         </div>
 
         {loading ? (
-          <div className="mt-6 grid gap-6 sm:mt-10 sm:grid-cols-3">
+          <div className="mt-10 grid gap-6 sm:grid-cols-3">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="border border-[#121212]/10 bg-[#FAF8F5] p-3">
-                <div className="aspect-[4/3] w-full animate-pulse bg-[#121212]/[0.05]" />
+              <div key={i} className="animate-pulse rounded-3xl border border-[#121212]/10 bg-white p-4">
+                <div className="aspect-[4/3] w-full rounded-2xl bg-[#121212]/[0.05]" />
                 <div className="mt-4 space-y-2">
-                  <div className="h-3 w-1/4 animate-pulse bg-[#121212]/[0.06]" />
-                  <div className="h-4 w-3/4 animate-pulse bg-[#121212]/[0.06]" />
-                  <div className="h-3 w-1/2 animate-pulse bg-[#121212]/[0.06]" />
+                  <div className="h-3 w-1/4 rounded bg-[#121212]/[0.06]" />
+                  <div className="h-4 w-3/4 rounded bg-[#121212]/[0.06]" />
                 </div>
               </div>
             ))}
           </div>
         ) : journalPosts.length === 0 ? (
-          <div className="mt-6 sm:mt-10">
-            <EmptyRegistry />
+          <div className="mt-10">
+            <EmptyState />
           </div>
         ) : (
-          <div className="mt-6 grid gap-6 sm:mt-10 sm:grid-cols-3">
+          <div className="mt-10 grid gap-6 sm:grid-cols-3">
             {journalPosts.map((post, idx) => (
               <article
-                key={post.slug || post._id}
-                className="group flex flex-col justify-between border border-[#121212]/10 bg-[#FAF8F5] transition-all duration-300 hover:bg-[#FFFFFF] hover:shadow-lg"
+                key={post.slug || post._id || idx}
+                className="group flex min-w-0 flex-col rounded-3xl border border-[#121212]/10 bg-white p-4 transition-all duration-300 hover:shadow-xl"
               >
-                <Link to={`/journal/${post.slug}`} className="flex flex-col flex-1">
-                  {/* Journal Specimen Image Plate */}
-                  <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#EFECE6]/50">
-                    <div className="absolute left-3 top-3 z-10 flex items-center gap-1.5 border border-[#121212]/20 bg-[#FAF8F5]/90 px-2 py-0.5 backdrop-blur-xs">
-                      <span className="h-1.5 w-1.5 rounded-full bg-[#1E3A2B]" />
-                      <span className="font-mono text-[9.5px] font-medium tracking-wider text-[#121212]">
-                        DISPATCH // 0{idx + 1}
-                      </span>
-                    </div>
-
+                <Link to={`/journal/${post.slug || post._id || ""}`} className="flex h-full flex-col">
+                  <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-[#E8E1D5]">
                     <img
-                      src={post.coverImage || post.image}
-                      alt={post.title}
+                      src={post.coverImage || post.image || editorial}
+                      alt={post.title || "Field dispatch"}
                       loading="lazy"
                       width={900}
                       height={675}
                       className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                     />
+                    <span className="absolute left-3 top-3 rounded-full bg-[#14261C] px-3 py-1 font-mono text-[10px] uppercase tracking-wider text-[#FAF8F5]">
+                      {post.category || "Field Assay"}
+                    </span>
                   </div>
 
-                  {/* Article Metadata & Excerpt */}
-                  <div className="flex flex-col flex-1 justify-between p-4 sm:p-5">
-                    <div>
-                      <span className="inline-block font-mono text-[10px] uppercase tracking-[0.16em] text-[#A64B2A]">
-                        {post.category || "Field Assay"}
-                      </span>
-                      <h3 className="mt-1.5 line-clamp-2 font-display text-base font-normal leading-snug text-[#121212] transition-colors group-hover:text-[#1E3A2B] sm:text-lg">
-                        {post.title}
-                      </h3>
-                      <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-[#121212]/70 sm:text-sm">
-                        {post.excerpt}
-                      </p>
-                    </div>
-
-                    <div className="mt-4 flex items-center justify-between border-t border-dashed border-[#121212]/15 pt-3 font-mono text-[10.5px] text-[#121212]/55">
+                  <div className="flex flex-1 flex-col px-2 pb-2 pt-4">
+                    <h3 className={`${SERIF} line-clamp-2 text-base font-normal leading-snug text-[#121212] sm:text-lg`}>
+                      {post.title}
+                    </h3>
+                    <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-[#121212]/65">{post.excerpt}</p>
+                    <div className="mt-auto flex items-center justify-between pt-4 font-mono text-[10.5px] text-[#121212]/55">
                       <span>
-                        {new Date(
-                          post.publishedAt || post.createdAt || Date.now()
-                        ).toLocaleDateString("en-IN", { month: "short", year: "numeric" })}
+                        {new Date(post.publishedAt || post.createdAt || Date.now()).toLocaleDateString("en-IN", {
+                          month: "short",
+                          year: "numeric",
+                        })}
                       </span>
                       <span>
                         {post.readTimeMinutes ? `${post.readTimeMinutes} min read` : post.readTime || "4 min read"}
@@ -587,26 +593,51 @@ export default function Home() {
                     </div>
                   </div>
                 </Link>
-
-                {/* Article Read Action */}
-                <div className="border-t border-[#121212]/15 bg-[#F4F1EA]/60 px-4 py-3 transition-colors group-hover:bg-[#1E3A2B] group-hover:text-[#FDFBF7]">
-                  <Link
-                    to={`/journal/${post.slug}`}
-                    className="flex items-center justify-between font-mono text-xs uppercase tracking-wider text-[#121212] group-hover:text-[#FDFBF7]"
-                  >
-                    <span>Read Full Note</span>
-                    <ArrowUpRight
-                      size={14}
-                      strokeWidth={1.5}
-                      className="transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
-                    />
-                  </Link>
-                </div>
               </article>
             ))}
           </div>
         )}
       </section>
+
+      {/* Quick View Modal */}
+      {quickViewProduct && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-[#121212]/60 p-4 backdrop-blur-sm"
+          onClick={() => setQuickViewProduct(null)}
+        >
+          <div
+            role="dialog"
+            onClick={(e) => e.stopPropagation()}
+            className="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-3xl border border-[#121212]/15 bg-[#FAF8F5] p-6 shadow-2xl sm:p-8"
+          >
+            <button
+              type="button"
+              onClick={() => setQuickViewProduct(null)}
+              className="absolute right-4 top-4 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white text-[#121212]/70"
+            >
+              <X size={16} />
+            </button>
+            <div className="grid gap-6 sm:grid-cols-2">
+              <div className="aspect-square w-full overflow-hidden rounded-2xl bg-[#E8E1D5]">
+                <img src={productImage(quickViewProduct) || editorial} alt={productName(quickViewProduct)} className="h-full w-full object-cover" />
+              </div>
+              <div className="flex flex-col justify-between">
+                <div>
+                  <h3 className={`${SERIF} text-2xl text-[#121212]`}>{productName(quickViewProduct)}</h3>
+                  <p className="mt-3 font-mono text-xl font-bold text-[#121212]">{inr(quickViewProduct.price || 0)}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleQuickViewAdd}
+                  className="mt-6 flex w-full items-center justify-center rounded-full bg-[#14261C] py-3 font-mono text-xs uppercase tracking-wider text-[#FAF8F5]"
+                >
+                  Add to Bag
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <Newsletter />
     </div>

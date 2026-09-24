@@ -10,7 +10,7 @@ import {
   X,
   ArrowRight,
 } from "lucide-react";
-import logo from "@/assets/logo-mark.png";
+import logo from "@/assets/logo.jpg";
 import { categories } from "@/data/products";
 import { useStore } from "@/lib/store";
 import { useAuth } from "@/context/AuthContext";
@@ -18,7 +18,8 @@ import { useAuth } from "@/context/AuthContext";
 const navLinks = [
   { label: "All Harvests", to: "/shop" },
   { label: "Journal", to: "/journal" },
-  { label: "Our Story", to: "/about" },
+  { label: "About Us", to: "/about" },
+  { label: "Contact Us", to: "/contact" },
 ];
 
 export function Header() {
@@ -85,12 +86,12 @@ export function Header() {
     <header
       className={`sticky top-0 z-40 w-full max-w-full text-[#FDFBF7] transition-all duration-300 ${
         isScrolled
-          ? "bg-[#162B20]/90 backdrop-blur-md shadow-sm border-b border-[#FDFBF7]/10"
+          ? "bg-[#162B20]/95 backdrop-blur-md shadow-sm border-b border-[#FDFBF7]/10"
           : "bg-[#162B20] border-b border-transparent"
       }`}
     >
-      <div className="container-page flex min-h-[4.25rem] w-full items-center justify-between gap-3 py-2.5 sm:min-h-[4.5rem] md:h-20 md:py-0">
-        {/* Left: Mobile/Tablet Menu Trigger & Logo */}
+      <div className="container-page flex min-h-[4.25rem] w-full items-center justify-between gap-3 py-2 sm:min-h-[4.75rem] md:h-20 md:py-0">
+        {/* Left: Mobile Trigger & Screen-Blended Logo */}
         <div className="flex items-center gap-3">
           <button
             type="button"
@@ -101,27 +102,21 @@ export function Header() {
             <Menu size={18} strokeWidth={1.5} />
           </button>
 
-          <Link to="/" className="group flex shrink-0 items-center gap-2.5">
+          <Link to="/" className="group flex shrink-0 items-center py-1">
             <img
               src={logo}
               alt="Nirvana Republic"
-              width={512}
-              height={512}
-              className="h-7 w-7 object-contain brightness-0 invert transition-transform duration-300 group-hover:scale-105 sm:h-8 sm:w-8"
+              className="h-8 w-auto max-w-[170px] object-contain transition-opacity duration-300 group-hover:opacity-90 sm:h-10 sm:max-w-[210px]"
+              style={{
+                filter: "invert(1) contrast(200%) brightness(140%)",
+                mixBlendMode: "screen",
+              }}
             />
-            <div className="flex flex-col justify-center">
-              <span className="font-display text-base font-normal leading-tight tracking-tight text-[#FDFBF7] sm:text-xl md:text-2xl">
-                Nirvana Republic
-              </span>
-              <span className="hidden font-mono text-[8.5px] uppercase tracking-[0.22em] text-[#FDFBF7]/60 xl:block">
-                Single-Origin Botanicals
-              </span>
-            </div>
           </Link>
         </div>
 
-        {/* Center: Desktop Links (Visible ONLY on lg/xl screens to prevent tablet squeeze) */}
-        <nav className="hidden items-center gap-6 xl:gap-8 lg:flex">
+        {/* Center: Desktop Navigation */}
+        <nav className="hidden items-center gap-5 xl:gap-7 lg:flex">
           {categories.map((c) => (
             <Link
               key={c.id}
@@ -137,6 +132,20 @@ export function Header() {
             className="group relative font-sans text-xs uppercase tracking-[0.14em] text-[#FDFBF7]/85 transition-colors hover:text-[#FFFFFF]"
           >
             <span>Journal</span>
+            <span className="absolute -bottom-1 left-0 h-[1.5px] w-0 bg-[#E58866] transition-all duration-200 group-hover:w-full" />
+          </Link>
+          <Link
+            to="/about"
+            className="group relative font-sans text-xs uppercase tracking-[0.14em] text-[#FDFBF7]/85 transition-colors hover:text-[#FFFFFF]"
+          >
+            <span>About Us</span>
+            <span className="absolute -bottom-1 left-0 h-[1.5px] w-0 bg-[#E58866] transition-all duration-200 group-hover:w-full" />
+          </Link>
+          <Link
+            to="/contact"
+            className="group relative font-sans text-xs uppercase tracking-[0.14em] text-[#FDFBF7]/85 transition-colors hover:text-[#FFFFFF]"
+          >
+            <span>Contact Us</span>
             <span className="absolute -bottom-1 left-0 h-[1.5px] w-0 bg-[#E58866] transition-all duration-200 group-hover:w-full" />
           </Link>
         </nav>
@@ -196,7 +205,7 @@ export function Header() {
             type="button"
             aria-label="Open Cart"
             onClick={() => setCartOpen(true)}
-            className="group ml-1 flex h-8 items-center gap-1.5 border border-[#FAF8F5] bg-[#FAF8F5] px-2.5 text-xs font-mono font-medium tracking-wider text-[#121212] transition-all hover:bg-transparent hover:text-[#FAF8F5] sm:h-9 sm:gap-2 sm:px-3.5"
+            className="group ml-1 flex h-8 items-center gap-1.5 border border-[#FAF8F5] bg-[#FAF8F5] px-3 text-xs font-mono font-medium tracking-wider text-[#121212] transition-all hover:bg-transparent hover:text-[#FAF8F5] sm:h-9 sm:gap-2 sm:px-4"
           >
             <ShoppingBag size={13} strokeWidth={1.75} className="transition-transform group-hover:scale-110 sm:size-[14px]" />
             <span className="text-[11px] uppercase sm:text-xs">Bag</span>
@@ -221,7 +230,7 @@ export function Header() {
               />
               <button
                 type="submit"
-                className="shrink-0 border border-[#FAF8F5] bg-[#FAF8F5] px-3 py-1 font-mono text-[10px] uppercase tracking-wider text-[#121212] hover:bg-transparent hover:text-[#FAF8F5] transition-colors sm:px-4 sm:py-1.5 sm:text-[11px]"
+                className="shrink-0 border border-[#FAF8F5] bg-[#FAF8F5] px-4 py-1.5 font-mono text-[10px] uppercase tracking-wider text-[#121212] hover:bg-transparent hover:text-[#FAF8F5] transition-colors sm:text-[11px]"
               >
                 Search
               </button>
@@ -255,7 +264,15 @@ export function Header() {
         >
           <div className="space-y-6 overflow-y-auto">
             <div className="flex items-center justify-between border-b border-[#FDFBF7]/15 pb-4">
-              <span className="font-display text-lg text-[#FDFBF7]">Nirvana Republic</span>
+              <img
+                src={logo}
+                alt="Nirvana Republic"
+                className="h-8 w-auto max-w-[150px] object-contain"
+                style={{
+                  filter: "invert(1) contrast(200%) brightness(140%)",
+                  mixBlendMode: "screen",
+                }}
+              />
               <button
                 type="button"
                 onClick={() => setMenuOpen(false)}
@@ -334,7 +351,7 @@ export function Header() {
               <Link
                 to="/auth"
                 onClick={() => setMenuOpen(false)}
-                className="flex w-full items-center justify-center border border-[#FAF8F5] bg-[#FAF8F5] py-3 font-mono text-xs uppercase tracking-widest text-[#121212] font-medium"
+                className="flex w-full items-center justify-center rounded-full bg-[#FAF8F5] py-3 font-mono text-xs uppercase tracking-widest text-[#121212] font-medium"
               >
                 Sign In / Register
               </Link>

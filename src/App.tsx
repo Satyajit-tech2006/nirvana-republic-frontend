@@ -17,6 +17,8 @@ import AccountPage from "@/pages/AccountPage";
 import JournalPage from "@/pages/JournalPage";
 import JournalDetailPage from "@/pages/JournalDetailPage";
 import WishlistPage from "@/components/WishlistPage";
+import AboutUs from "@/pages/AboutUs";
+import ContactUs from "@/pages/ContactUs";
 
 // Admin Suite Pages
 import AdminDashboard from "@/pages/admin/AdminDashboard";
@@ -41,7 +43,8 @@ export function App() {
         <Route path="/login" element={<AuthPage />} />
         <Route path="/register" element={<AuthPage />} />
         <Route path="/wishlist" element={<WishlistPage />} />
-
+        <Route path="/about" element={<AboutUs />} />
+        <Route path="/contact" element={<ContactUs />} />
         {/* Editorial Journal & Ritual Chronicles */}
         <Route path="/journal" element={<JournalPage />} />
         <Route path="/journal/:slug" element={<JournalDetailPage />} />
