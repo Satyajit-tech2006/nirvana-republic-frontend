@@ -10,7 +10,11 @@ import pumpkin from "@/assets/p-pumpkin.jpg";
 import turmeric from "@/assets/p-turmeric.jpg";
 import editorial from "@/assets/editorial-ritual.jpg";
 
-export type CategoryId = "powders" | "seeds" | "pantry" | "superfoods";
+export type CategoryId =
+  | "bath-aroma"
+  | "ancient-wellness"
+  | "diabetic-essentials"
+  | "dietary-wellness";
 
 export type Product = {
   id: string;
@@ -42,14 +46,29 @@ export const categories: {
   image: string;
 }[] = [
   {
-    id: "powders",
-    name: "Powders",
-    blurb: "Single-origin roots, leaves and flowers, finely milled.",
+    id: "bath-aroma",
+    name: "Bath & Aroma",
+    blurb: "Therapeutic mineral soaks, botanical salts, and essential essences.",
+    image: editorial,
+  },
+  {
+    id: "ancient-wellness",
+    name: "Ancient Wellness",
+    blurb: "Single-origin adaptogenic roots, ceremonial herbs, and stone-ground botanicals.",
     image: ashwagandha,
   },
-  { id: "seeds", name: "Seeds", blurb: "Everyday protein, fibre and omega-3.", image: chia },
-  { id: "superfoods", name: "Superfoods", blurb: "Daily greens and antioxidant boosters.", image: moringa },
-  { id: "pantry", name: "Pantry", blurb: "Clean staples for the Indian kitchen.", image: jaggery },
+  {
+    id: "diabetic-essentials",
+    name: "Diabetic Essentials",
+    blurb: "Metabolic balancers, unrefined natural sweeteners, and low-glycemic staples.",
+    image: jaggery,
+  },
+  {
+    id: "dietary-wellness",
+    name: "Dietary Wellness",
+    blurb: "Cold-harvested seeds, whole food nutrients, and daily plant-based vitality.",
+    image: chia,
+  },
 ];
 
 const genericReviews = (name: string) => [
@@ -82,7 +101,7 @@ export const products: Product[] = [
     slug: "ashwagandha-root-powder",
     name: "Ashwagandha Root Powder",
     tagline: "Calm, steady energy from KSM-grade roots",
-    category: "powders",
+    category: "ancient-wellness",
     price: 449,
     mrp: 599,
     weight: "250 g",
@@ -119,7 +138,7 @@ export const products: Product[] = [
     slug: "beetroot-powder",
     name: "Beetroot Powder",
     tagline: "Cold-processed beets for natural pre-workout colour",
-    category: "powders",
+    category: "dietary-wellness",
     price: 379,
     mrp: 449,
     weight: "200 g",
@@ -155,7 +174,7 @@ export const products: Product[] = [
     slug: "raw-chia-seeds",
     name: "Raw Chia Seeds",
     tagline: "Omega-3 and fibre, ready in five minutes",
-    category: "seeds",
+    category: "dietary-wellness",
     price: 299,
     mrp: 399,
     weight: "500 g",
@@ -192,7 +211,7 @@ export const products: Product[] = [
     slug: "roasted-flax-seeds",
     name: "Roasted Flax Seeds",
     tagline: "Slow roasted, ready to eat by the spoon",
-    category: "seeds",
+    category: "dietary-wellness",
     price: 219,
     weight: "400 g",
     rating: 4.7,
@@ -222,7 +241,7 @@ export const products: Product[] = [
     slug: "hibiscus-powder",
     name: "Hibiscus Powder",
     tagline: "Shade-dried petals for a tart daily brew",
-    category: "powders",
+    category: "ancient-wellness",
     price: 349,
     mrp: 429,
     weight: "150 g",
@@ -246,7 +265,7 @@ export const products: Product[] = [
     slug: "isabgol-husk",
     name: "Isabgol Husk",
     tagline: "99% pure psyllium for everyday regularity",
-    category: "pantry",
+    category: "diabetic-essentials",
     price: 269,
     mrp: 319,
     weight: "200 g",
@@ -276,7 +295,7 @@ export const products: Product[] = [
     slug: "organic-jaggery-powder",
     name: "Organic Jaggery Powder",
     tagline: "Chemical-free sweetness from Kolhapur cane",
-    category: "pantry",
+    category: "diabetic-essentials",
     price: 189,
     weight: "700 g",
     rating: 4.8,
@@ -306,7 +325,7 @@ export const products: Product[] = [
     slug: "moringa-leaf-powder",
     name: "Moringa Leaf Powder",
     tagline: "Your daily greens, in one teaspoon",
-    category: "superfoods",
+    category: "ancient-wellness",
     price: 399,
     mrp: 499,
     weight: "250 g",
@@ -337,7 +356,7 @@ export const products: Product[] = [
     slug: "raw-pumpkin-seeds",
     name: "Raw Pumpkin Seeds",
     tagline: "Magnesium-rich seeds for the 4 pm slump",
-    category: "seeds",
+    category: "dietary-wellness",
     price: 329,
     mrp: 389,
     weight: "350 g",
@@ -362,7 +381,7 @@ export const products: Product[] = [
     slug: "turmeric-latte-powder",
     name: "Turmeric Latte Powder",
     tagline: "Haldi doodh, already measured for you",
-    category: "superfoods",
+    category: "ancient-wellness",
     price: 429,
     mrp: 549,
     weight: "200 g",

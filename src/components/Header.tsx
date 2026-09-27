@@ -16,7 +16,6 @@ import { useStore } from "@/lib/store";
 import { useAuth } from "@/context/AuthContext";
 
 const navLinks = [
-  { label: "All Harvests", to: "/shop" },
   { label: "Journal", to: "/journal" },
   { label: "About Us", to: "/about" },
   { label: "Contact Us", to: "/contact" },
@@ -90,9 +89,9 @@ export function Header() {
           : "bg-[#4D694E] border-b border-[#FFF3D5]/10"
       }`}
     >
-      <div className="container-page flex min-h-[4.25rem] w-full items-center justify-between gap-3 py-2 sm:min-h-[4.75rem] md:h-20 md:py-0">
-        {/* Left: Mobile Trigger & Screen-Blended Logo */}
-        <div className="flex items-center gap-3">
+      <div className="container-page flex h-16 w-full items-center justify-between sm:h-20">
+        {/* Left: Mobile Trigger & Brand Logo */}
+        <div className="flex shrink-0 items-center gap-3">
           <button
             type="button"
             className="flex h-9 w-9 shrink-0 items-center justify-center border border-[#FFF3D5]/20 text-[#FFF3D5] transition-colors hover:border-[#FFF3D5] lg:hidden"
@@ -102,11 +101,11 @@ export function Header() {
             <Menu size={18} strokeWidth={1.5} />
           </button>
 
-          <Link to="/" className="group flex shrink-0 items-center py-1">
+          <Link to="/" className="group flex shrink-0 items-center">
             <img
               src={logo}
               alt="Nirvana Republic"
-              className="h-8 w-auto max-w-[170px] object-contain transition-opacity duration-300 group-hover:opacity-90 sm:h-10 sm:max-w-[210px]"
+              className="h-8 w-auto max-w-[150px] object-contain transition-opacity duration-300 group-hover:opacity-90 sm:h-9 sm:max-w-[185px] xl:h-10"
               style={{
                 filter: "invert(1) contrast(200%) brightness(140%)",
                 mixBlendMode: "screen",
@@ -115,48 +114,41 @@ export function Header() {
           </Link>
         </div>
 
-        {/* Center: Desktop Navigation */}
-        <nav className="hidden items-center gap-5 xl:gap-7 lg:flex">
+        {/* Center: Desktop Navigation Bar */}
+        <nav className="hidden items-center justify-center gap-4 lg:flex xl:gap-6 2xl:gap-7">
           {categories.map((c) => (
             <Link
               key={c.id}
               to={`/shop?category=${c.id}`}
-              className="group relative font-sans text-xs uppercase tracking-[0.14em] text-[#FFF3D5]/85 transition-colors hover:text-white"
+              className="group relative whitespace-nowrap font-sans text-[11px] font-medium uppercase tracking-[0.14em] text-[#FFF3D5]/80 transition-colors hover:text-white xl:text-xs"
             >
               <span>{c.name}</span>
               <span className="absolute -bottom-1 left-0 h-[1.5px] w-0 bg-[#C87A3E] transition-all duration-200 group-hover:w-full" />
             </Link>
           ))}
-          <Link
-            to="/journal"
-            className="group relative font-sans text-xs uppercase tracking-[0.14em] text-[#FFF3D5]/85 transition-colors hover:text-white"
-          >
-            <span>Journal</span>
-            <span className="absolute -bottom-1 left-0 h-[1.5px] w-0 bg-[#C87A3E] transition-all duration-200 group-hover:w-full" />
-          </Link>
-          <Link
-            to="/about"
-            className="group relative font-sans text-xs uppercase tracking-[0.14em] text-[#FFF3D5]/85 transition-colors hover:text-white"
-          >
-            <span>About Us</span>
-            <span className="absolute -bottom-1 left-0 h-[1.5px] w-0 bg-[#C87A3E] transition-all duration-200 group-hover:w-full" />
-          </Link>
-          <Link
-            to="/contact"
-            className="group relative font-sans text-xs uppercase tracking-[0.14em] text-[#FFF3D5]/85 transition-colors hover:text-white"
-          >
-            <span>Contact Us</span>
-            <span className="absolute -bottom-1 left-0 h-[1.5px] w-0 bg-[#C87A3E] transition-all duration-200 group-hover:w-full" />
-          </Link>
+
+          {/* Divider between Categories & Editorial Links */}
+          <span className="h-3 w-px bg-[#FFF3D5]/20" aria-hidden="true" />
+
+          {navLinks.map((item) => (
+            <Link
+              key={item.to}
+              to={item.to}
+              className="group relative whitespace-nowrap font-sans text-[11px] font-medium uppercase tracking-[0.14em] text-[#FFF3D5]/80 transition-colors hover:text-white xl:text-xs"
+            >
+              <span>{item.label}</span>
+              <span className="absolute -bottom-1 left-0 h-[1.5px] w-0 bg-[#C87A3E] transition-all duration-200 group-hover:w-full" />
+            </Link>
+          ))}
         </nav>
 
-        {/* Right: Utility Controls */}
+        {/* Right: Utility Controls & Actions */}
         <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
           <button
             type="button"
             aria-label="Search"
             onClick={() => setSearchOpen((v) => !v)}
-            className="flex h-8 w-8 items-center justify-center text-[#FFF3D5]/80 transition-colors hover:text-white sm:h-9 sm:w-9"
+            className="flex h-9 w-9 items-center justify-center text-[#FFF3D5]/80 transition-colors hover:text-white"
           >
             <Search size={17} strokeWidth={1.5} />
           </button>
@@ -205,11 +197,17 @@ export function Header() {
             type="button"
             aria-label="Open Cart"
             onClick={() => setCartOpen(true)}
-            className="group ml-1 flex h-8 items-center gap-1.5 border border-[#FFF3D5] bg-[#FFF3D5] px-3 text-xs font-mono font-medium tracking-wider text-[#4D694E] transition-all hover:bg-transparent hover:text-[#FFF3D5] sm:h-9 sm:gap-2 sm:px-4"
+            className="group ml-1 flex h-9 items-center gap-1.5 border border-[#FFF3D5] bg-[#FFF3D5] px-3.5 text-xs font-mono font-medium tracking-wider text-[#4D694E] transition-all hover:bg-transparent hover:text-[#FFF3D5] sm:gap-2 sm:px-4"
           >
-            <ShoppingBag size={13} strokeWidth={1.75} className="transition-transform group-hover:scale-110 sm:size-[14px]" />
+            <ShoppingBag
+              size={14}
+              strokeWidth={1.75}
+              className="transition-transform group-hover:scale-110"
+            />
             <span className="text-[11px] uppercase sm:text-xs">Bag</span>
-            <span className="font-semibold text-[#4D694E] group-hover:text-[#C87A3E]">[{cartCount}]</span>
+            <span className="font-semibold text-[#4D694E] group-hover:text-[#C87A3E]">
+              [{cartCount}]
+            </span>
           </button>
         </div>
       </div>
@@ -246,7 +244,7 @@ export function Header() {
         </div>
       )}
 
-      {/* Mobile / Tablet Drawer Menu */}
+      {/* Mobile Drawer Menu */}
       <div
         className={`fixed inset-0 z-50 transition-opacity duration-300 lg:hidden ${
           menuOpen ? "opacity-100" : "pointer-events-none opacity-0"
@@ -351,7 +349,7 @@ export function Header() {
               <Link
                 to="/auth"
                 onClick={() => setMenuOpen(false)}
-                className="flex w-full items-center justify-center rounded-full bg-[#FFF3D5] py-3 font-mono text-xs uppercase tracking-widest text-[#4D694E] font-medium"
+                className="flex w-full items-center justify-center rounded-full bg-[#FFF3D5] py-3 font-mono text-xs font-medium uppercase tracking-widest text-[#4D694E]"
               >
                 Sign In / Register
               </Link>

@@ -23,7 +23,7 @@ export default function AdminProductPublishPage() {
     slug: "",
     tagline: "",
     description: "",
-    category: "seeds",
+    category: "ancient-wellness",
     price: "",
     compareAtPrice: "",
     weightGrams: "",
@@ -316,10 +316,10 @@ export default function AdminProductPublishPage() {
                 onChange={handleInputChange}
                 className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3 py-2.5 font-sans text-xs text-[#121212] outline-none transition-colors focus:border-[#121212] focus:bg-white"
               >
-                <option value="seeds">Seeds &amp; Kernels</option>
-                <option value="staples">Unrefined Staples</option>
-                <option value="superfoods">Botanical Superfoods</option>
-                <option value="sweeteners">Raw Sweeteners</option>
+                <option value="bath-aroma">Bath &amp; Aroma</option>
+                <option value="ancient-wellness">Ancient Wellness</option>
+                <option value="diabetic-essentials">Diabetic Essentials</option>
+                <option value="dietary-wellness">Dietary Wellness</option>
               </select>
             </div>
             <div>

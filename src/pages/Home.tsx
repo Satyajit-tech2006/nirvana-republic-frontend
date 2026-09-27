@@ -8,12 +8,16 @@ import {
   Star,
   X,
   Sparkles,
+  Quote,
 } from "lucide-react";
 import { toast } from "sonner";
 import landingPageImg from "@/assets/landing-page.jpeg";
+import category1Img from "@/assets/category-1.jpeg";
+import category2Img from "@/assets/category-2.jpeg";
+import category3Img from "@/assets/category-3.jpeg";
+import category4Img from "@/assets/category-4.jpeg";
 import { SEO } from "@/components/SEO";
 import { Newsletter } from "@/components/Newsletter";
-import { Counter } from "@/components/Counter";
 import { useAuth } from "@/context/AuthContext";
 import { useStore } from "@/lib/store";
 import api from "@/lib/axios";
@@ -41,12 +45,52 @@ const SERIF = "font-['Fraunces',ui-serif,Georgia,serif]";
 const HERO_COPY =
   "At Nirvana Republic, we believe wellness should be simple, accessible, and part of everyday life. As a one stop destination for health and wellness, we offer a thoughtfully curated range of products that support your journey towards a healthier lifestyle.";
 
-const HERO_FEATURES = [
-  "Wild-harvested single-origin botanicals",
-  "Single-estate sourcing across regional clusters",
-  "No added sugar, fillers, or artificial dilution",
-  "Artisanal small-batch cold curing <42°C",
-  "Sustainable, regeneratively grown harvest",
+const CATEGORY_LIST = [
+  {
+    title: "Bath & Aroma",
+    slug: "bath-aroma",
+    description: "Therapeutic salts, cold-cured botanical oils & aromatic soaks",
+    image: category1Img,
+  },
+  {
+    title: "Ancient Wellness",
+    slug: "ancient-wellness",
+    description: "Ayurvedic adaptogens, ceremonial roots & single-origin herbs",
+    image: category2Img,
+  },
+  {
+    title: "Diabetic Essentials",
+    slug: "diabetic-essentials",
+    description: "Low-glycemic naturals, metabolic balance & pure plant staples",
+    image: category3Img,
+  },
+  {
+    title: "Dietary Wellness",
+    slug: "dietary-wellness",
+    description: "Cold-harvested seeds, unhulled superfoods & daily nutrition",
+    image: category4Img,
+  },
+] as const;
+
+const TESTIMONIALS = [
+  {
+    name: "Arjun Nair",
+    rating: 5,
+    tag: "Verified Enthusiast",
+    body: "Started using the Isabgol Husk regularly, and it has been working perfectly. Clean product, no unnecessary additives, and the customer service was very helpful.",
+  },
+  {
+    name: "Sneha Kulkarni",
+    rating: 5,
+    tag: "Hair & Skin Ritualist",
+    body: "I got the Hair Care Combo (Reetha, Shikakai & Bhringraj) and have been using it for a few weeks now. My hair feels softer and looks way healthier. Really happy with the quality.",
+  },
+  {
+    name: "Pooja Agrawal",
+    rating: 4,
+    tag: "Herbal Crafter",
+    body: "Tried the Hibiscus Powder for DIY hair masks and really liked it. The powder is finely ground and easy to mix. The packaging is nice too. Happy with the purchase.",
+  },
 ] as const;
 
 type Product = {
@@ -272,7 +316,7 @@ export default function Home() {
       >
         <div className="mx-auto max-w-7xl px-6 pt-16 pb-28 sm:px-10 sm:pt-20 sm:pb-36 lg:px-12 lg:pb-44">
           <div className="grid items-center gap-12 lg:grid-cols-12 lg:gap-14">
-            {/* Left Column: Heading, Narrative, Features */}
+            {/* Left Column: Heading, Narrative */}
             <div className="z-10 lg:col-span-6 lg:pb-8">
               <div
                 className="inline-flex items-center gap-2 rounded-full border px-3.5 py-1 font-mono text-[10.5px] uppercase tracking-[0.2em]"
@@ -300,21 +344,6 @@ export default function Home() {
               >
                 {HERO_COPY}
               </p>
-
-              <ul
-                className="mt-8 space-y-3 font-mono text-xs sm:text-sm"
-                style={{ color: `${PALETTE.cream}E6` }}
-              >
-                {HERO_FEATURES.map((feature) => (
-                  <li key={feature} className="flex items-center gap-3">
-                    <span
-                      className="h-2 w-2 shrink-0 rounded-full"
-                      style={{ backgroundColor: PALETTE.cream }}
-                    />
-                    <span>{feature}</span>
-                  </li>
-                ))}
-              </ul>
 
               <div className="mt-10 flex items-center gap-4">
                 <Link
@@ -732,75 +761,109 @@ export default function Home() {
         </section>
       )}
 
-      {/* ================= 4. PROVENANCE COUNTERS ================= */}
+      {/* ================= 4. THE CATEGORIES (Curated Taxonomy) ================= */}
       <section
-        className="mx-auto max-w-7xl px-6 py-16 sm:px-10 lg:px-12"
+        className="mx-auto max-w-7xl px-6 py-20 sm:px-10 sm:py-28 lg:px-12"
         style={{ backgroundColor: PALETTE.cream }}
       >
         <div
-          className="grid grid-cols-2 gap-y-8 rounded-3xl border p-8 md:grid-cols-4 md:divide-x"
-          style={{
-            borderColor: `${PALETTE.olive}33`,
-            backgroundColor: `${PALETTE.olive}0D`,
-          }}
+          className="flex flex-col items-start justify-between gap-4 border-b pb-8 sm:flex-row sm:items-end"
+          style={{ borderColor: `${PALETTE.olive}33` }}
         >
-          {[
-            {
-              label: "Farm Clusters",
-              node: (
-                <Counter
-                  value={18}
-                  duration={1400}
-                  className="text-3xl font-bold"
-                  style={{ color: PALETTE.charcoal }}
-                />
-              ),
-            },
-            {
-              label: "Batches Tested",
-              node: (
-                <Counter
-                  value={100}
-                  suffix="%"
-                  duration={1600}
-                  className="text-3xl font-bold"
-                  style={{ color: PALETTE.olive }}
-                />
-              ),
-            },
-            {
-              label: "Thermal Ceiling",
-              node: (
-                <Counter
-                  value={42}
-                  suffix="°C"
-                  duration={1200}
-                  className="text-3xl font-bold"
-                  style={{ color: PALETTE.charcoal }}
-                />
-              ),
-            },
-            {
-              label: "Additives",
-              node: (
-                <Counter
-                  value={0}
-                  duration={800}
-                  className="text-3xl font-bold"
-                  style={{ color: PALETTE.amber }}
-                />
-              ),
-            },
-          ].map((m) => (
-            <div key={m.label} className="px-4 text-center sm:px-6">
+          <div>
+            <div className="flex items-center gap-2">
+              <span
+                className="h-1.5 w-1.5 rounded-full"
+                style={{ backgroundColor: PALETTE.amber }}
+              />
               <p
-                className="font-mono text-[10px] uppercase tracking-widest opacity-60"
-                style={{ color: PALETTE.charcoal }}
+                className="font-mono text-xs uppercase tracking-[0.24em]"
+                style={{ color: PALETTE.amber }}
               >
-                {m.label}
+                Curated Taxonomy
               </p>
-              <div className="mt-1">{m.node}</div>
             </div>
+            <h2
+              className={`${SERIF} mt-2 text-3xl font-normal sm:text-4xl lg:text-5xl`}
+              style={{ color: PALETTE.charcoal }}
+            >
+              The Categories
+            </h2>
+          </div>
+          <Link
+            to="/shop"
+            className="inline-flex items-center gap-1.5 font-mono text-xs uppercase tracking-wider underline underline-offset-4 transition-opacity hover:opacity-70"
+            style={{ color: PALETTE.charcoal }}
+          >
+            <span>View Full Catalog</span>
+            <ArrowUpRight size={13} />
+          </Link>
+        </div>
+
+        <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {CATEGORY_LIST.map((cat, idx) => (
+            <Link
+              key={cat.slug}
+              to={`/shop?category=${cat.slug}`}
+              className="group relative flex flex-col overflow-hidden rounded-3xl border transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl"
+              style={{
+                borderColor: `${PALETTE.olive}33`,
+                backgroundColor: PALETTE.cream,
+              }}
+            >
+              <div
+                className="relative aspect-[4/5] w-full overflow-hidden"
+                style={{ backgroundColor: `${PALETTE.olive}1A` }}
+              >
+                <img
+                  src={cat.image}
+                  alt={cat.title}
+                  loading="lazy"
+                  className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-108"
+                />
+                <div
+                  className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-40 transition-opacity duration-300 group-hover:opacity-60"
+                />
+                <span
+                  className="absolute left-4 top-4 rounded-full border px-3 py-1 font-mono text-[10px] uppercase tracking-widest backdrop-blur-md transition-colors"
+                  style={{
+                    borderColor: "rgba(255,255,255,0.4)",
+                    backgroundColor: `${PALETTE.cream}D9`,
+                    color: PALETTE.charcoal,
+                  }}
+                >
+                  0{idx + 1}
+                </span>
+              </div>
+
+              <div className="flex flex-1 flex-col justify-between p-5">
+                <div>
+                  <h3
+                    className={`${SERIF} text-xl font-normal transition-colors group-hover:text-[#4D694E]`}
+                    style={{ color: PALETTE.charcoal }}
+                  >
+                    {cat.title}
+                  </h3>
+                  <p
+                    className="mt-1.5 text-xs leading-relaxed opacity-70"
+                    style={{ color: PALETTE.charcoal }}
+                  >
+                    {cat.description}
+                  </p>
+                </div>
+
+                <div
+                  className="mt-5 inline-flex items-center gap-1.5 font-mono text-[11px] font-semibold uppercase tracking-wider"
+                  style={{ color: PALETTE.olive }}
+                >
+                  <span>Explore Shelf</span>
+                  <ArrowUpRight
+                    size={13}
+                    className="transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                  />
+                </div>
+              </div>
+            </Link>
           ))}
         </div>
       </section>
@@ -900,6 +963,91 @@ export default function Home() {
             ))}
           </div>
         )}
+      </section>
+
+      {/* ================= 6. COMMUNITY TESTIMONIALS ================= */}
+      <section
+        className="mx-auto max-w-7xl px-6 py-16 sm:px-10 sm:py-24 lg:px-12"
+        style={{ backgroundColor: PALETTE.cream }}
+      >
+        <div
+          className="border-b pb-6"
+          style={{ borderColor: `${PALETTE.olive}33` }}
+        >
+          <div className="flex items-center gap-2">
+            <span
+              className="h-1.5 w-1.5 rounded-full"
+              style={{ backgroundColor: PALETTE.amber }}
+            />
+            <p
+              className="font-mono text-xs uppercase tracking-[0.24em]"
+              style={{ color: PALETTE.amber }}
+            >
+              Words from Sanctuary
+            </p>
+          </div>
+          <h2
+            className={`${SERIF} mt-2 text-3xl font-normal sm:text-4xl`}
+            style={{ color: PALETTE.charcoal }}
+          >
+            Community Testimonials
+          </h2>
+          <p
+            className="mt-2 text-xs opacity-70 sm:text-sm"
+            style={{ color: PALETTE.charcoal }}
+          >
+            Real feedback from those incorporating our single-origin lots into their everyday lifestyle.
+          </p>
+        </div>
+
+        <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-3">
+          {TESTIMONIALS.map((t) => (
+            <div
+              key={t.name}
+              className="group relative flex flex-col justify-between rounded-3xl border p-7 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
+              style={{
+                borderColor: `${PALETTE.olive}33`,
+                backgroundColor: `${PALETTE.olive}08`,
+              }}
+            >
+              <div>
+                <div className="flex items-center justify-between">
+                  <Stars rating={t.rating} />
+                  <Quote
+                    size={20}
+                    className="opacity-25 transition-opacity group-hover:opacity-60"
+                    style={{ color: PALETTE.olive }}
+                  />
+                </div>
+
+                <p
+                  className="mt-5 text-sm leading-relaxed"
+                  style={{ color: PALETTE.charcoal }}
+                >
+                  &ldquo;{t.body}&rdquo;
+                </p>
+              </div>
+
+              <div
+                className="mt-8 border-t pt-4"
+                style={{ borderColor: `${PALETTE.olive}26` }}
+              >
+                <h3
+                  className={`${SERIF} text-base font-normal`}
+                  style={{ color: PALETTE.charcoal }}
+                >
+                  {t.name}
+                </h3>
+                <span
+                  className="mt-0.5 block font-mono text-[10.5px] uppercase tracking-wider opacity-60"
+                  style={{ color: PALETTE.charcoal }}
+                >
+                  {t.tag}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
       </section>
 
       {/* Quick View Modal */}
