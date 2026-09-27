@@ -28,16 +28,6 @@ export default function AdminProductPublishPage() {
     compareAtPrice: "",
     weightGrams: "",
     stockQuantity: "100",
-    sku: "",
-    farmName: "",
-    farmState: "Chhattisgarh",
-    farmElevation: "",
-    farmFarmer: "",
-    harvestPeriod: "",
-    labReportRef: "",
-    shelfLife: "12 months from packing",
-    ritualTiming: "Morning",
-    ritualInstruction: "",
     isFeatured: false,
     isBestSeller: false,
     servingSize: "10g",
@@ -68,9 +58,6 @@ export default function AdminProductPublishPage() {
       ...prev,
       name: val,
       slug: generatedSlug,
-      sku: prev.weightGrams
-        ? `NR-${generatedSlug.toUpperCase()}-${prev.weightGrams}G`
-        : prev.sku,
     }));
   };
 
@@ -138,55 +125,28 @@ export default function AdminProductPublishPage() {
       payload.append("description", formData.description);
       payload.append("category", formData.category);
       payload.append("price", formData.price);
-      if (formData.compareAtPrice)
+      if (formData.compareAtPrice) {
         payload.append("compareAtPrice", formData.compareAtPrice);
+      }
       payload.append("weightGrams", formData.weightGrams);
       payload.append("stockQuantity", formData.stockQuantity);
-      payload.append(
-        "sku",
-        formData.sku ||
-          `NR-${formData.slug.toUpperCase()}-${formData.weightGrams}G`
-      );
 
-      // Farm cluster with both region and state keys
-      payload.append(
-        "farmCluster",
-        JSON.stringify({
-          name: formData.farmName,
-          region: formData.farmState,
-          state: formData.farmState,
-          elevation: formData.farmElevation,
-          farmerOrCollective: formData.farmFarmer,
-        })
-      );
-
-      payload.append("harvestPeriod", formData.harvestPeriod);
-      payload.append("labReportRef", formData.labReportRef);
-      payload.append("shelfLife", formData.shelfLife);
-      payload.append("ritualTiming", formData.ritualTiming);
-      payload.append("ritualInstruction", formData.ritualInstruction);
-
+      // Key Nutritional Merits
       payload.append(
         "benefits",
         JSON.stringify(benefits.filter((b) => b.trim() !== ""))
       );
 
-      // Nutritional facts matching required Mongoose schema fields
+      // Nutritional profile
       payload.append(
         "nutritionalFacts",
         JSON.stringify({
           servingSize: formData.servingSize || "10g",
-          energy: Number(formData.energyKcal) || 0,
           energyKcal: Number(formData.energyKcal) || 0,
           protein: Number(formData.proteinGrams) || 0,
-          proteinGrams: Number(formData.proteinGrams) || 0,
           dietaryFiber: Number(formData.fiberGrams) || 0,
-          dietaryFiberGrams: Number(formData.fiberGrams) || 0,
           carbohydrates: Number(formData.carbsGrams) || 0,
-          carbohydratesGrams: Number(formData.carbsGrams) || 0,
           fat: Number(formData.fatGrams) || 0,
-          totalFat: Number(formData.fatGrams) || 0,
-          totalFatGrams: Number(formData.fatGrams) || 0,
         })
       );
 
@@ -225,12 +185,12 @@ export default function AdminProductPublishPage() {
     <div className="mx-auto max-w-4xl space-y-8 text-[#121212]">
       <SEO
         title="Publish Lot — Nirvana Backoffice"
-        description="Catalog and publish single-origin agricultural lots."
+        description="Catalog and publish products."
         canonical="/admin/products/new"
       />
 
       <header className="border-b border-[#121212]/15 pb-6">
-        <div className="flex items-center gap-2 text-[#1E3A2B]">
+        <div className="flex items-center gap-2 text-[#4D694E]">
           <Sparkles size={13} strokeWidth={1.5} />
           <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.24em]">
             Batch Registry Entry
@@ -240,12 +200,12 @@ export default function AdminProductPublishPage() {
           Publish Single-Origin Lot
         </h1>
         <p className="mt-1.5 max-w-[58ch] text-xs leading-relaxed text-[#121212]/70 sm:text-sm">
-          Add new unblended batches with complete farm provenance, laboratory testing credentials, ritual guides, and nutritional data.
+          Add new batches with complete description, category classification, laboratory testing credentials, and nutritional data.
         </p>
       </header>
 
       {successMsg && (
-        <div className="flex items-center gap-3 border border-[#1E3A2B]/30 bg-[#1E3A2B]/10 p-4 font-mono text-xs text-[#1E3A2B]">
+        <div className="flex items-center gap-3 border border-[#4D694E]/30 bg-[#4D694E]/10 p-4 font-mono text-xs text-[#4D694E]">
           <CheckCircle size={16} strokeWidth={1.5} className="shrink-0" />
           <span>{successMsg}</span>
         </div>
@@ -275,7 +235,7 @@ export default function AdminProductPublishPage() {
                 value={formData.name}
                 onChange={handleNameChange}
                 placeholder="Ceremonial Chia Seeds"
-                className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3.5 py-2.5 font-sans text-xs text-[#121212] placeholder:text-[#121212]/40 outline-none transition-colors focus:border-[#121212] focus:bg-white"
+                className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3.5 py-2.5 font-sans text-xs text-[#121212] placeholder:text-[#121212]/40 outline-none transition-colors focus:border-[#4D694E] focus:bg-white"
               />
             </div>
             <div>
@@ -289,7 +249,7 @@ export default function AdminProductPublishPage() {
                 value={formData.slug}
                 onChange={handleInputChange}
                 placeholder="ceremonial-chia-seeds"
-                className="w-full border border-[#121212]/15 bg-[#F4F1EA]/60 px-3.5 py-2.5 font-mono text-xs text-[#121212] placeholder:text-[#121212]/40 outline-none transition-colors focus:border-[#121212] focus:bg-white"
+                className="w-full border border-[#121212]/15 bg-[#F4F1EA]/60 px-3.5 py-2.5 font-mono text-xs text-[#121212] placeholder:text-[#121212]/40 outline-none transition-colors focus:border-[#4D694E] focus:bg-white"
               />
             </div>
             <div className="md:col-span-2">
@@ -303,7 +263,7 @@ export default function AdminProductPublishPage() {
                 value={formData.tagline}
                 onChange={handleInputChange}
                 placeholder="Sun-cured Black Chia from Malwa Plateau"
-                className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3.5 py-2.5 font-sans text-xs text-[#121212] placeholder:text-[#121212]/40 outline-none transition-colors focus:border-[#121212] focus:bg-white"
+                className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3.5 py-2.5 font-sans text-xs text-[#121212] placeholder:text-[#121212]/40 outline-none transition-colors focus:border-[#4D694E] focus:bg-white"
               />
             </div>
             <div>
@@ -314,26 +274,13 @@ export default function AdminProductPublishPage() {
                 name="category"
                 value={formData.category}
                 onChange={handleInputChange}
-                className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3 py-2.5 font-sans text-xs text-[#121212] outline-none transition-colors focus:border-[#121212] focus:bg-white"
+                className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3 py-2.5 font-sans text-xs text-[#121212] outline-none transition-colors focus:border-[#4D694E] focus:bg-white"
               >
                 <option value="bath-aroma">Bath &amp; Aroma</option>
                 <option value="ancient-wellness">Ancient Wellness</option>
                 <option value="diabetic-essentials">Diabetic Essentials</option>
                 <option value="dietary-wellness">Dietary Wellness</option>
               </select>
-            </div>
-            <div>
-              <label className="mb-1.5 block font-mono text-[11px] uppercase tracking-wider text-[#121212]/70">
-                SKU
-              </label>
-              <input
-                type="text"
-                name="sku"
-                value={formData.sku}
-                onChange={handleInputChange}
-                placeholder="NR-CHIA-250G"
-                className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3.5 py-2.5 font-mono text-xs text-[#121212] placeholder:text-[#121212]/40 outline-none transition-colors focus:border-[#121212] focus:bg-white"
-              />
             </div>
             <div>
               <label className="mb-1.5 block font-mono text-[11px] uppercase tracking-wider text-[#121212]/70">
@@ -346,7 +293,7 @@ export default function AdminProductPublishPage() {
                 value={formData.price}
                 onChange={handleInputChange}
                 placeholder="499"
-                className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3.5 py-2.5 font-mono text-xs text-[#121212] placeholder:text-[#121212]/40 outline-none transition-colors focus:border-[#121212] focus:bg-white"
+                className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3.5 py-2.5 font-mono text-xs text-[#121212] placeholder:text-[#121212]/40 outline-none transition-colors focus:border-[#4D694E] focus:bg-white"
               />
             </div>
             <div>
@@ -359,7 +306,7 @@ export default function AdminProductPublishPage() {
                 value={formData.compareAtPrice}
                 onChange={handleInputChange}
                 placeholder="599"
-                className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3.5 py-2.5 font-mono text-xs text-[#121212] placeholder:text-[#121212]/40 outline-none transition-colors focus:border-[#121212] focus:bg-white"
+                className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3.5 py-2.5 font-mono text-xs text-[#121212] placeholder:text-[#121212]/40 outline-none transition-colors focus:border-[#4D694E] focus:bg-white"
               />
             </div>
             <div>
@@ -373,7 +320,7 @@ export default function AdminProductPublishPage() {
                 value={formData.weightGrams}
                 onChange={handleInputChange}
                 placeholder="250"
-                className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3.5 py-2.5 font-mono text-xs text-[#121212] placeholder:text-[#121212]/40 outline-none transition-colors focus:border-[#121212] focus:bg-white"
+                className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3.5 py-2.5 font-mono text-xs text-[#121212] placeholder:text-[#121212]/40 outline-none transition-colors focus:border-[#4D694E] focus:bg-white"
               />
             </div>
             <div>
@@ -387,7 +334,7 @@ export default function AdminProductPublishPage() {
                 value={formData.stockQuantity}
                 onChange={handleInputChange}
                 placeholder="100"
-                className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3.5 py-2.5 font-mono text-xs text-[#121212] placeholder:text-[#121212]/40 outline-none transition-colors focus:border-[#121212] focus:bg-white"
+                className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3.5 py-2.5 font-mono text-xs text-[#121212] placeholder:text-[#121212]/40 outline-none transition-colors focus:border-[#4D694E] focus:bg-white"
               />
             </div>
             <div className="md:col-span-2">
@@ -401,197 +348,55 @@ export default function AdminProductPublishPage() {
                 value={formData.description}
                 onChange={handleInputChange}
                 placeholder="Describe botanical origins, aroma, physical profile, and purity guarantees..."
-                className="w-full border border-[#121212]/15 bg-[#FAF8F5] p-3 font-sans text-xs leading-relaxed text-[#121212] placeholder:text-[#121212]/40 outline-none transition-colors focus:border-[#121212] focus:bg-white"
+                className="w-full border border-[#121212]/15 bg-[#FAF8F5] p-3 font-sans text-xs leading-relaxed text-[#121212] placeholder:text-[#121212]/40 outline-none transition-colors focus:border-[#4D694E] focus:bg-white"
               />
             </div>
           </div>
         </div>
 
-        {/* Section 2: Farm Provenance & Laboratory Reference */}
+        {/* Section 2: Key Nutritional Merits */}
         <div className="border border-[#121212]/10 bg-white p-6 shadow-sm sm:p-8 space-y-5">
-          <h2 className="border-b border-[#121212]/15 pb-3 font-mono text-xs font-semibold uppercase tracking-wider text-[#121212]">
-            02. Farm Provenance &amp; Laboratory Reference
-          </h2>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div>
-              <label className="mb-1.5 block font-mono text-[11px] uppercase tracking-wider text-[#121212]/70">
-                Farm / Cluster Name *
-              </label>
-              <input
-                type="text"
-                required
-                name="farmName"
-                value={formData.farmName}
-                onChange={handleInputChange}
-                placeholder="Neemuch Organic Collective"
-                className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3.5 py-2.5 font-sans text-xs text-[#121212] placeholder:text-[#121212]/40 outline-none transition-colors focus:border-[#121212] focus:bg-white"
-              />
-            </div>
-            <div>
-              <label className="mb-1.5 block font-mono text-[11px] uppercase tracking-wider text-[#121212]/70">
-                State / Region *
-              </label>
-              <input
-                type="text"
-                required
-                name="farmState"
-                value={formData.farmState}
-                onChange={handleInputChange}
-                placeholder="Madhya Pradesh"
-                className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3.5 py-2.5 font-sans text-xs text-[#121212] placeholder:text-[#121212]/40 outline-none transition-colors focus:border-[#121212] focus:bg-white"
-              />
-            </div>
-            <div>
-              <label className="mb-1.5 block font-mono text-[11px] uppercase tracking-wider text-[#121212]/70">
-                Elevation
-              </label>
-              <input
-                type="text"
-                name="farmElevation"
-                value={formData.farmElevation}
-                onChange={handleInputChange}
-                placeholder="490m MSL"
-                className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3.5 py-2.5 font-mono text-xs text-[#121212] placeholder:text-[#121212]/40 outline-none transition-colors focus:border-[#121212] focus:bg-white"
-              />
-            </div>
-            <div>
-              <label className="mb-1.5 block font-mono text-[11px] uppercase tracking-wider text-[#121212]/70">
-                Farmer / Collective Leader
-              </label>
-              <input
-                type="text"
-                name="farmFarmer"
-                value={formData.farmFarmer}
-                onChange={handleInputChange}
-                placeholder="Patidar Family Growers"
-                className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3.5 py-2.5 font-sans text-xs text-[#121212] placeholder:text-[#121212]/40 outline-none transition-colors focus:border-[#121212] focus:bg-white"
-              />
-            </div>
-            <div>
-              <label className="mb-1.5 block font-mono text-[11px] uppercase tracking-wider text-[#121212]/70">
-                Harvest Period *
-              </label>
-              <input
-                type="text"
-                required
-                name="harvestPeriod"
-                value={formData.harvestPeriod}
-                onChange={handleInputChange}
-                placeholder="November 2025"
-                className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3.5 py-2.5 font-mono text-xs text-[#121212] placeholder:text-[#121212]/40 outline-none transition-colors focus:border-[#121212] focus:bg-white"
-              />
-            </div>
-            <div>
-              <label className="mb-1.5 block font-mono text-[11px] uppercase tracking-wider text-[#121212]/70">
-                Lab Report Batch Ref *
-              </label>
-              <input
-                type="text"
-                required
-                name="labReportRef"
-                value={formData.labReportRef}
-                onChange={handleInputChange}
-                placeholder="NR-LAB-2025-CH09"
-                className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3.5 py-2.5 font-mono text-xs text-[#121212] placeholder:text-[#121212]/40 outline-none transition-colors focus:border-[#121212] focus:bg-white"
-              />
-            </div>
+          <div className="flex items-center justify-between border-b border-[#121212]/15 pb-3">
+            <h2 className="font-mono text-xs font-semibold uppercase tracking-wider text-[#121212]">
+              02. Key Nutritional Merits
+            </h2>
+            <button
+              type="button"
+              onClick={handleAddBenefit}
+              className="inline-flex items-center gap-1 font-mono text-xs uppercase tracking-wider text-[#4D694E] hover:text-[#C87A3E]"
+            >
+              <Plus size={13} strokeWidth={1.5} /> Add Point
+            </button>
+          </div>
+
+          <div className="space-y-2.5">
+            {benefits.map((benefit, idx) => (
+              <div key={idx} className="flex gap-2">
+                <input
+                  type="text"
+                  value={benefit}
+                  onChange={(e) => handleBenefitChange(idx, e.target.value)}
+                  placeholder="e.g. 5g omega-3 ALA per serving"
+                  className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3.5 py-2 font-sans text-xs text-[#121212] placeholder:text-[#121212]/40 outline-none transition-colors focus:border-[#4D694E] focus:bg-white"
+                />
+                {benefits.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveBenefit(idx)}
+                    className="flex h-9 w-9 shrink-0 items-center justify-center border border-[#121212]/15 text-[#121212]/50 hover:border-[#B5502B] hover:text-[#B5502B]"
+                  >
+                    <Trash2 size={13} strokeWidth={1.5} />
+                  </button>
+                )}
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* Section 3: Daily Ritual Guidance & Benefits */}
+        {/* Section 3: Nutritional Profile */}
         <div className="border border-[#121212]/10 bg-white p-6 shadow-sm sm:p-8 space-y-5">
           <h2 className="border-b border-[#121212]/15 pb-3 font-mono text-xs font-semibold uppercase tracking-wider text-[#121212]">
-            03. Daily Ritual Guidance &amp; Benefits
-          </h2>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div>
-              <label className="mb-1.5 block font-mono text-[11px] uppercase tracking-wider text-[#121212]/70">
-                Ritual Timing
-              </label>
-              <select
-                name="ritualTiming"
-                value={formData.ritualTiming}
-                onChange={handleInputChange}
-                className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3 py-2.5 font-sans text-xs text-[#121212] outline-none transition-colors focus:border-[#121212] focus:bg-white"
-              >
-                <option value="Morning">Morning (Empty Stomach)</option>
-                <option value="Afternoon">Mid-Day Ritual</option>
-                <option value="Evening">Sunset / Post-Workout</option>
-                <option value="Pre-Bed">Evening Wind-Down</option>
-                <option value="Anytime">Anytime Sips &amp; Bites</option>
-              </select>
-            </div>
-            <div>
-              <label className="mb-1.5 block font-mono text-[11px] uppercase tracking-wider text-[#121212]/70">
-                Shelf Life
-              </label>
-              <input
-                type="text"
-                name="shelfLife"
-                value={formData.shelfLife}
-                onChange={handleInputChange}
-                placeholder="12 months from packing"
-                className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3.5 py-2.5 font-sans text-xs text-[#121212] placeholder:text-[#121212]/40 outline-none transition-colors focus:border-[#121212] focus:bg-white"
-              />
-            </div>
-            <div className="md:col-span-2">
-              <label className="mb-1.5 block font-mono text-[11px] uppercase tracking-wider text-[#121212]/70">
-                Ritual Instruction *
-              </label>
-              <textarea
-                required
-                rows={2}
-                name="ritualInstruction"
-                value={formData.ritualInstruction}
-                onChange={handleInputChange}
-                placeholder="Soak 1 tablespoon in 200ml ambient water for 15 minutes. Consume before your first meal."
-                className="w-full border border-[#121212]/15 bg-[#FAF8F5] p-3 font-sans text-xs leading-relaxed text-[#121212] placeholder:text-[#121212]/40 outline-none transition-colors focus:border-[#121212] focus:bg-white"
-              />
-            </div>
-          </div>
-
-          <div className="mt-4 pt-2">
-            <div className="mb-2.5 flex items-center justify-between">
-              <label className="block font-mono text-[11px] uppercase tracking-wider text-[#121212]/70">
-                Key Nutritional Merits
-              </label>
-              <button
-                type="button"
-                onClick={handleAddBenefit}
-                className="inline-flex items-center gap-1 font-mono text-xs uppercase tracking-wider text-[#1E3A2B] hover:text-[#E58866]"
-              >
-                <Plus size={13} strokeWidth={1.5} /> Add Point
-              </button>
-            </div>
-            <div className="space-y-2.5">
-              {benefits.map((benefit, idx) => (
-                <div key={idx} className="flex gap-2">
-                  <input
-                    type="text"
-                    value={benefit}
-                    onChange={(e) => handleBenefitChange(idx, e.target.value)}
-                    placeholder="e.g. 5g omega-3 ALA per serving"
-                    className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3.5 py-2 font-sans text-xs text-[#121212] placeholder:text-[#121212]/40 outline-none transition-colors focus:border-[#121212] focus:bg-white"
-                  />
-                  {benefits.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveBenefit(idx)}
-                      className="flex h-9 w-9 shrink-0 items-center justify-center border border-[#121212]/15 text-[#121212]/50 hover:border-[#B5502B] hover:text-[#B5502B]"
-                    >
-                      <Trash2 size={13} strokeWidth={1.5} />
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Section 4: Nutritional Profile */}
-        <div className="border border-[#121212]/10 bg-white p-6 shadow-sm sm:p-8 space-y-5">
-          <h2 className="border-b border-[#121212]/15 pb-3 font-mono text-xs font-semibold uppercase tracking-wider text-[#121212]">
-            04. Nutritional Profile
+            03. Nutritional Profile
           </h2>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-6">
             <div>
@@ -604,7 +409,7 @@ export default function AdminProductPublishPage() {
                 value={formData.servingSize}
                 onChange={handleInputChange}
                 placeholder="10g"
-                className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3 py-2 font-mono text-xs text-[#121212] outline-none transition-colors focus:border-[#121212] focus:bg-white"
+                className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3 py-2 font-mono text-xs text-[#121212] outline-none transition-colors focus:border-[#4D694E] focus:bg-white"
               />
             </div>
             <div>
@@ -617,7 +422,7 @@ export default function AdminProductPublishPage() {
                 value={formData.energyKcal}
                 onChange={handleInputChange}
                 placeholder="48"
-                className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3 py-2 font-mono text-xs text-[#121212] outline-none transition-colors focus:border-[#121212] focus:bg-white"
+                className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3 py-2 font-mono text-xs text-[#121212] outline-none transition-colors focus:border-[#4D694E] focus:bg-white"
               />
             </div>
             <div>
@@ -631,7 +436,7 @@ export default function AdminProductPublishPage() {
                 value={formData.proteinGrams}
                 onChange={handleInputChange}
                 placeholder="1.7"
-                className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3 py-2 font-mono text-xs text-[#121212] outline-none transition-colors focus:border-[#121212] focus:bg-white"
+                className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3 py-2 font-mono text-xs text-[#121212] outline-none transition-colors focus:border-[#4D694E] focus:bg-white"
               />
             </div>
             <div>
@@ -645,7 +450,7 @@ export default function AdminProductPublishPage() {
                 value={formData.fiberGrams}
                 onChange={handleInputChange}
                 placeholder="3.4"
-                className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3 py-2 font-mono text-xs text-[#121212] outline-none transition-colors focus:border-[#121212] focus:bg-white"
+                className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3 py-2 font-mono text-xs text-[#121212] outline-none transition-colors focus:border-[#4D694E] focus:bg-white"
               />
             </div>
             <div>
@@ -659,7 +464,7 @@ export default function AdminProductPublishPage() {
                 value={formData.fatGrams}
                 onChange={handleInputChange}
                 placeholder="3.1"
-                className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3 py-2 font-mono text-xs text-[#121212] outline-none transition-colors focus:border-[#121212] focus:bg-white"
+                className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3 py-2 font-mono text-xs text-[#121212] outline-none transition-colors focus:border-[#4D694E] focus:bg-white"
               />
             </div>
             <div>
@@ -673,16 +478,16 @@ export default function AdminProductPublishPage() {
                 value={formData.carbsGrams}
                 onChange={handleInputChange}
                 placeholder="4.2"
-                className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3 py-2 font-mono text-xs text-[#121212] outline-none transition-colors focus:border-[#121212] focus:bg-white"
+                className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3 py-2 font-mono text-xs text-[#121212] outline-none transition-colors focus:border-[#4D694E] focus:bg-white"
               />
             </div>
           </div>
         </div>
 
-        {/* Section 5: Media & Verification Documents */}
+        {/* Section 4: Media & Documents */}
         <div className="border border-[#121212]/10 bg-white p-6 shadow-sm sm:p-8 space-y-5">
           <h2 className="border-b border-[#121212]/15 pb-3 font-mono text-xs font-semibold uppercase tracking-wider text-[#121212]">
-            05. Media &amp; Verification Documents
+            04. Media &amp; Verification Documents
           </h2>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             {/* Product Images Selector */}
@@ -705,20 +510,20 @@ export default function AdminProductPublishPage() {
               {/* Queued Photos List */}
               {images.length > 0 && (
                 <div className="mt-4 space-y-2 text-left">
-                  <p className="font-mono text-[11px] text-[#1E3A2B]">
+                  <p className="font-mono text-[11px] text-[#4D694E]">
                     ✓ {images.length} of 6 photo(s) queued:
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {images.map((img, idx) => (
                       <div
                         key={idx}
-                        className="flex items-center gap-1.5 border border-[#1E3A2B]/30 bg-[#1E3A2B]/10 px-2.5 py-1 font-mono text-[10px] text-[#1E3A2B]"
+                        className="flex items-center gap-1.5 border border-[#4D694E]/30 bg-[#4D694E]/10 px-2.5 py-1 font-mono text-[10px] text-[#4D694E]"
                       >
                         <span className="max-w-[130px] truncate">{img.name}</span>
                         <button
                           type="button"
                           onClick={() => handleRemoveImage(idx)}
-                          className="text-[#1E3A2B]/60 hover:text-[#B5502B]"
+                          className="text-[#4D694E]/60 hover:text-[#B5502B]"
                           title="Remove image"
                         >
                           <X size={12} strokeWidth={2} />
@@ -747,12 +552,12 @@ export default function AdminProductPublishPage() {
                 className="mt-4 text-xs file:mr-4 file:rounded-full file:border file:border-[#121212]/20 file:bg-white file:px-4 file:py-2 file:font-mono file:text-xs file:uppercase file:tracking-wider file:text-[#121212] hover:file:border-[#121212]"
               />
               {labReport && (
-                <div className="mt-4 flex items-center justify-between border border-[#1E3A2B]/30 bg-[#1E3A2B]/10 px-2.5 py-1 font-mono text-[10px] text-[#1E3A2B]">
+                <div className="mt-4 flex items-center justify-between border border-[#4D694E]/30 bg-[#4D694E]/10 px-2.5 py-1 font-mono text-[10px] text-[#4D694E]">
                   <span className="truncate">✓ {labReport.name}</span>
                   <button
                     type="button"
                     onClick={() => setLabReport(null)}
-                    className="ml-2 text-[#1E3A2B]/60 hover:text-[#B5502B]"
+                    className="ml-2 text-[#4D694E]/60 hover:text-[#B5502B]"
                     title="Remove lab report"
                   >
                     <X size={12} strokeWidth={2} />
@@ -763,7 +568,7 @@ export default function AdminProductPublishPage() {
           </div>
         </div>
 
-        {/* Section 6: Promotion & Flags */}
+        {/* Section 5: Promotion & Flags */}
         <div className="flex flex-wrap gap-8 border border-[#121212]/10 bg-white p-6 shadow-sm">
           <label className="flex cursor-pointer items-center gap-2.5 font-mono text-xs uppercase tracking-wide text-[#121212]">
             <input
@@ -771,7 +576,7 @@ export default function AdminProductPublishPage() {
               name="isFeatured"
               checked={formData.isFeatured}
               onChange={handleInputChange}
-              className="h-4 w-4 rounded-xs border-[#121212]/30 accent-[#14261C]"
+              className="h-4 w-4 rounded-xs border-[#121212]/30 accent-[#4D694E]"
             />
             Feature on Homepage
           </label>
@@ -781,7 +586,7 @@ export default function AdminProductPublishPage() {
               name="isBestSeller"
               checked={formData.isBestSeller}
               onChange={handleInputChange}
-              className="h-4 w-4 rounded-xs border-[#121212]/30 accent-[#14261C]"
+              className="h-4 w-4 rounded-xs border-[#121212]/30 accent-[#4D694E]"
             />
             Mark as Best Seller
           </label>
@@ -791,7 +596,7 @@ export default function AdminProductPublishPage() {
         <button
           type="submit"
           disabled={loading}
-          className="flex w-full items-center justify-center gap-2 rounded-full border border-[#14261C] bg-[#14261C] py-4 font-mono text-xs uppercase tracking-[0.18em] text-[#FAF8F5] transition-colors hover:border-[#E58866] hover:bg-[#E58866] hover:text-[#14261C] disabled:opacity-50"
+          className="flex w-full items-center justify-center gap-2 rounded-full border border-[#4D694E] bg-[#4D694E] py-4 font-mono text-xs uppercase tracking-[0.18em] text-[#FFF3D5] transition-colors hover:bg-[#324633] disabled:opacity-50"
         >
           {loading ? (
             <span>Publishing batch to registry...</span>

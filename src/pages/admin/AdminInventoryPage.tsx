@@ -29,18 +29,13 @@ interface ProductItem {
   compareAtPrice?: number;
   weightGrams: number;
   stockQuantity: number;
-  sku: string;
+  sku?: string;
   thumbnail?: string;
   image?: string;
   images?: string[];
   isAvailable: boolean;
   isFeatured: boolean;
   isBestSeller: boolean;
-  shelfLife?: string;
-  harvestPeriod?: string;
-  labReportRef?: string;
-  ritualTiming?: string;
-  ritualInstruction?: string;
   benefits?: string[];
   nutritionalFacts?: {
     servingSize?: string;
@@ -49,13 +44,6 @@ interface ProductItem {
     dietaryFiber?: number;
     fat?: number;
     carbohydrates?: number;
-  };
-  farmCluster?: {
-    name?: string;
-    region?: string;
-    state?: string;
-    elevation?: string;
-    farmerOrCollective?: string;
   };
 }
 
@@ -162,16 +150,6 @@ export default function AdminInventoryPage() {
       compareAtPrice: product.compareAtPrice ?? "",
       weightGrams: product.weightGrams ?? "",
       stockQuantity: product.stockQuantity ?? 100,
-      sku: product.sku || "",
-      farmName: product.farmCluster?.name || "",
-      farmState: product.farmCluster?.state || product.farmCluster?.region || "Chhattisgarh",
-      farmElevation: product.farmCluster?.elevation || "",
-      farmFarmer: product.farmCluster?.farmerOrCollective || "",
-      harvestPeriod: product.harvestPeriod || "",
-      labReportRef: product.labReportRef || "",
-      shelfLife: product.shelfLife || "12 months from packing",
-      ritualTiming: product.ritualTiming || "Morning",
-      ritualInstruction: product.ritualInstruction || "",
       isFeatured: !!product.isFeatured,
       isBestSeller: !!product.isBestSeller,
       isAvailable: product.isAvailable !== false,
@@ -204,6 +182,15 @@ export default function AdminInventoryPage() {
     }
   };
 
+  const handleAddModalBenefit = () => setModalBenefits([...modalBenefits, ""]);
+  const handleRemoveModalBenefit = (idx: number) =>
+    setModalBenefits(modalBenefits.filter((_, i) => i !== idx));
+  const handleModalBenefitChange = (idx: number, val: string) => {
+    const updated = [...modalBenefits];
+    updated[idx] = val;
+    setModalBenefits(updated);
+  };
+
   const handleSaveFullEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!fullEditingProduct) return;
@@ -222,24 +209,6 @@ export default function AdminInventoryPage() {
       }
       payload.append("weightGrams", String(modalFormData.weightGrams));
       payload.append("stockQuantity", String(modalFormData.stockQuantity));
-      payload.append("sku", modalFormData.sku);
-
-      payload.append(
-        "farmCluster",
-        JSON.stringify({
-          name: modalFormData.farmName,
-          region: modalFormData.farmState,
-          state: modalFormData.farmState,
-          elevation: modalFormData.farmElevation,
-          farmerOrCollective: modalFormData.farmFarmer,
-        })
-      );
-
-      payload.append("harvestPeriod", modalFormData.harvestPeriod);
-      payload.append("labReportRef", modalFormData.labReportRef);
-      payload.append("shelfLife", modalFormData.shelfLife);
-      payload.append("ritualTiming", modalFormData.ritualTiming);
-      payload.append("ritualInstruction", modalFormData.ritualInstruction);
 
       payload.append(
         "benefits",
@@ -293,7 +262,7 @@ export default function AdminInventoryPage() {
         await fetchProducts();
       }
 
-      toast.success(`Lot "${modalFormData.name}" updated with full provenance!`);
+      toast.success(`Lot "${modalFormData.name}" updated successfully!`);
       setFullEditingProduct(null);
     } catch (err: any) {
       toast.error(err?.message || "Failed to update product.");
@@ -343,8 +312,7 @@ export default function AdminInventoryPage() {
     const matchesSearch =
       !searchQuery ||
       p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.sku.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.farmCluster?.name?.toLowerCase().includes(searchQuery.toLowerCase());
+      (p.sku && p.sku.toLowerCase().includes(searchQuery.toLowerCase()));
 
     if (!matchesSearch) return false;
 
@@ -365,7 +333,7 @@ export default function AdminInventoryPage() {
           <div className="flex items-center gap-2 text-[#4D694E]">
             <Sparkles size={13} strokeWidth={1.5} />
             <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.24em]">
-              Provenance &amp; Volume
+              Catalog Inventory &amp; Volume
             </span>
           </div>
           <h1 className="mt-2 text-balance font-display text-3xl font-normal tracking-tight text-[#121212] sm:text-4xl">
@@ -472,7 +440,7 @@ export default function AdminInventoryPage() {
           />
           <input
             type="text"
-            placeholder="Search by lot title, SKU, or farm origin..."
+            placeholder="Search by lot title or SKU..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full border border-[#121212]/15 bg-white py-2 pl-9 pr-4 font-sans text-xs text-[#121212] placeholder:text-[#121212]/40 outline-none transition-colors focus:border-[#121212]"
@@ -503,8 +471,8 @@ export default function AdminInventoryPage() {
         <table className="w-full text-left text-xs">
           <thead className="border-b border-[#121212]/15 bg-[#FAF8F5] font-mono text-[10.5px] uppercase tracking-[0.16em] text-[#121212]/70">
             <tr>
-              <th className="p-4 font-medium">Item &amp; Farm Origin</th>
-              <th className="p-4 font-medium">Category / SKU</th>
+              <th className="p-4 font-medium">Item Details</th>
+              <th className="p-4 font-medium">Category / Weight</th>
               <th className="p-4 font-medium">Lot Price</th>
               <th className="p-4 font-medium">Pouch Units</th>
               <th className="p-4 font-medium">Visibility</th>
@@ -540,7 +508,7 @@ export default function AdminInventoryPage() {
 
                 return (
                   <tr key={product._id} className="transition-colors hover:bg-[#FAF8F5]/80">
-                    {/* Item & Origin */}
+                    {/* Item Details */}
                     <td className="p-4">
                       <div className="flex items-center gap-3.5">
                         <div className="shrink-0 border border-[#121212]/15 bg-[#FAF8F5] p-1">
@@ -565,21 +533,19 @@ export default function AdminInventoryPage() {
                             </Link>
                           </div>
                           <p className="truncate font-mono text-[11px] text-[#121212]/60">
-                            {product.farmCluster?.name
-                              ? `${product.farmCluster.name}, ${product.farmCluster.state || product.farmCluster.region || ""}`
-                              : "Verified Single-Origin Cluster"}
+                            {product.tagline || product.slug}
                           </p>
                         </div>
                       </div>
                     </td>
 
-                    {/* Category & SKU */}
+                    {/* Category & Weight */}
                     <td className="p-4">
                       <span className="inline-block rounded-full bg-[#4D694E]/10 px-2 py-0.5 font-mono text-[10px] uppercase text-[#4D694E]">
                         {product.category}
                       </span>
                       <p className="mt-1 font-mono text-xs text-[#121212]">
-                        {product.sku || "—"} &bull; {product.weightGrams ? `${product.weightGrams}g` : "Std"}
+                        {product.sku ? `${product.sku} • ` : ""}{product.weightGrams ? `${product.weightGrams}g` : "Std"}
                       </p>
                     </td>
 
@@ -689,7 +655,7 @@ export default function AdminInventoryPage() {
                             type="button"
                             onClick={() => handleOpenFullEdit(product)}
                             className="rounded border border-[#121212]/20 px-2 py-1 font-mono text-[10px] uppercase text-[#121212]/70 hover:border-[#4D694E] hover:text-[#4D694E]"
-                            title="Edit all fields & origin provenance"
+                            title="Edit all fields"
                           >
                             Edit All
                           </button>
@@ -803,18 +769,6 @@ export default function AdminInventoryPage() {
                       <option value="dietary-wellness">Dietary Wellness</option>
                     </select>
                   </div>
-                  <div>
-                    <label className="mb-1 block font-mono text-[10.5px] uppercase text-[#121212]/70">
-                      SKU
-                    </label>
-                    <input
-                      type="text"
-                      name="sku"
-                      value={modalFormData.sku}
-                      onChange={handleModalInputChange}
-                      className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3 py-2 font-mono text-xs outline-none focus:border-[#4D694E]"
-                    />
-                  </div>
                 </div>
 
                 <div>
@@ -892,105 +846,121 @@ export default function AdminInventoryPage() {
                 </div>
               </div>
 
-              {/* Provenance Details */}
+              {/* Key Nutritional Merits */}
+              <div className="space-y-4 border-t border-[#121212]/15 pt-4">
+                <div className="flex items-center justify-between">
+                  <p className="font-mono text-xs font-semibold uppercase tracking-wider text-[#121212]">
+                    03. Key Nutritional Merits
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleAddModalBenefit}
+                    className="inline-flex items-center gap-1 font-mono text-xs uppercase tracking-wider text-[#4D694E] hover:text-[#C87A3E]"
+                  >
+                    <Plus size={13} strokeWidth={1.5} /> Add Point
+                  </button>
+                </div>
+                <div className="space-y-2">
+                  {modalBenefits.map((benefit, idx) => (
+                    <div key={idx} className="flex gap-2">
+                      <input
+                        type="text"
+                        value={benefit}
+                        onChange={(e) => handleModalBenefitChange(idx, e.target.value)}
+                        placeholder="e.g. Rich in dietary fibre"
+                        className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3 py-1.5 font-sans text-xs outline-none focus:border-[#4D694E]"
+                      />
+                      {modalBenefits.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveModalBenefit(idx)}
+                          className="flex h-8 w-8 shrink-0 items-center justify-center border border-[#121212]/15 text-[#121212]/50 hover:border-[#B5502B] hover:text-[#B5502B]"
+                        >
+                          <Trash2 size={13} strokeWidth={1.5} />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Nutritional Profile */}
               <div className="space-y-4 border-t border-[#121212]/15 pt-4">
                 <p className="font-mono text-xs font-semibold uppercase tracking-wider text-[#121212]">
-                  03. Provenance &amp; Ritual
+                  04. Nutritional Profile
                 </p>
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-6">
                   <div>
-                    <label className="mb-1 block font-mono text-[10.5px] uppercase text-[#121212]/70">
-                      Farm Name *
-                    </label>
+                    <label className="mb-1 block font-mono text-[10px] uppercase text-[#121212]/70">Serving</label>
                     <input
                       type="text"
-                      required
-                      name="farmName"
-                      value={modalFormData.farmName}
+                      name="servingSize"
+                      value={modalFormData.servingSize}
                       onChange={handleModalInputChange}
-                      className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3 py-2 font-sans text-xs outline-none focus:border-[#4D694E]"
+                      className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-2 py-1.5 font-mono text-xs outline-none focus:border-[#4D694E]"
                     />
                   </div>
                   <div>
-                    <label className="mb-1 block font-mono text-[10.5px] uppercase text-[#121212]/70">
-                      State / Region *
-                    </label>
+                    <label className="mb-1 block font-mono text-[10px] uppercase text-[#121212]/70">Energy (kcal)</label>
                     <input
-                      type="text"
-                      required
-                      name="farmState"
-                      value={modalFormData.farmState}
+                      type="number"
+                      name="energyKcal"
+                      value={modalFormData.energyKcal}
                       onChange={handleModalInputChange}
-                      className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3 py-2 font-sans text-xs outline-none focus:border-[#4D694E]"
+                      className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-2 py-1.5 font-mono text-xs outline-none focus:border-[#4D694E]"
                     />
                   </div>
                   <div>
-                    <label className="mb-1 block font-mono text-[10.5px] uppercase text-[#121212]/70">
-                      Harvest Period *
-                    </label>
+                    <label className="mb-1 block font-mono text-[10px] uppercase text-[#121212]/70">Protein (g)</label>
                     <input
-                      type="text"
-                      required
-                      name="harvestPeriod"
-                      value={modalFormData.harvestPeriod}
+                      type="number"
+                      step="0.1"
+                      name="proteinGrams"
+                      value={modalFormData.proteinGrams}
                       onChange={handleModalInputChange}
-                      className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3 py-2 font-mono text-xs outline-none focus:border-[#4D694E]"
+                      className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-2 py-1.5 font-mono text-xs outline-none focus:border-[#4D694E]"
                     />
                   </div>
-                </div>
-
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
-                    <label className="mb-1 block font-mono text-[10.5px] uppercase text-[#121212]/70">
-                      Ritual Timing
-                    </label>
-                    <select
-                      name="ritualTiming"
-                      value={modalFormData.ritualTiming}
-                      onChange={handleModalInputChange}
-                      className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3 py-2 font-sans text-xs outline-none focus:border-[#4D694E]"
-                    >
-                      <option value="Morning">Morning (Empty Stomach)</option>
-                      <option value="Afternoon">Mid-Day Ritual</option>
-                      <option value="Evening">Sunset / Post-Workout</option>
-                      <option value="Pre-Bed">Evening Wind-Down</option>
-                      <option value="Anytime">Anytime Sips &amp; Bites</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="mb-1 block font-mono text-[10.5px] uppercase text-[#121212]/70">
-                      Lab Report Ref *
-                    </label>
+                    <label className="mb-1 block font-mono text-[10px] uppercase text-[#121212]/70">Fiber (g)</label>
                     <input
-                      type="text"
-                      required
-                      name="labReportRef"
-                      value={modalFormData.labReportRef}
+                      type="number"
+                      step="0.1"
+                      name="fiberGrams"
+                      value={modalFormData.fiberGrams}
                       onChange={handleModalInputChange}
-                      className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-3 py-2 font-mono text-xs outline-none focus:border-[#4D694E]"
+                      className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-2 py-1.5 font-mono text-xs outline-none focus:border-[#4D694E]"
                     />
                   </div>
-                </div>
-
-                <div>
-                  <label className="mb-1 block font-mono text-[10.5px] uppercase text-[#121212]/70">
-                    Ritual Instruction *
-                  </label>
-                  <textarea
-                    required
-                    rows={2}
-                    name="ritualInstruction"
-                    value={modalFormData.ritualInstruction}
-                    onChange={handleModalInputChange}
-                    className="w-full border border-[#121212]/15 bg-[#FAF8F5] p-3 font-sans text-xs leading-relaxed outline-none focus:border-[#4D694E]"
-                  />
+                  <div>
+                    <label className="mb-1 block font-mono text-[10px] uppercase text-[#121212]/70">Fat (g)</label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      name="fatGrams"
+                      value={modalFormData.fatGrams}
+                      onChange={handleModalInputChange}
+                      className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-2 py-1.5 font-mono text-xs outline-none focus:border-[#4D694E]"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block font-mono text-[10px] uppercase text-[#121212]/70">Carbs (g)</label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      name="carbsGrams"
+                      value={modalFormData.carbsGrams}
+                      onChange={handleModalInputChange}
+                      className="w-full border border-[#121212]/15 bg-[#FAF8F5] px-2 py-1.5 font-mono text-xs outline-none focus:border-[#4D694E]"
+                    />
+                  </div>
                 </div>
               </div>
 
               {/* Media Updates */}
               <div className="space-y-3 border-t border-[#121212]/15 pt-4">
                 <p className="font-mono text-xs font-semibold uppercase tracking-wider text-[#121212]">
-                  04. Image &amp; Media Management
+                  05. Image &amp; Media Management
                 </p>
                 <div className="flex items-center gap-4">
                   <label className="flex cursor-pointer items-center gap-2 font-mono text-xs text-[#121212]">
