@@ -2,14 +2,13 @@ import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import {
   ShieldCheck,
-  MapPin,
-  Calendar,
   FileText,
   Heart,
   Check,
   Sparkles,
   ArrowLeft,
   Share2,
+  CheckCircle2,
 } from "lucide-react";
 import { toast } from "sonner";
 import api from "@/lib/axios";
@@ -106,15 +105,15 @@ export default function ProductDetailPage() {
   if (!product) {
     return (
       <div className="container-page py-24 text-center">
-        <h1 className="font-display text-2xl tracking-tight text-foreground md:text-3xl">
+        <h1 className="font-display text-2xl tracking-tight text-[#121212] md:text-3xl">
           Staple not found
         </h1>
-        <p className="mt-2 text-xs text-muted-foreground sm:text-sm">
+        <p className="mt-2 text-xs text-[#121212]/70 sm:text-sm">
           This harvest lot may have concluded or is no longer listed in our pantry.
         </p>
         <Link
           to="/shop"
-          className="btn-base btn-primary mt-6 inline-flex items-center gap-2 text-xs uppercase tracking-wider"
+          className="mt-6 inline-flex items-center gap-2 rounded-full bg-[#4D694E] px-6 py-2.5 font-mono text-xs uppercase tracking-wider text-[#FFF3D5] transition-colors hover:bg-[#324633]"
         >
           <ArrowLeft size={14} strokeWidth={1.5} /> Back to Catalog
         </Link>
@@ -127,9 +126,10 @@ export default function ProductDetailPage() {
   const images: string[] = product.images?.length > 0 ? product.images : [selectedImage];
   const mrpValue = product.compareAtPrice || product.mrp;
   const off = mrpValue ? discountPercent(product.price, mrpValue) : 0;
-  const ratingValue = product.ratings?.average ?? product.rating ?? 5;
-  const reviewCountValue = product.ratings?.count ?? product.reviewCount ?? 120;
-  const weight = product.weightGrams ? `${product.weightGrams}g` : product.weight || "200g";
+  const ratingValue = product.averageRating ?? product.ratings?.average ?? product.rating ?? 5;
+  const reviewCountValue = product.totalReviews ?? product.ratings?.count ?? product.reviewCount ?? 120;
+  const weight = product.weightGrams ? `${product.weightGrams}g` : product.weight || "250g";
+  const facts = product.nutritionalFacts;
 
   const productSchema = {
     "@context": "https://schema.org/",
@@ -137,7 +137,7 @@ export default function ProductDetailPage() {
     name: product.name,
     image: images,
     description: product.description || product.tagline,
-    sku: productId,
+    sku: product.sku || productId,
     brand: {
       "@type": "Brand",
       name: "Nirvana Republic",
@@ -147,7 +147,7 @@ export default function ProductDetailPage() {
       url: window.location.href,
       priceCurrency: "INR",
       price: product.price,
-      availability: "https://schema.org/InStock",
+      availability: product.stockQuantity > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
     },
     aggregateRating: {
       "@type": "AggregateRating",
@@ -170,28 +170,28 @@ export default function ProductDetailPage() {
         {/* Breadcrumb navigation */}
         <nav
           aria-label="Breadcrumb"
-          className="mb-8 flex items-center gap-2 font-mono text-[11px] uppercase tracking-wider text-muted-foreground"
+          className="mb-8 flex items-center gap-2 font-mono text-[11px] uppercase tracking-wider text-[#121212]/60"
         >
-          <Link to="/shop" className="link-underline hover:text-foreground">
+          <Link to="/shop" className="hover:text-[#121212] transition-colors">
             Catalog
           </Link>
           <span>/</span>
           <Link
             to={`/shop?category=${product.category}`}
-            className="link-underline hover:text-foreground"
+            className="hover:text-[#121212] transition-colors"
           >
             {product.category}
           </Link>
           <span>/</span>
-          <span className="max-w-[200px] truncate text-foreground">{product.name}</span>
+          <span className="max-w-[200px] truncate text-[#121212]">{product.name}</span>
         </nav>
 
         <div className="grid gap-12 lg:grid-cols-2 lg:gap-16">
           {/* Gallery View */}
           <section className="space-y-4">
-            <div className="card-flush relative aspect-[4/5] w-full overflow-hidden bg-sand-100/80 p-8">
+            <div className="relative aspect-[4/5] w-full overflow-hidden border border-[#121212]/10 bg-[#FAF8F5] p-8">
               {off > 0 && (
-                <span className="badge-base badge-sale absolute left-4 top-4 z-10 shadow-xs">
+                <span className="absolute left-4 top-4 z-10 rounded-full border border-[#C87A3E]/30 bg-[#C87A3E] px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-wider text-white shadow-xs">
                   {off}% OFF
                 </span>
               )}
@@ -203,12 +203,12 @@ export default function ProductDetailPage() {
                   toggleWishlist(productId);
                   toast(wished ? "Removed from wishlist" : "Saved to sanctuary");
                 }}
-                className="btn-icon absolute right-4 top-4 z-10 h-9 w-9 border-transparent bg-card/85 text-foreground backdrop-blur-xs hover:border-transparent hover:bg-card hover:text-clay"
+                className="absolute right-4 top-4 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-white/85 text-[#121212] shadow-xs backdrop-blur-xs transition-colors hover:text-[#C87A3E]"
               >
                 <Heart
                   size={17}
                   strokeWidth={1.5}
-                  className={wished ? "fill-clay text-clay" : "transition-colors"}
+                  className={wished ? "fill-[#C87A3E] text-[#C87A3E]" : "transition-colors"}
                 />
               </button>
 
@@ -221,16 +221,16 @@ export default function ProductDetailPage() {
 
             {/* Thumbnail selector */}
             {images.length > 1 && (
-              <div className="flex gap-3 overflow-x-auto pb-1">
+              <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-none">
                 {images.map((img, idx) => (
                   <button
                     key={idx}
                     type="button"
                     onClick={() => setSelectedImage(img)}
-                    className={`card-flush relative aspect-square w-20 shrink-0 overflow-hidden bg-sand-50 p-1.5 transition-all ${
+                    className={`relative aspect-square w-20 shrink-0 overflow-hidden border bg-[#FAF8F5] p-1.5 transition-all ${
                       selectedImage === img
-                        ? "border-foreground ring-1 ring-foreground"
-                        : "border-border/60 opacity-70 hover:opacity-100"
+                        ? "border-[#4D694E] ring-1 ring-[#4D694E]"
+                        : "border-[#121212]/15 opacity-70 hover:opacity-100"
                     }`}
                   >
                     <img
@@ -247,100 +247,145 @@ export default function ProductDetailPage() {
           {/* Details & Purchase Column */}
           <section className="flex flex-col">
             <div className="flex items-center justify-between">
-              <span className="eyebrow-accent text-[11px] tracking-[0.2em]">{product.category}</span>
+              <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.2em] text-[#4D694E]">
+                {product.category}
+              </span>
               <button
                 type="button"
                 onClick={handleShare}
-                className="inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wider text-muted-foreground transition-colors hover:text-foreground"
+                className="inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wider text-[#121212]/60 transition-colors hover:text-[#121212]"
               >
-                {copied ? <Check size={13} className="text-moss" /> : <Share2 size={13} />}
+                {copied ? <Check size={13} className="text-[#4D694E]" /> : <Share2 size={13} />}
                 <span>{copied ? "Copied" : "Share"}</span>
               </button>
             </div>
 
-            <h1 className="mt-2.5 text-balance font-display text-3xl leading-tight tracking-tight text-foreground sm:text-4xl lg:text-display-md">
+            <h1 className="mt-2.5 text-balance font-display text-3xl leading-tight tracking-tight text-[#121212] sm:text-4xl">
               {product.name}
             </h1>
 
             {/* Rating and Batch Badge */}
             <div className="mt-3 flex items-center gap-3">
-              <div className="flex items-center gap-1.5 text-caption">
+              <div className="flex items-center gap-1.5">
                 <StarRating rating={ratingValue} size={12} />
-                <span className="font-mono text-[11px] text-muted-foreground">
+                <span className="font-mono text-[11px] text-[#121212]/60">
                   ({reviewCountValue} reviews)
                 </span>
               </div>
-              <span className="text-border">|</span>
-              <span className="flex items-center gap-1 font-mono text-[11px] uppercase tracking-wider text-moss">
+              <span className="text-[#121212]/20">|</span>
+              <span className="flex items-center gap-1 font-mono text-[11px] uppercase tracking-wider text-[#4D694E]">
                 <Sparkles size={11} /> Lab Verified Batch
               </span>
             </div>
 
             {product.tagline && (
-              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+              <p className="mt-3 text-sm leading-relaxed text-[#121212]/70">
                 {product.tagline}
               </p>
             )}
 
             {/* Pricing Section */}
-            <div className="mt-6 flex items-baseline gap-3 border-y border-border/80 py-4">
-              <span className="text-price text-3xl font-semibold">{inr(product.price)}</span>
+            <div className="mt-6 flex items-baseline gap-3 border-y border-[#121212]/15 py-4">
+              <span className="font-mono text-3xl font-semibold text-[#121212]">
+                {inr(product.price)}
+              </span>
               {mrpValue && mrpValue > product.price && (
-                <span className="text-price-strike text-base">{inr(mrpValue)}</span>
+                <span className="font-mono text-base text-[#121212]/40 line-through">
+                  {inr(mrpValue)}
+                </span>
               )}
-              <span className="ml-auto font-mono text-xs uppercase tracking-wide text-muted-foreground">
+              <span className="ml-auto font-mono text-xs uppercase tracking-wide text-[#121212]/60">
                 {weight} Sealed Pouch
               </span>
             </div>
 
             {/* Description */}
-            <div className="mt-6 space-y-3 text-sm leading-relaxed text-muted-foreground">
+            <div className="mt-6 space-y-3 text-sm leading-relaxed text-[#121212]/80">
               <p>{product.description}</p>
             </div>
 
-            {/* Single-Origin Traceability Card */}
-            <div className="mt-8 space-y-3 rounded-sm border border-border/80 bg-sand-50/60 p-5">
-              <p className="flex items-center gap-1.5 font-mono text-[11px] font-semibold uppercase tracking-wider text-foreground">
-                <ShieldCheck size={14} className="text-moss" />
-                Origin &amp; Quality Verification
-              </p>
-
-              <div className="grid grid-cols-1 gap-3.5 pt-1 text-xs text-muted-foreground sm:grid-cols-2">
-                <div className="flex items-start gap-2">
-                  <MapPin size={14} className="mt-0.5 shrink-0 text-moss" />
-                  <span>
-                    <strong className="text-foreground">Farm:</strong>{" "}
-                    {product.farmCluster?.name || product.origin || "Direct Cluster, India"}
-                  </span>
+            {/* Key Nutritional Merits (Benefits) */}
+            {Array.isArray(product.benefits) && product.benefits.length > 0 && (
+              <div className="mt-6 space-y-2 border-t border-[#121212]/15 pt-5">
+                <p className="font-mono text-[11px] font-semibold uppercase tracking-wider text-[#121212]">
+                  Key Merits &amp; Qualities
+                </p>
+                <div className="grid grid-cols-1 gap-2 pt-1 sm:grid-cols-2">
+                  {product.benefits.map((b: string, idx: number) => (
+                    <div key={idx} className="flex items-center gap-2 text-xs text-[#121212]/80">
+                      <CheckCircle2 size={13} className="shrink-0 text-[#4D694E]" />
+                      <span>{b}</span>
+                    </div>
+                  ))}
                 </div>
-                <div className="flex items-start gap-2">
-                  <Calendar size={14} className="mt-0.5 shrink-0 text-moss" />
-                  <span>
-                    <strong className="text-foreground">Harvest:</strong>{" "}
-                    {product.harvestPeriod || "Recent Lot"}
-                  </span>
-                </div>
-                <div className="flex items-start gap-2">
-                  <ShieldCheck size={14} className="mt-0.5 shrink-0 text-moss" />
-                  <span>
-                    <strong className="text-foreground">Batch Ref:</strong>{" "}
-                    {product.labReportRef || "NR-PURE-PASS"}
-                  </span>
-                </div>
-                {product.labReportUrl && (
-                  <div className="flex items-start gap-2">
-                    <FileText size={14} className="mt-0.5 shrink-0 text-moss" />
-                    <a
-                      href={product.labReportUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="link-underline text-foreground hover:text-moss"
-                    >
-                      Download Certificate (PDF)
-                    </a>
-                  </div>
-                )}
               </div>
+            )}
+
+            {/* Nutritional Facts Grid */}
+            {facts && (
+              <div className="mt-6 rounded-sm border border-[#121212]/10 bg-[#FAF8F5] p-4">
+                <div className="flex items-center justify-between border-b border-[#121212]/10 pb-2">
+                  <span className="font-mono text-[11px] font-semibold uppercase tracking-wider text-[#121212]">
+                    Nutritional Profile
+                  </span>
+                  <span className="font-mono text-[10px] uppercase text-[#121212]/60">
+                    Per {facts.servingSize || "10g"}
+                  </span>
+                </div>
+                <div className="mt-3 grid grid-cols-5 gap-2 text-center">
+                  <div>
+                    <span className="block font-mono text-xs font-semibold text-[#121212]">
+                      {facts.energyKcal ?? 0}
+                    </span>
+                    <span className="font-mono text-[9px] uppercase text-[#121212]/60">kcal</span>
+                  </div>
+                  <div>
+                    <span className="block font-mono text-xs font-semibold text-[#121212]">
+                      {facts.protein ?? 0}g
+                    </span>
+                    <span className="font-mono text-[9px] uppercase text-[#121212]/60">Protein</span>
+                  </div>
+                  <div>
+                    <span className="block font-mono text-xs font-semibold text-[#121212]">
+                      {facts.dietaryFiber ?? 0}g
+                    </span>
+                    <span className="font-mono text-[9px] uppercase text-[#121212]/60">Fiber</span>
+                  </div>
+                  <div>
+                    <span className="block font-mono text-xs font-semibold text-[#121212]">
+                      {facts.carbohydrates ?? 0}g
+                    </span>
+                    <span className="font-mono text-[9px] uppercase text-[#121212]/60">Carbs</span>
+                  </div>
+                  <div>
+                    <span className="block font-mono text-xs font-semibold text-[#121212]">
+                      {facts.fat ?? 0}g
+                    </span>
+                    <span className="font-mono text-[9px] uppercase text-[#121212]/60">Fat</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Quality & Lab Certificate Card */}
+            <div className="mt-6 flex items-center justify-between rounded-sm border border-[#121212]/10 bg-[#FAF8F5] p-4 text-xs text-[#121212]/80">
+              <div className="flex items-center gap-2">
+                <ShieldCheck size={16} className="text-[#4D694E]" />
+                <span className="font-mono text-[11px] uppercase tracking-wider text-[#121212]">
+                  Purity Tested &amp; Assayed Batch
+                </span>
+              </div>
+              {product.labReportUrl && (
+                <a
+                  href={product.labReportUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 font-mono text-[11px] uppercase tracking-wider text-[#4D694E] underline underline-offset-4 hover:text-[#324633]"
+                >
+                  <FileText size={13} />
+                  <span>Lab PDF</span>
+                </a>
+              )}
             </div>
 
             {/* Quantity Selector and Add to Bag */}
@@ -350,18 +395,21 @@ export default function ProductDetailPage() {
                 onChange={setQuantity}
                 size="md"
                 min={1}
-                max={20}
+                max={product.stockQuantity > 0 ? Math.min(20, product.stockQuantity) : 1}
               />
 
               <button
                 type="button"
+                disabled={product.stockQuantity <= 0}
                 onClick={() => {
                   addToCart(productId, quantity);
                   toast.success(`Added ${quantity} × ${product.name} to your pantry bag`);
                 }}
-                className="btn-base btn-primary flex-1 py-3 text-xs uppercase tracking-wider"
+                className="flex-1 rounded-full bg-[#4D694E] py-3.5 font-mono text-xs uppercase tracking-wider text-[#FFF3D5] transition-colors hover:bg-[#324633] disabled:opacity-50"
               >
-                Add to Bag · {inr(product.price * quantity)}
+                {product.stockQuantity <= 0
+                  ? "Sold Out"
+                  : `Add to Bag · ${inr(product.price * quantity)}`}
               </button>
             </div>
           </section>
