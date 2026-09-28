@@ -7,6 +7,7 @@ import {
   BookOpen,
   PlusCircle,
   Shield,
+  Sliders,
   LogOut,
   ExternalLink,
   Menu,
@@ -46,6 +47,11 @@ const NAV_ITEMS: NavItem[] = [
     to: "/admin/journal",
     icon: BookOpen,
     permission: "MANAGE_JOURNALS",
+  },
+  {
+    label: "Site Content",
+    to: "/admin/content",
+    icon: Sliders,
   },
   {
     label: "Staff & Clearance",

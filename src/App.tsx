@@ -27,6 +27,7 @@ import AdminInventoryPage from "@/pages/admin/AdminInventoryPage";
 import AdminOrdersPage from "@/pages/admin/AdminOrdersPage";
 import AdminJournalPage from "@/pages/admin/AdminJournalPage";
 import UserManagementPortal from "@/pages/admin/UserManagementPortal";
+import AdminContentSettings from "@/pages/admin/AdminContentSettings";
 import AdminIndexRedirect from "@/pages/admin/AdminIndexRedirect";
 
 export function App() {
@@ -83,6 +84,9 @@ export function App() {
           <Route element={<AdminRoute requiredPermission="MANAGE_USERS" />}>
             <Route path="/admin/users" element={<UserManagementPortal />} />
           </Route>
+
+          {/* Brand Story & Contact Details Settings */}
+          <Route path="/admin/content" element={<AdminContentSettings />} />
 
           {/* Fallback inside admin workspace */}
           <Route path="/admin/*" element={<AdminIndexRedirect />} />

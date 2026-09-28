@@ -66,6 +66,12 @@ export const ENDPOINTS = {
     DELETE: (id: string) => `${API_BASE_URL}/journal/${id}`,
   },
 
+  // Site Content (About Us & Contact Details)
+  SITE_CONTENT: {
+    GET: `${API_BASE_URL}/content`,
+    UPDATE: `${API_BASE_URL}/content`,
+  },
+
   // System
   PING: `${API_BASE_URL}/ping`,
 } as const;

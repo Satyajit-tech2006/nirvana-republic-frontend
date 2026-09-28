@@ -1,10 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Sparkles,
   MapPin,
   Phone,
   Mail,
-  Clock,
   Send,
   CheckCircle2,
   Building2,
@@ -12,10 +11,13 @@ import {
 import { toast } from "sonner";
 import { SEO } from "@/components/SEO";
 import { Newsletter } from "@/components/Newsletter";
+import api from "@/lib/axios";
+import ENDPOINTS from "@/lib/endpoints";
 
 const SERIF = "font-['Fraunces',ui-serif,Georgia,serif]";
 
 export default function ContactUs() {
+  const [contactData, setContactData] = useState<any>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
@@ -27,8 +29,47 @@ export default function ContactUs() {
     message: "",
   });
 
+  useEffect(() => {
+    let isMounted = true;
+    const fetchContactInfo = async () => {
+      try {
+        const { data } = await api.get(ENDPOINTS.SITE_CONTENT.GET, {
+          params: { _t: Date.now() },
+        });
+
+        const payload = data?.data?.contact ? data.data : data?.contact ? data : null;
+        if (isMounted && payload?.contact) {
+          setContactData(payload.contact);
+        }
+      } catch (err) {
+        console.error("Failed to load contact info:", err);
+      }
+    };
+
+    fetchContactInfo();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const facilityName = contactData?.facilityName || "ISBABC MANUFACTURING";
+  const addressLine1 =
+    contactData?.addressLine1 || "Baloda Bazar - Bhatapara Highway";
+  const addressLine2 =
+    contactData?.addressLine2 || "Chhattisgarh - 493332, India";
+  const phone = contactData?.phone || "+91 97708 30055";
+  const phoneHours =
+    contactData?.phoneHours || "Mon – Sat · 9:30 AM to 6:30 PM IST";
+  const email = contactData?.email || "republicnirvana@gmail.com";
+  const emailSubtext =
+    contactData?.emailSubtext || "Direct inquiries & lab assay verifications";
+  const mapCoordinates =
+    contactData?.mapCoordinates || "21.6548° N, 81.9492° E";
+
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -38,11 +79,12 @@ export default function ContactUs() {
     e.preventDefault();
     setSubmitting(true);
 
-    // Simulated submission until connected to backend dispatch endpoint
     setTimeout(() => {
       setSubmitting(false);
       setSubmitted(true);
-      toast.success("Dispatch request logged. An atelier specialist will connect shortly.");
+      toast.success(
+        "Dispatch request logged. An atelier specialist will connect shortly."
+      );
       setFormData({
         name: "",
         email: "",
@@ -112,11 +154,11 @@ export default function ContactUs() {
                     Registered Facility
                   </p>
                   <p className="font-display text-base font-semibold text-[#121212]">
-                    ISRARC MANUFACTURING
+                    {facilityName}
                   </p>
                   <p className="mt-1 text-xs leading-relaxed text-[#121212]/75 sm:text-sm">
-                    Baloda Bazar – Bhatapara Highway <br />
-                    Chhattisgarh – 493332, India
+                    {addressLine1} <br />
+                    {addressLine2}
                   </p>
                 </div>
               </div>
@@ -131,13 +173,13 @@ export default function ContactUs() {
                     Direct Line
                   </p>
                   <a
-                    href="tel:+919770830959"
+                    href={`tel:${phone.replace(/\s+/g, "")}`}
                     className="font-mono text-sm font-semibold text-[#121212] transition-colors hover:text-[#E58866]"
                   >
-                    +91 97708 30959
+                    {phone}
                   </a>
                   <p className="mt-1 text-xs text-[#121212]/60">
-                    Mon – Sat · 9:30 AM to 6:30 PM IST
+                    {phoneHours}
                   </p>
                 </div>
               </div>
@@ -152,13 +194,13 @@ export default function ContactUs() {
                     Electronic Dispatch
                   </p>
                   <a
-                    href="mailto:republicnirvana@gmail.com"
+                    href={`mailto:${email}`}
                     className="font-mono text-sm font-semibold text-[#121212] transition-colors hover:text-[#E58866]"
                   >
-                    republicnirvana@gmail.com
+                    {email}
                   </a>
                   <p className="mt-1 text-xs text-[#121212]/60">
-                    Direct inquiries &amp; lab assay verifications
+                    {emailSubtext}
                   </p>
                 </div>
               </div>
@@ -282,7 +324,7 @@ export default function ContactUs() {
         </div>
       </section>
 
-      {/* ================= 3. MAP SECTION POINTING TO BHATAPARA - BALODA BAZAR ================= */}
+      {/* ================= 3. MAP SECTION ================= */}
       <section className="mx-auto max-w-7xl px-4 pb-20 sm:px-6 lg:px-8">
         <div className="overflow-hidden rounded-3xl border border-[#121212]/10 bg-white shadow-sm">
           <div className="flex flex-col justify-between gap-4 border-b border-[#121212]/10 bg-[#FAF8F5] p-6 sm:flex-row sm:items-center sm:px-8">
@@ -295,16 +337,15 @@ export default function ContactUs() {
                   Cartographic Pin
                 </p>
                 <p className={`${SERIF} text-base font-normal text-[#121212] sm:text-lg`}>
-                  Baloda Bazar – Bhatapara Highway, CG 493332
+                  {addressLine1}, {addressLine2}
                 </p>
               </div>
             </div>
             <span className="font-mono text-xs uppercase tracking-wider text-[#E58866]">
-              21.6538° N, 81.9490° E
+              {mapCoordinates}
             </span>
           </div>
 
-          {/* Embedded Google Map */}
           <div className="relative h-[380px] w-full bg-[#E8E1D5] sm:h-[460px]">
             <iframe
               title="ISRARC Manufacturing — Baloda Bazar Bhatapara Highway"
