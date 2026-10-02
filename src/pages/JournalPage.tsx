@@ -1,9 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { ArrowRight, ArrowUpRight, Clock, Sparkles, BookOpen } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Clock, BookOpen } from "lucide-react";
 import api from "@/lib/axios";
 import ENDPOINTS from "@/lib/endpoints";
-import { SectionHead } from "@/components/SectionHead";
 import { SEO } from "@/components/SEO";
 
 interface JournalArticle {
@@ -24,34 +23,37 @@ interface JournalArticle {
 
 const fallbackCategories = [
   "All",
-  "Farm Provenance",
   "Daily Rituals",
-  "Botanical Science",
-  "Recipes & Pantry",
+  "Nutritional Science",
+  "Recipes & Blends",
+  "Holistic Health",
+  "Mindful Living",
 ];
+
+const SERIF = "font-['Fraunces',ui-serif,Georgia,serif]";
 
 function JournalSkeleton() {
   return (
-    <div className="mt-12 space-y-12">
+    <div className="mt-6 space-y-6">
       {/* Featured Article Skeleton */}
-      <div className="grid gap-8 rounded-sm border border-border/80 bg-card p-6 md:grid-cols-2 md:items-center md:p-8">
-        <div className="skeleton aspect-[16/10] w-full rounded-sm" />
-        <div className="space-y-4 py-2">
-          <div className="skeleton h-3 w-32 rounded-full" />
-          <div className="skeleton h-8 w-3/4 rounded-sm" />
-          <div className="skeleton h-16 w-full rounded-sm" />
-          <div className="skeleton h-4 w-28 rounded-full" />
+      <div className="grid gap-5 rounded-xl border border-border/70 bg-card p-4 md:grid-cols-2 md:items-center">
+        <div className="skeleton aspect-[16/10] w-full rounded-lg" />
+        <div className="space-y-3 py-1">
+          <div className="skeleton h-2.5 w-24 rounded-full" />
+          <div className="skeleton h-6 w-3/4 rounded-sm" />
+          <div className="skeleton h-12 w-full rounded-sm" />
+          <div className="skeleton h-3 w-20 rounded-full" />
         </div>
       </div>
 
       {/* Grid Articles Skeleton */}
-      <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="space-y-4 rounded-sm border border-border/70 bg-card p-5">
-            <div className="skeleton aspect-[4/3] w-full rounded-sm" />
-            <div className="skeleton h-3 w-1/3 rounded-full" />
-            <div className="skeleton h-6 w-3/4 rounded-sm" />
-            <div className="skeleton h-12 w-full rounded-sm" />
+          <div key={i} className="space-y-3 rounded-xl border border-border/70 bg-card p-4">
+            <div className="skeleton aspect-[16/10] w-full rounded-lg" />
+            <div className="skeleton h-2.5 w-1/3 rounded-full" />
+            <div className="skeleton h-5 w-3/4 rounded-sm" />
+            <div className="skeleton h-10 w-full rounded-sm" />
           </div>
         ))}
       </div>
@@ -98,11 +100,13 @@ export default function JournalPage() {
     };
   }, []);
 
-  // Derive categories dynamically from fetched articles
+  // Filter out any agrarian categories if legacy posts exist in the database
   const categories = useMemo(() => {
     const dynamicCats = new Set<string>();
     articles.forEach((a) => {
-      if (a.category) dynamicCats.add(a.category);
+      if (a.category && !a.category.toLowerCase().includes("farm")) {
+        dynamicCats.add(a.category);
+      }
     });
     return dynamicCats.size > 0
       ? ["All", ...Array.from(dynamicCats)]
@@ -164,22 +168,29 @@ export default function JournalPage() {
   return (
     <>
       <SEO
-        title="The Journal — Farm Origins & Daily Rituals"
-        description="Field dispatches, harvest chronicles, and nutritional rituals directly from single-origin growers."
+        title="Journal — Wellness Insights & Daily Rituals"
+        description="Practical wellness guides, nutritional science, and mindful lifestyle rituals."
         canonical="/journal"
       />
 
-      <main className="container-page py-10 md:py-16">
-        <SectionHead
-          eyebrow="The Nirvana Journal"
-          title="Notes from our kitchen & our farms"
-          intro="Tracing harvest cycles, active botanical compounds, and simple daily practices."
-        />
+      <main className="container-page py-6 sm:py-8">
+        {/* Header */}
+        <div className="border-b border-border/60 pb-4">
+          <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#C87A3E]">
+            Wellness Journal
+          </p>
+          <h1 className={`${SERIF} mt-1 text-2xl font-normal tracking-tight text-foreground sm:text-3xl lg:text-4xl`}>
+            Insights for Everyday Living
+          </h1>
+          <p className="mt-1 text-xs text-muted-foreground sm:text-sm">
+            Curated articles on mindful nutrition, restorative routines, and daily self-care.
+          </p>
+        </div>
 
-        {/* Category Filter Tabs */}
+        {/* Category Filters */}
         <nav
           aria-label="Journal Categories"
-          className="mt-8 flex items-center gap-1.5 overflow-x-auto border-b border-border/80 pb-4 scrollbar-none"
+          className="mt-4 flex items-center gap-1.5 overflow-x-auto border-b border-border/60 pb-3 scrollbar-none"
         >
           {categories.map((cat) => {
             const isActive =
@@ -191,7 +202,7 @@ export default function JournalPage() {
                 key={cat}
                 type="button"
                 onClick={() => handleCategoryChange(cat)}
-                className={`whitespace-nowrap rounded-xs border px-3.5 py-1.5 font-mono text-[11px] uppercase tracking-wider transition-all duration-200 ${
+                className={`whitespace-nowrap rounded-full border px-3 py-1 font-mono text-[10px] uppercase tracking-wider transition-all duration-200 ${
                   isActive
                     ? "border-foreground bg-foreground font-semibold text-background shadow-xs"
                     : "border-transparent bg-sand-100/70 text-muted-foreground hover:border-border hover:text-foreground"
@@ -206,65 +217,56 @@ export default function JournalPage() {
         {loading ? (
           <JournalSkeleton />
         ) : safeArticlesList.length === 0 ? (
-          /* Empty state */
-          <div className="my-14 flex flex-col items-center justify-center rounded-sm border border-dashed border-border/80 bg-sand-50/40 px-6 py-24 text-center">
-            <div className="mb-4 grid h-12 w-12 place-items-center rounded-full bg-sand-100 text-muted-foreground">
-              <BookOpen size={20} strokeWidth={1.5} />
+          <div className="my-8 flex flex-col items-center justify-center rounded-xl border border-dashed border-border/80 bg-sand-50/40 px-4 py-12 text-center">
+            <div className="mb-3 grid h-9 w-9 place-items-center rounded-full bg-sand-100 text-muted-foreground">
+              <BookOpen size={16} strokeWidth={1.5} />
             </div>
-            <h2 className="font-display text-2xl tracking-tight text-foreground">
-              No dispatches published yet
+            <h2 className={`${SERIF} text-lg tracking-tight text-foreground`}>
+              No articles published yet
             </h2>
-            <p className="mt-2 max-w-sm text-sm leading-relaxed text-muted-foreground">
-              Our harvest notes and nutritional writeups are currently being compiled.
+            <p className="mt-1 text-xs text-muted-foreground">
+              Wellness articles and nutritional guides will appear here soon.
             </p>
           </div>
         ) : (
-          <div className="mt-12 space-y-16">
-            {/* Featured Hero Article */}
+          <div className="mt-6 space-y-6">
+            {/* Featured Article */}
             {activeCategory === "All" && featuredArticle && (
               <Link
                 to={`/journal/${featuredArticle.slug}`}
-                className="group grid gap-8 rounded-sm border border-border/80 bg-card p-6 transition-all duration-300 hover:border-moss/50 hover:shadow-soft md:grid-cols-2 md:items-center md:p-8"
+                className="group grid gap-5 rounded-xl border border-border/70 bg-card p-4 transition-all duration-300 hover:border-[#4D694E]/40 hover:shadow-xs md:grid-cols-12 md:items-center sm:p-5"
               >
-                <div className="aspect-[16/10] overflow-hidden rounded-xs bg-sand-100">
+                <div className="aspect-[16/10] overflow-hidden rounded-lg bg-sand-100 md:col-span-5">
                   <img
                     src={getArticleImage(featuredArticle)}
                     alt={featuredArticle.title}
-                    className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+                    className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
                   />
                 </div>
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2.5 font-mono text-xs uppercase tracking-widest text-clay">
+                <div className="space-y-2 md:col-span-7">
+                  <div className="flex items-center gap-2 font-mono text-[10.5px] uppercase tracking-wider text-[#C87A3E]">
                     <span>{featuredArticle.category}</span>
                     <span className="text-border">·</span>
                     <span className="flex items-center gap-1 text-muted-foreground">
-                      <Clock size={12} strokeWidth={1.5} /> {getReadTime(featuredArticle)}
+                      <Clock size={11} strokeWidth={1.5} /> {getReadTime(featuredArticle)}
                     </span>
-                    {featuredArticle.isFeatured && (
-                      <>
-                        <span className="text-border">·</span>
-                        <span className="flex items-center gap-1 font-semibold text-moss">
-                          <Sparkles size={11} /> Featured Lot
-                        </span>
-                      </>
-                    )}
                   </div>
-                  <h2 className="text-balance font-display text-2xl leading-snug tracking-tight text-foreground transition-colors duration-300 group-hover:text-moss md:text-3xl lg:text-4xl">
+                  <h2 className={`${SERIF} text-xl leading-snug tracking-tight text-foreground transition-colors group-hover:text-[#4D694E] sm:text-2xl`}>
                     {featuredArticle.title}
                   </h2>
-                  <p className="line-clamp-3 text-sm leading-relaxed text-muted-foreground">
+                  <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground sm:text-sm">
                     {featuredArticle.excerpt}
                   </p>
-                  <div className="flex items-center justify-between pt-2 font-mono text-xs text-muted-foreground">
-                    <span className="text-[11px]">
+                  <div className="flex items-center justify-between pt-2 font-mono text-[10.5px] text-muted-foreground">
+                    <span>
                       {formatDate(featuredArticle.publishedAt || featuredArticle.createdAt)}
                     </span>
-                    <span className="inline-flex items-center gap-1.5 font-semibold uppercase tracking-wider text-foreground group-hover:text-moss">
-                      <span>Read dispatch</span>
+                    <span className="inline-flex items-center gap-1 font-semibold uppercase tracking-wider text-foreground group-hover:text-[#4D694E]">
+                      <span>Read article</span>
                       <ArrowRight
-                        size={14}
+                        size={12}
                         strokeWidth={1.5}
-                        className="transition-transform duration-200 group-hover:translate-x-1"
+                        className="transition-transform duration-200 group-hover:translate-x-0.5"
                       />
                     </span>
                   </div>
@@ -273,44 +275,44 @@ export default function JournalPage() {
             )}
 
             {/* Article Grid */}
-            <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {listArticles.map((article) => (
                 <Link
                   key={article._id || article.slug}
                   to={`/journal/${article.slug}`}
-                  className="group flex flex-col justify-between rounded-sm border border-border/80 bg-card p-5 transition-all duration-300 hover:border-moss/40 hover:shadow-soft"
+                  className="group flex flex-col justify-between rounded-xl border border-border/70 bg-card p-3.5 transition-all duration-300 hover:border-[#4D694E]/40 hover:shadow-xs sm:p-4"
                 >
                   <div>
-                    <div className="aspect-[4/3] overflow-hidden rounded-xs bg-sand-100">
+                    <div className="aspect-[16/10] overflow-hidden rounded-lg bg-sand-100">
                       <img
                         src={getArticleImage(article)}
                         alt={article.title}
                         loading="lazy"
-                        className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
+                        className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
                       />
                     </div>
-                    <div className="mt-4 flex items-center justify-between font-mono text-[11px] uppercase tracking-wider text-clay">
+                    <div className="mt-3 flex items-center justify-between font-mono text-[10px] uppercase tracking-wider text-[#C87A3E]">
                       <span>{article.category}</span>
                       <span className="text-muted-foreground">
                         {getReadTime(article)}
                       </span>
                     </div>
-                    <h3 className="mt-2 font-display text-xl leading-snug tracking-tight text-foreground transition-colors duration-300 group-hover:text-moss">
+                    <h3 className={`${SERIF} mt-1.5 text-base font-normal leading-snug tracking-tight text-foreground transition-colors group-hover:text-[#4D694E]`}>
                       {article.title}
                     </h3>
-                    <p className="mt-2 line-clamp-3 text-xs leading-relaxed text-muted-foreground">
+                    <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
                       {article.excerpt}
                     </p>
                   </div>
 
-                  <div className="mt-6 flex items-center justify-between border-t border-border/70 pt-4 font-mono text-xs uppercase tracking-wider text-muted-foreground group-hover:text-foreground">
-                    <span className="text-[11px]">
+                  <div className="mt-4 flex items-center justify-between border-t border-border/60 pt-2.5 font-mono text-[10px] uppercase tracking-wider text-muted-foreground group-hover:text-foreground">
+                    <span>
                       {formatDate(article.publishedAt || article.createdAt)}
                     </span>
-                    <span className="inline-flex items-center gap-1 font-semibold group-hover:text-moss">
+                    <span className="inline-flex items-center gap-1 font-semibold group-hover:text-[#4D694E]">
                       <span>Read</span>
                       <ArrowUpRight
-                        size={13}
+                        size={11}
                         strokeWidth={1.5}
                         className="transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
                       />

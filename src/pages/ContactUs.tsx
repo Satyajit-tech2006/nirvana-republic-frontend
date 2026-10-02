@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import {
-  Sparkles,
   MapPin,
   Phone,
   Mail,
@@ -10,9 +9,16 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { SEO } from "@/components/SEO";
-import { Newsletter } from "@/components/Newsletter";
 import api from "@/lib/axios";
 import ENDPOINTS from "@/lib/endpoints";
+
+const PALETTE = {
+  olive: "#4D694E",
+  cream: "#FFF3D5",
+  forest: "#324633",
+  amber: "#C87A3E",
+  charcoal: "#1E261F",
+} as const;
 
 const SERIF = "font-['Fraunces',ui-serif,Georgia,serif]";
 
@@ -25,7 +31,7 @@ export default function ContactUs() {
     name: "",
     email: "",
     phone: "",
-    subject: "Inquiry on Active Lots",
+    subject: "General Inquiry",
     message: "",
   });
 
@@ -62,7 +68,7 @@ export default function ContactUs() {
     contactData?.phoneHours || "Mon – Sat · 9:30 AM to 6:30 PM IST";
   const email = contactData?.email || "republicnirvana@gmail.com";
   const emailSubtext =
-    contactData?.emailSubtext || "Direct inquiries & lab assay verifications";
+    contactData?.emailSubtext || "Direct inquiries & customer support";
   const mapCoordinates =
     contactData?.mapCoordinates || "21.6548° N, 81.9492° E";
 
@@ -82,81 +88,105 @@ export default function ContactUs() {
     setTimeout(() => {
       setSubmitting(false);
       setSubmitted(true);
-      toast.success(
-        "Dispatch request logged. An atelier specialist will connect shortly."
-      );
+      toast.success("Inquiry sent. Our team will get back to you shortly.");
       setFormData({
         name: "",
         email: "",
         phone: "",
-        subject: "Inquiry on Active Lots",
+        subject: "General Inquiry",
         message: "",
       });
-    }, 1000);
+    }, 800);
   };
 
   return (
-    <div className="w-full max-w-full overflow-x-hidden bg-[#FAF8F5] text-[#121212]">
+    <div
+      className="w-full max-w-full overflow-x-hidden antialiased"
+      style={{ backgroundColor: PALETTE.cream, color: PALETTE.charcoal }}
+    >
       <SEO
-        title="Contact & Botanical Registry Office — Nirvana Republic"
-        description="Reach out to Nirvana Republic. Contact our facility in Baloda Bazar, Chhattisgarh for harvest queries, lab certifications, and wholesale allocations."
+        title="Contact Us — Nirvana Republic"
+        description="Get in touch with Nirvana Republic for orders, support, and inquiries."
         canonical="/contact"
       />
 
-      {/* ================= 1. HEADER ================= */}
-      <section className="relative w-full bg-[#14261C] text-[#FAF8F5]">
-        <div className="pointer-events-none absolute -left-28 -top-28 h-96 w-96 rounded-full bg-[#E58866]/10 blur-3xl" />
-        <div className="pointer-events-none absolute right-0 top-1/2 h-80 w-80 rounded-full bg-[#FAF8F5]/5 blur-3xl" />
-
-        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-24 lg:px-8 lg:py-28">
+      {/* ================= 1. HEADER (Olive Green #4D694E) ================= */}
+      <section
+        className="relative w-full"
+        style={{ backgroundColor: PALETTE.olive, color: PALETTE.cream }}
+      >
+        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
           <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-2 rounded-full border border-[#FAF8F5]/20 bg-[#FAF8F5]/10 px-3.5 py-1 font-mono text-[10.5px] uppercase tracking-[0.2em] text-[#FAF8F5]">
-              <Sparkles size={12} className="text-[#E58866]" />
-              <span>Direct Liaison</span>
-            </div>
+            <span
+              className="font-mono text-[10px] font-semibold uppercase tracking-[0.2em]"
+              style={{ color: PALETTE.cream }}
+            >
+              Get In Touch
+            </span>
 
             <h1
-              className={`${SERIF} mt-6 text-4xl font-normal leading-[1.08] tracking-tight text-[#FAF8F5] sm:text-5xl lg:text-[4rem]`}
+              className={`${SERIF} mt-2 text-3xl font-normal leading-tight tracking-tight sm:text-4xl lg:text-5xl`}
+              style={{ color: PALETTE.cream }}
             >
-              Connect with our <br />
-              <span className="italic text-[#E58866]">sanctuary desk.</span>
+              Connect with us
             </h1>
 
-            <p className="mt-6 text-sm leading-relaxed text-[#FAF8F5]/80 sm:text-base">
-              Whether you require verifiable laboratory purity assays, custom estate orders, or traceability documentation, our manufacturing hub is directly reachable.
+            <p
+              className="mt-2 text-xs leading-relaxed opacity-90 sm:text-sm"
+              style={{ color: `${PALETTE.cream}D9` }}
+            >
+              Have a question about our products or need assistance with an existing order? We are here to help.
             </p>
           </div>
         </div>
       </section>
 
-      {/* ================= 2. MAIN GRID: CONTACT INFO + INQUIRY FORM ================= */}
-      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
-        <div className="grid gap-12 lg:grid-cols-12 lg:gap-16">
-          {/* Left Column: Direct Facility Cards */}
-          <div className="space-y-8 lg:col-span-5">
+      {/* ================= 2. MAIN GRID: INFO + INQUIRY FORM ================= */}
+      <section className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+        <div className="grid gap-6 lg:grid-cols-12 lg:gap-8">
+          {/* Left: Contact Info */}
+          <div className="space-y-4 lg:col-span-5">
             <div>
-              <p className="font-mono text-xs uppercase tracking-[0.2em] text-[#E58866]">
-                Sanctuary Address
+              <p
+                className="font-mono text-[10px] uppercase tracking-[0.2em]"
+                style={{ color: PALETTE.amber }}
+              >
+                Direct Office
               </p>
-              <h2 className={`${SERIF} mt-2 text-3xl font-normal text-[#121212]`}>
-                Manufacturing &amp; Central Registry
+              <h2
+                className={`${SERIF} mt-0.5 text-xl font-normal sm:text-2xl`}
+                style={{ color: PALETTE.charcoal }}
+              >
+                Facility Coordinates
               </h2>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-2.5">
               {/* Address Card */}
-              <div className="flex items-start gap-4 rounded-3xl border border-[#121212]/10 bg-[#F4EFE6] p-6 transition-all hover:bg-white hover:shadow-md">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#14261C] text-[#FAF8F5]">
-                  <Building2 size={18} />
+              <div
+                className="flex items-start gap-3 rounded-xl border p-4 shadow-2xs"
+                style={{
+                  backgroundColor: "white",
+                  borderColor: `${PALETTE.olive}26`,
+                }}
+              >
+                <div
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
+                  style={{
+                    backgroundColor: PALETTE.olive,
+                    color: PALETTE.cream,
+                  }}
+                >
+                  <Building2 size={15} />
                 </div>
                 <div>
-                  <p className="font-mono text-[11px] uppercase tracking-wider text-[#121212]/50">
-                    Registered Facility
+                  <p className="font-mono text-[9px] uppercase tracking-wider opacity-60">
+                    Facility
                   </p>
-                  <p className="font-display text-base font-semibold text-[#121212]">
+                  <p className="text-xs font-semibold sm:text-sm">
                     {facilityName}
                   </p>
-                  <p className="mt-1 text-xs leading-relaxed text-[#121212]/75 sm:text-sm">
+                  <p className="mt-0.5 text-[11px] leading-relaxed opacity-75">
                     {addressLine1} <br />
                     {addressLine2}
                   </p>
@@ -164,42 +194,68 @@ export default function ContactUs() {
               </div>
 
               {/* Telephone Card */}
-              <div className="flex items-start gap-4 rounded-3xl border border-[#121212]/10 bg-[#F4EFE6] p-6 transition-all hover:bg-white hover:shadow-md">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#14261C] text-[#FAF8F5]">
-                  <Phone size={18} />
+              <div
+                className="flex items-start gap-3 rounded-xl border p-4 shadow-2xs"
+                style={{
+                  backgroundColor: "white",
+                  borderColor: `${PALETTE.olive}26`,
+                }}
+              >
+                <div
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
+                  style={{
+                    backgroundColor: PALETTE.olive,
+                    color: PALETTE.cream,
+                  }}
+                >
+                  <Phone size={15} />
                 </div>
                 <div>
-                  <p className="font-mono text-[11px] uppercase tracking-wider text-[#121212]/50">
-                    Direct Line
+                  <p className="font-mono text-[9px] uppercase tracking-wider opacity-60">
+                    Telephone
                   </p>
                   <a
                     href={`tel:${phone.replace(/\s+/g, "")}`}
-                    className="font-mono text-sm font-semibold text-[#121212] transition-colors hover:text-[#E58866]"
+                    className="font-mono text-xs font-semibold transition-colors hover:underline"
+                    style={{ color: PALETTE.charcoal }}
                   >
                     {phone}
                   </a>
-                  <p className="mt-1 text-xs text-[#121212]/60">
+                  <p className="mt-0.5 text-[10.5px] opacity-60">
                     {phoneHours}
                   </p>
                 </div>
               </div>
 
               {/* Email Card */}
-              <div className="flex items-start gap-4 rounded-3xl border border-[#121212]/10 bg-[#F4EFE6] p-6 transition-all hover:bg-white hover:shadow-md">
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#14261C] text-[#FAF8F5]">
-                  <Mail size={18} />
+              <div
+                className="flex items-start gap-3 rounded-xl border p-4 shadow-2xs"
+                style={{
+                  backgroundColor: "white",
+                  borderColor: `${PALETTE.olive}26`,
+                }}
+              >
+                <div
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
+                  style={{
+                    backgroundColor: PALETTE.olive,
+                    color: PALETTE.cream,
+                  }}
+                >
+                  <Mail size={15} />
                 </div>
                 <div>
-                  <p className="font-mono text-[11px] uppercase tracking-wider text-[#121212]/50">
-                    Electronic Dispatch
+                  <p className="font-mono text-[9px] uppercase tracking-wider opacity-60">
+                    Email
                   </p>
                   <a
                     href={`mailto:${email}`}
-                    className="font-mono text-sm font-semibold text-[#121212] transition-colors hover:text-[#E58866]"
+                    className="font-mono text-xs font-semibold transition-colors hover:underline"
+                    style={{ color: PALETTE.charcoal }}
                   >
                     {email}
                   </a>
-                  <p className="mt-1 text-xs text-[#121212]/60">
+                  <p className="mt-0.5 text-[10.5px] opacity-60">
                     {emailSubtext}
                   </p>
                 </div>
@@ -207,32 +263,48 @@ export default function ContactUs() {
             </div>
           </div>
 
-          {/* Right Column: Editorial Contact Form */}
+          {/* Right: Contact Form */}
           <div className="lg:col-span-7">
-            <div className="rounded-3xl border border-[#121212]/10 bg-white p-6 shadow-sm sm:p-10 lg:p-12">
-              <span className="font-mono text-xs uppercase tracking-widest text-[#E58866]">
-                Message Ledger
+            <div
+              className="rounded-2xl border p-5 shadow-2xs sm:p-6"
+              style={{
+                backgroundColor: "white",
+                borderColor: `${PALETTE.olive}26`,
+              }}
+            >
+              <span
+                className="font-mono text-[10px] uppercase tracking-widest"
+                style={{ color: PALETTE.amber }}
+              >
+                Direct Message
               </span>
-              <h2 className={`${SERIF} mt-2 text-2xl font-normal text-[#121212] sm:text-3xl`}>
-                Transmit an inquiry
+              <h2 className={`${SERIF} mt-0.5 text-xl font-normal sm:text-2xl`}>
+                Send a message
               </h2>
-              <p className="mt-1 text-xs text-[#121212]/60 sm:text-sm">
-                Provide your details below to connect with our botanical sourcing team.
+              <p className="mt-0.5 text-xs opacity-65">
+                Fill in the details below and we will respond within 24 hours.
               </p>
 
               {submitted && (
-                <div className="mt-6 flex items-center gap-3 rounded-2xl border border-[#14261C]/20 bg-[#14261C]/5 p-4 font-mono text-xs text-[#14261C]">
-                  <CheckCircle2 size={16} className="shrink-0 text-[#14261C]" />
+                <div
+                  className="mt-4 flex items-center gap-2 rounded-xl border p-3 font-mono text-xs"
+                  style={{
+                    borderColor: `${PALETTE.olive}33`,
+                    backgroundColor: `${PALETTE.olive}10`,
+                    color: PALETTE.olive,
+                  }}
+                >
+                  <CheckCircle2 size={15} className="shrink-0" />
                   <span>
-                    Inquiry registered. Our compliance officer will reach out via email shortly.
+                    Your message has been sent. We will get back to you shortly.
                   </span>
                 </div>
               )}
 
-              <form onSubmit={handleSubmit} className="mt-8 space-y-5">
-                <div className="grid gap-5 sm:grid-cols-2">
+              <form onSubmit={handleSubmit} className="mt-4 space-y-3.5">
+                <div className="grid gap-3.5 sm:grid-cols-2">
                   <div>
-                    <label className="mb-1.5 block font-mono text-[11px] uppercase tracking-wider text-[#121212]/70">
+                    <label className="mb-1 block font-mono text-[10px] uppercase tracking-wider opacity-70">
                       Full Name *
                     </label>
                     <input
@@ -241,13 +313,17 @@ export default function ContactUs() {
                       name="name"
                       value={formData.name}
                       onChange={handleChange}
-                      placeholder="Satyajit Swain"
-                      className="w-full rounded-2xl border border-[#121212]/15 bg-[#FAF8F5] px-4 py-3 font-sans text-xs text-[#121212] outline-none transition-colors focus:border-[#14261C] focus:bg-white"
+                      placeholder="Your name"
+                      className="w-full rounded-lg border px-3 py-2 text-xs outline-none transition-colors focus:border-[#4D694E]"
+                      style={{
+                        borderColor: `${PALETTE.olive}26`,
+                        backgroundColor: PALETTE.cream,
+                      }}
                     />
                   </div>
 
                   <div>
-                    <label className="mb-1.5 block font-mono text-[11px] uppercase tracking-wider text-[#121212]/70">
+                    <label className="mb-1 block font-mono text-[10px] uppercase tracking-wider opacity-70">
                       Email Address *
                     </label>
                     <input
@@ -256,16 +332,20 @@ export default function ContactUs() {
                       name="email"
                       value={formData.email}
                       onChange={handleChange}
-                      placeholder="patron@domain.com"
-                      className="w-full rounded-2xl border border-[#121212]/15 bg-[#FAF8F5] px-4 py-3 font-sans text-xs text-[#121212] outline-none transition-colors focus:border-[#14261C] focus:bg-white"
+                      placeholder="name@domain.com"
+                      className="w-full rounded-lg border px-3 py-2 text-xs outline-none transition-colors focus:border-[#4D694E]"
+                      style={{
+                        borderColor: `${PALETTE.olive}26`,
+                        backgroundColor: PALETTE.cream,
+                      }}
                     />
                   </div>
                 </div>
 
-                <div className="grid gap-5 sm:grid-cols-2">
+                <div className="grid gap-3.5 sm:grid-cols-2">
                   <div>
-                    <label className="mb-1.5 block font-mono text-[11px] uppercase tracking-wider text-[#121212]/70">
-                      Contact Phone
+                    <label className="mb-1 block font-mono text-[10px] uppercase tracking-wider opacity-70">
+                      Phone Number
                     </label>
                     <input
                       type="tel"
@@ -273,50 +353,66 @@ export default function ContactUs() {
                       value={formData.phone}
                       onChange={handleChange}
                       placeholder="+91 98765 43210"
-                      className="w-full rounded-2xl border border-[#121212]/15 bg-[#FAF8F5] px-4 py-3 font-mono text-xs text-[#121212] outline-none transition-colors focus:border-[#14261C] focus:bg-white"
+                      className="w-full rounded-lg border px-3 py-2 font-mono text-xs outline-none transition-colors focus:border-[#4D694E]"
+                      style={{
+                        borderColor: `${PALETTE.olive}26`,
+                        backgroundColor: PALETTE.cream,
+                      }}
                     />
                   </div>
 
                   <div>
-                    <label className="mb-1.5 block font-mono text-[11px] uppercase tracking-wider text-[#121212]/70">
-                      Subject Matter
+                    <label className="mb-1 block font-mono text-[10px] uppercase tracking-wider opacity-70">
+                      Subject
                     </label>
                     <select
                       name="subject"
                       value={formData.subject}
                       onChange={handleChange}
-                      className="w-full rounded-2xl border border-[#121212]/15 bg-[#FAF8F5] px-3.5 py-3 font-sans text-xs text-[#121212] outline-none transition-colors focus:border-[#14261C] focus:bg-white"
+                      className="w-full rounded-lg border px-2.5 py-2 text-xs outline-none transition-colors focus:border-[#4D694E]"
+                      style={{
+                        borderColor: `${PALETTE.olive}26`,
+                        backgroundColor: PALETTE.cream,
+                      }}
                     >
-                      <option value="Inquiry on Active Lots">Inquiry on Active Lots</option>
-                      <option value="Lab Assay Request">Request Batch Lab Assay (COA)</option>
-                      <option value="Wholesale / Estate Supply">Bulk / Estate Supply</option>
-                      <option value="Customer Order Status">Order &amp; Delivery Tracking</option>
+                      <option value="General Inquiry">General Inquiry</option>
+                      <option value="Order & Delivery Tracking">Order &amp; Delivery Tracking</option>
+                      <option value="Product Details">Product Information</option>
+                      <option value="Bulk Inquiries">Bulk / Corporate Orders</option>
                     </select>
                   </div>
                 </div>
 
                 <div>
-                  <label className="mb-1.5 block font-mono text-[11px] uppercase tracking-wider text-[#121212]/70">
-                    Inquiry Details *
+                  <label className="mb-1 block font-mono text-[10px] uppercase tracking-wider opacity-70">
+                    Message *
                   </label>
                   <textarea
                     required
-                    rows={4}
+                    rows={3}
                     name="message"
                     value={formData.message}
                     onChange={handleChange}
-                    placeholder="Provide lot numbers, questions on harvest timing, or details regarding your order..."
-                    className="w-full rounded-2xl border border-[#121212]/15 bg-[#FAF8F5] p-4 font-sans text-xs leading-relaxed text-[#121212] outline-none transition-colors focus:border-[#14261C] focus:bg-white"
+                    placeholder="Write your message here..."
+                    className="w-full rounded-lg border p-3 text-xs leading-relaxed outline-none transition-colors focus:border-[#4D694E]"
+                    style={{
+                      borderColor: `${PALETTE.olive}26`,
+                      backgroundColor: PALETTE.cream,
+                    }}
                   />
                 </div>
 
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="flex w-full items-center justify-center gap-2 rounded-full bg-[#14261C] py-4 font-mono text-xs uppercase tracking-wider text-[#FAF8F5] transition-all hover:bg-[#E58866] hover:text-[#14261C] disabled:opacity-50"
+                  className="flex w-full items-center justify-center gap-1.5 rounded-full py-2.5 font-mono text-xs uppercase tracking-wider transition-opacity hover:opacity-90 disabled:opacity-50"
+                  style={{
+                    backgroundColor: PALETTE.olive,
+                    color: PALETTE.cream,
+                  }}
                 >
-                  <Send size={14} />
-                  <span>{submitting ? "Transmitting..." : "Submit Dispatch Inquiry"}</span>
+                  <Send size={12} />
+                  <span>{submitting ? "Sending..." : "Submit Message"}</span>
                 </button>
               </form>
             </div>
@@ -325,34 +421,42 @@ export default function ContactUs() {
       </section>
 
       {/* ================= 3. MAP SECTION ================= */}
-      <section className="mx-auto max-w-7xl px-4 pb-20 sm:px-6 lg:px-8">
-        <div className="overflow-hidden rounded-3xl border border-[#121212]/10 bg-white shadow-sm">
-          <div className="flex flex-col justify-between gap-4 border-b border-[#121212]/10 bg-[#FAF8F5] p-6 sm:flex-row sm:items-center sm:px-8">
-            <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#14261C] text-[#FAF8F5]">
-                <MapPin size={18} />
-              </div>
-              <div>
-                <p className="font-mono text-[10px] uppercase tracking-wider text-[#121212]/50">
-                  Cartographic Pin
-                </p>
-                <p className={`${SERIF} text-base font-normal text-[#121212] sm:text-lg`}>
-                  {addressLine1}, {addressLine2}
-                </p>
-              </div>
+      <section className="mx-auto max-w-7xl px-4 pb-8 sm:px-6 lg:px-8">
+        <div
+          className="overflow-hidden rounded-2xl border shadow-2xs"
+          style={{
+            backgroundColor: "white",
+            borderColor: `${PALETTE.olive}26`,
+          }}
+        >
+          <div
+            className="flex flex-col justify-between gap-2 border-b p-3.5 sm:flex-row sm:items-center sm:px-5"
+            style={{
+              borderColor: `${PALETTE.olive}26`,
+              backgroundColor: PALETTE.cream,
+            }}
+          >
+            <div className="flex items-center gap-2">
+              <MapPin size={15} style={{ color: PALETTE.olive }} />
+              <p className="text-xs sm:text-sm">
+                {addressLine1}, {addressLine2}
+              </p>
             </div>
-            <span className="font-mono text-xs uppercase tracking-wider text-[#E58866]">
+            <span
+              className="font-mono text-[10.5px] uppercase tracking-wider"
+              style={{ color: PALETTE.amber }}
+            >
               {mapCoordinates}
             </span>
           </div>
 
-          <div className="relative h-[380px] w-full bg-[#E8E1D5] sm:h-[460px]">
+          <div className="relative h-[280px] w-full bg-[#E8E1D5] sm:h-[340px]">
             <iframe
-              title="ISRARC Manufacturing — Baloda Bazar Bhatapara Highway"
+              title="Facility Location — Baloda Bazar Bhatapara Highway"
               src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d118742.6372866946!2d81.8791011357605!3d21.68882998642278!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3a2861c8a14b584d%3A0xe9f75d5fa4b4ddc5!2sBhatapara%20-%20Baloda%20Bazar%20Rd%2C%20Chhattisgarh!5e0!3m2!1sen!2sin!4v1711283921094!5m2!1sen!2sin"
               width="100%"
               height="100%"
-              style={{ border: 0, filter: "contrast(102%) saturate(90%)" }}
+              style={{ border: 0 }}
               allowFullScreen
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
@@ -361,9 +465,6 @@ export default function ContactUs() {
           </div>
         </div>
       </section>
-
-      {/* ================= 4. NEWSLETTER ================= */}
-      <Newsletter />
     </div>
   );
 }

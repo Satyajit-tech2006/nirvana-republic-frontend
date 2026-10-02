@@ -4,10 +4,20 @@ import { ArrowRight, Check, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { SEO } from "@/components/SEO";
 
-const sanctuaryPledges = [
-  "Track lots from 18 verified single-origin Indian farm clusters",
-  "Access independent batch certificates & harvest chemistry",
-  "Save custom pantry rituals with one-click reordering",
+const PALETTE = {
+  olive: "#4D694E",
+  cream: "#FFF3D5",
+  forest: "#324633",
+  amber: "#C87A3E",
+  charcoal: "#1E261F",
+} as const;
+
+const SERIF = "font-['Fraunces',ui-serif,Georgia,serif]";
+
+const memberPledges = [
+  "Verified pure ingredients and lab-tested quality standards",
+  "Real-time order tracking and expedited checkout",
+  "Saved wishlist items and personalized wellness essentials",
 ];
 
 export const AuthPage: React.FC = () => {
@@ -48,31 +58,56 @@ export const AuthPage: React.FC = () => {
   return (
     <>
       <SEO
-        title={isLogin ? "Sign In — Sanctuary Account" : "Open Your Pantry Account"}
-        description="Access your saved harvest batches, track single-origin dispatch orders, and manage clean daily rituals."
+        title={isLogin ? "Sign In — Nirvana Republic" : "Create Account — Nirvana Republic"}
+        description="Access your account, track orders, and manage saved wellness essentials."
         canonical="/auth"
       />
 
-      <main className="min-h-[calc(100dvh-4rem)] bg-background">
-        <div className="mx-auto grid min-h-[calc(100dvh-4rem)] max-w-7xl grid-cols-1 md:grid-cols-12">
-          {/* Editorial Left Column (Now visible from 768px / md up) */}
-          <section className="hidden flex-col justify-between border-r border-border/80 bg-sand-50/40 p-8 md:col-span-5 md:flex lg:col-span-5 lg:p-14 xl:col-span-6 xl:p-20">
+      <main
+        className="min-h-[calc(100dvh-3.5rem)] antialiased"
+        style={{ backgroundColor: PALETTE.cream, color: PALETTE.charcoal }}
+      >
+        <div className="mx-auto grid min-h-[calc(100dvh-3.5rem)] max-w-6xl grid-cols-1 md:grid-cols-12">
+          {/* Left Column: Brand Feature (Desktop / Tablet) */}
+          <section
+            className="hidden flex-col justify-between border-r p-6 md:col-span-5 md:flex lg:p-10"
+            style={{
+              borderColor: `${PALETTE.olive}26`,
+              backgroundColor: `${PALETTE.olive}0A`,
+            }}
+          >
             <div>
-              <p className="eyebrow-accent">Member Sanctuary</p>
-              <h1 className="mt-4 text-balance font-display text-3xl leading-[1.12] tracking-tight text-foreground lg:text-4xl xl:text-display-md">
-                Every harvest traced. Every batch accountable.
+              <span
+                className="font-mono text-[10px] font-semibold uppercase tracking-[0.2em]"
+                style={{ color: PALETTE.amber }}
+              >
+                Nirvana Republic
+              </span>
+
+              <h1
+                className={`${SERIF} mt-2 text-balance text-2xl leading-tight tracking-tight sm:text-3xl`}
+                style={{ color: PALETTE.charcoal }}
+              >
+                Simple, thoughtful wellness for everyday life.
               </h1>
-              <p className="mt-5 max-w-[38ch] text-[14px] leading-relaxed text-muted-foreground lg:text-[15px]">
-                Your account is a quiet corner for managing whole-food staples, lab-tested harvests, and unhurried daily rituals.
+
+              <p className="mt-3 text-xs leading-relaxed opacity-75">
+                Sign in to manage your saved formulations, reorder your daily staples, and access verified product information.
               </p>
 
-              <ul className="mt-10 space-y-4 lg:mt-12">
-                {sanctuaryPledges.map((item) => (
-                  <li key={item} className="flex items-start gap-3">
-                    <span className="mt-1 grid h-4 w-4 shrink-0 place-items-center rounded-full bg-sand-200 text-moss">
-                      <Check size={10} strokeWidth={2.5} />
+              <ul className="mt-6 space-y-3">
+                {memberPledges.map((item) => (
+                  <li key={item} className="flex items-start gap-2.5">
+                    <span
+                      className="mt-0.5 grid h-3.5 w-3.5 shrink-0 place-items-center rounded-full"
+                      style={{
+                        backgroundColor: `${PALETTE.olive}20`,
+                        color: PALETTE.olive,
+                      }}
+                    >
+                      <Check size={9} strokeWidth={2.5} />
                     </span>
-                    <span className="text-xs leading-relaxed text-foreground/85">
+                    <span className="text-xs leading-relaxed opacity-85">
                       {item}
                     </span>
                   </li>
@@ -80,26 +115,35 @@ export const AuthPage: React.FC = () => {
               </ul>
             </div>
 
-            <div className="border-t border-border/80 pt-6">
-              <p className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
-                Nirvana Republic &copy; Batch Registry &middot; Raipur, Chhattisgarh
+            <div
+              className="border-t pt-4"
+              style={{ borderColor: `${PALETTE.olive}20` }}
+            >
+              <p className="font-mono text-[10px] uppercase tracking-wider opacity-60">
+                Nirvana Republic &copy; All rights reserved.
               </p>
             </div>
           </section>
 
-          {/* Form Right Column */}
-          <section className="flex flex-col justify-center px-6 py-12 sm:px-10 md:col-span-7 md:px-10 lg:col-span-7 lg:px-16 xl:col-span-6 xl:px-20">
-            <div className="mx-auto w-full max-w-md">
-              {/* Top Mode Segmented Switch */}
-              <div className="flex items-center justify-between border-b border-border/80 pb-4">
+          {/* Right Column: Auth Form */}
+          <section className="flex flex-col justify-center px-4 py-8 sm:px-8 md:col-span-7 md:px-8 lg:px-12">
+            <div className="mx-auto w-full max-w-sm">
+              {/* Header & Toggle */}
+              <div
+                className="flex items-center justify-between border-b pb-3"
+                style={{ borderColor: `${PALETTE.olive}20` }}
+              >
                 <div>
-                  <h2 className="font-display text-2xl tracking-tight text-foreground sm:text-3xl">
+                  <h2
+                    className={`${SERIF} text-xl tracking-tight sm:text-2xl`}
+                    style={{ color: PALETTE.charcoal }}
+                  >
                     {isLogin ? "Welcome back" : "Create an account"}
                   </h2>
-                  <p className="mt-1 text-xs text-muted-foreground">
+                  <p className="mt-0.5 text-[11px] opacity-65">
                     {isLogin
-                      ? "Enter your details to sign in to your pantry."
-                      : "A single step to start saving and tracking batches."}
+                      ? "Enter your credentials to access your account."
+                      : "Create your account in just a minute."}
                   </p>
                 </div>
 
@@ -109,47 +153,57 @@ export const AuthPage: React.FC = () => {
                     setIsLogin(!isLogin);
                     setError("");
                   }}
-                  className="font-mono text-xs uppercase tracking-wider text-moss underline underline-offset-4 transition-colors hover:text-foreground"
+                  className="font-mono text-[10.5px] uppercase tracking-wider underline underline-offset-4 transition-opacity hover:opacity-80"
+                  style={{ color: PALETTE.olive }}
                 >
-                  {isLogin ? "Need an account?" : "Have an account?"}
+                  {isLogin ? "New user?" : "Sign in?"}
                 </button>
               </div>
 
-              {/* Error Message */}
+              {/* Error Alert */}
               {error && (
-                <div className="mt-6 border-l-2 border-clay bg-sand-100/60 p-3.5 text-xs leading-relaxed text-clay">
+                <div
+                  className="mt-4 rounded-md border-l-2 p-2.5 font-mono text-[11px] leading-relaxed"
+                  style={{
+                    borderColor: PALETTE.amber,
+                    backgroundColor: `${PALETTE.amber}12`,
+                    color: PALETTE.charcoal,
+                  }}
+                >
                   {error}
                 </div>
               )}
 
-              {/* Input Form */}
-              <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+              {/* Form */}
+              <form onSubmit={handleSubmit} className="mt-5 space-y-3.5">
                 {!isLogin && (
                   <>
                     <div>
-                      <label className="mb-1.5 block font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
-                        Full Name <span className="text-clay">*</span>
+                      <label className="mb-1 block font-mono text-[10px] uppercase tracking-wider opacity-70">
+                        Full Name *
                       </label>
                       <input
                         type="text"
                         required
                         value={name}
                         onChange={(e) => setName(e.target.value)}
-                        className="input-base text-sm"
-                        placeholder="Amara Sen"
+                        className="w-full rounded-lg border bg-white px-3 py-2 text-xs outline-none transition-colors focus:border-[#4D694E]"
+                        style={{ borderColor: `${PALETTE.olive}26` }}
+                        placeholder="Your full name"
                         autoComplete="name"
                       />
                     </div>
 
                     <div>
-                      <label className="mb-1.5 block font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+                      <label className="mb-1 block font-mono text-[10px] uppercase tracking-wider opacity-70">
                         Phone Number
                       </label>
                       <input
                         type="tel"
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
-                        className="input-base text-sm"
+                        className="w-full rounded-lg border bg-white px-3 py-2 font-mono text-xs outline-none transition-colors focus:border-[#4D694E]"
+                        style={{ borderColor: `${PALETTE.olive}26` }}
                         placeholder="+91 98765 43210"
                         autoComplete="tel"
                       />
@@ -158,30 +212,29 @@ export const AuthPage: React.FC = () => {
                 )}
 
                 <div>
-                  <label className="mb-1.5 block font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
-                    Email Address <span className="text-clay">*</span>
+                  <label className="mb-1 block font-mono text-[10px] uppercase tracking-wider opacity-70">
+                    Email Address *
                   </label>
                   <input
                     type="email"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="input-base text-sm"
-                    placeholder="amara@domain.com"
+                    className="w-full rounded-lg border bg-white px-3 py-2 text-xs outline-none transition-colors focus:border-[#4D694E]"
+                    style={{ borderColor: `${PALETTE.olive}26` }}
+                    placeholder="you@domain.com"
                     autoComplete="email"
                   />
                 </div>
 
                 <div>
-                  <div className="mb-1.5 flex items-center justify-between">
-                    <label className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
-                      Password <span className="text-clay">*</span>
+                  <div className="mb-1 flex items-center justify-between">
+                    <label className="font-mono text-[10px] uppercase tracking-wider opacity-70">
+                      Password *
                     </label>
-                    {isLogin && (
-                      <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-                        Min 6 chars
-                      </span>
-                    )}
+                    <span className="font-mono text-[9px] uppercase tracking-wider opacity-50">
+                      Min 6 chars
+                    </span>
                   </div>
 
                   <div className="relative">
@@ -191,7 +244,8 @@ export const AuthPage: React.FC = () => {
                       minLength={6}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="input-base pr-10 text-sm"
+                      className="w-full rounded-lg border bg-white py-2 pl-3 pr-8 text-xs outline-none transition-colors focus:border-[#4D694E]"
+                      style={{ borderColor: `${PALETTE.olive}26` }}
                       placeholder="••••••••"
                       autoComplete={isLogin ? "current-password" : "new-password"}
                     />
@@ -199,12 +253,12 @@ export const AuthPage: React.FC = () => {
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
                       aria-label={showPassword ? "Hide password" : "Show password"}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 opacity-50 hover:opacity-100"
                     >
                       {showPassword ? (
-                        <EyeOff size={15} strokeWidth={1.5} />
+                        <EyeOff size={13} strokeWidth={1.5} />
                       ) : (
-                        <Eye size={15} strokeWidth={1.5} />
+                        <Eye size={13} strokeWidth={1.5} />
                       )}
                     </button>
                   </div>
@@ -213,20 +267,30 @@ export const AuthPage: React.FC = () => {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="btn-base btn-primary mt-2 w-full py-3.5 text-xs uppercase tracking-[0.14em] disabled:pointer-events-none disabled:opacity-50"
+                  className="flex w-full items-center justify-center gap-1.5 rounded-full py-2.5 font-mono text-xs uppercase tracking-wider transition-opacity hover:opacity-90 disabled:opacity-50"
+                  style={{
+                    backgroundColor: PALETTE.olive,
+                    color: PALETTE.cream,
+                  }}
                 >
-                  <span>{submitting ? "Verifying..." : isLogin ? "Sign In" : "Open Sanctuary Account"}</span>
-                  <ArrowRight size={13} strokeWidth={1.5} />
+                  <span>
+                    {submitting
+                      ? "Verifying..."
+                      : isLogin
+                      ? "Sign In"
+                      : "Create Account"}
+                  </span>
+                  <ArrowRight size={12} strokeWidth={1.5} />
                 </button>
               </form>
 
-              {/* Privacy Footnote */}
-              <p className="mt-8 text-center text-[11px] leading-relaxed text-muted-foreground">
-                By entering, you agree to our{" "}
-                <Link to="/about" className="link-underline text-foreground">
-                  harvest standards
+              {/* Privacy Footer */}
+              <p className="mt-5 text-center text-[10.5px] leading-relaxed opacity-60">
+                By continuing, you agree to our{" "}
+                <Link to="/about" className="underline underline-offset-2 opacity-90 hover:opacity-100">
+                  terms
                 </Link>{" "}
-                and unblended sourcing policy.
+                and privacy policy.
               </p>
             </div>
           </section>

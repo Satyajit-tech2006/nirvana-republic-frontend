@@ -27,6 +27,8 @@ interface ArticleDetail {
   publishedAt?: string;
 }
 
+const SERIF = "font-['Fraunces',ui-serif,Georgia,serif]";
+
 export default function JournalDetailPage() {
   const { slug } = useParams<{ slug: string }>();
   const [article, setArticle] = useState<ArticleDetail | null>(null);
@@ -72,25 +74,24 @@ export default function JournalDetailPage() {
     } else {
       navigator.clipboard.writeText(window.location.href);
       setCopied(true);
-      toast.success("Dispatch link copied to clipboard");
+      toast.success("Link copied to clipboard");
       setTimeout(() => setCopied(false), 2000);
     }
   };
 
   if (loading) {
     return (
-      <div className="container-page max-w-3xl space-y-8 py-16 md:py-24">
-        <div className="skeleton h-4 w-32 rounded-full" />
-        <div className="space-y-4">
-          <div className="skeleton h-3 w-24 rounded-full" />
-          <div className="skeleton h-10 w-full rounded-sm" />
-          <div className="skeleton h-16 w-full rounded-sm" />
+      <div className="container-page max-w-2xl space-y-4 py-8 md:py-12">
+        <div className="skeleton h-3 w-28 rounded-full" />
+        <div className="space-y-2">
+          <div className="skeleton h-2.5 w-20 rounded-full" />
+          <div className="skeleton h-7 w-full rounded-md" />
+          <div className="skeleton h-12 w-full rounded-md" />
         </div>
-        <div className="skeleton aspect-[16/10] w-full rounded-sm" />
-        <div className="space-y-4 pt-4">
-          <div className="skeleton h-4 w-full rounded-full" />
-          <div className="skeleton h-4 w-5/6 rounded-full" />
-          <div className="skeleton h-4 w-4/6 rounded-full" />
+        <div className="skeleton aspect-[16/9] w-full rounded-xl" />
+        <div className="space-y-2 pt-2">
+          <div className="skeleton h-3 w-full rounded-full" />
+          <div className="skeleton h-3 w-5/6 rounded-full" />
         </div>
       </div>
     );
@@ -98,21 +99,21 @@ export default function JournalDetailPage() {
 
   if (!article) {
     return (
-      <div className="container-page mx-auto max-w-md py-28 text-center">
-        <div className="mx-auto mb-4 grid h-12 w-12 place-items-center rounded-full bg-sand-100 text-muted-foreground">
-          <BookOpen size={22} strokeWidth={1.5} />
+      <div className="container-page mx-auto max-w-md py-16 text-center">
+        <div className="mx-auto mb-3 grid h-9 w-9 place-items-center rounded-full bg-sand-100 text-muted-foreground">
+          <BookOpen size={16} strokeWidth={1.5} />
         </div>
-        <h1 className="font-display text-2xl tracking-tight text-foreground md:text-3xl">
-          Dispatch Not Found
+        <h1 className={`${SERIF} text-xl tracking-tight text-foreground sm:text-2xl`}>
+          Article Not Found
         </h1>
-        <p className="mt-2 text-xs leading-relaxed text-muted-foreground sm:text-sm">
-          This harvest record or wellness guide may have been archived or updated under a different slug.
+        <p className="mt-1 text-xs text-muted-foreground sm:text-sm">
+          This article may have been archived or updated under a different link.
         </p>
         <Link
           to="/journal"
-          className="btn-base btn-primary mt-6 inline-flex items-center gap-2 text-xs uppercase tracking-wider"
+          className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-[#4D694E] px-4 py-2 font-mono text-[10.5px] uppercase tracking-wider text-[#FFF3D5] transition-colors hover:bg-[#324633]"
         >
-          <ArrowLeft size={14} strokeWidth={1.5} /> Back to Journal Feed
+          <ArrowLeft size={13} strokeWidth={1.5} /> Back to Journal
         </Link>
       </div>
     );
@@ -130,7 +131,7 @@ export default function JournalDetailPage() {
   const formattedDate = new Date(article.publishedAt || article.createdAt).toLocaleDateString(
     "en-IN",
     {
-      month: "long",
+      month: "short",
       day: "numeric",
       year: "numeric",
     }
@@ -167,67 +168,68 @@ export default function JournalDetailPage() {
         schema={articleSchema}
       />
 
-      <article className="container-page max-w-3xl py-10 md:py-16">
+      <article className="container-page max-w-2xl py-5 sm:py-7">
+        {/* Back Link */}
         <Link
           to="/journal"
-          className="group mb-8 inline-flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-muted-foreground transition-colors hover:text-foreground"
+          className="group mb-4 inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-muted-foreground transition-colors hover:text-foreground"
         >
           <ArrowLeft
-            size={14}
+            size={12}
             strokeWidth={1.5}
             className="transition-transform duration-200 group-hover:-translate-x-0.5"
           />
-          <span>Back to all dispatches</span>
+          <span>Back to Journal</span>
         </Link>
 
-        {/* Meta Header */}
-        <header className="space-y-4">
-          <div className="flex flex-wrap items-center gap-2.5 font-mono text-xs uppercase tracking-widest text-clay">
+        {/* Header */}
+        <header className="space-y-2.5">
+          <div className="flex flex-wrap items-center gap-2 font-mono text-[10px] uppercase tracking-wider text-[#C87A3E]">
             <span>{article.category}</span>
             <span className="text-border">·</span>
             <span className="flex items-center gap-1 text-muted-foreground">
-              <Clock size={12} strokeWidth={1.5} /> {readTimeFormatted}
+              <Clock size={11} strokeWidth={1.5} /> {readTimeFormatted}
             </span>
             <span className="text-border">·</span>
             <span className="flex items-center gap-1 text-muted-foreground">
-              <Calendar size={12} strokeWidth={1.5} /> {formattedDate}
+              <Calendar size={11} strokeWidth={1.5} /> {formattedDate}
             </span>
           </div>
 
-          <h1 className="text-balance font-display text-3xl leading-[1.15] tracking-tight text-foreground sm:text-4xl lg:text-display-md">
+          <h1 className={`${SERIF} text-balance text-2xl leading-tight tracking-tight text-foreground sm:text-3xl`}>
             {article.title}
           </h1>
 
           {article.excerpt && (
-            <p className="border-l-2 border-moss py-1 pl-4 font-serif text-base italic leading-relaxed text-muted-foreground sm:text-lg">
+            <p className="border-l-2 border-[#4D694E] py-0.5 pl-3 text-xs italic leading-relaxed text-muted-foreground sm:text-sm">
               {article.excerpt}
             </p>
           )}
 
-          {/* Author info & Share button */}
-          <div className="mt-6 flex items-center justify-between border-y border-border/80 py-4">
+          {/* Author Strip & Share */}
+          <div className="flex items-center justify-between border-y border-border/70 py-2.5">
             <div>
-              <p className="font-mono text-xs font-semibold uppercase tracking-wide text-foreground">
+              <p className="font-mono text-[10.5px] font-semibold uppercase tracking-wider text-foreground">
                 {article.author?.name || "Nirvana Republic"}
               </p>
-              <p className="font-mono text-[11px] text-muted-foreground">
-                {article.author?.role || "Editorial Desk & Farm Origin Team"}
+              <p className="font-mono text-[9.5px] text-muted-foreground">
+                {article.author?.role || "Editorial Desk"}
               </p>
             </div>
 
             <button
               type="button"
               onClick={handleShare}
-              className="btn-base btn-outline btn-sm font-mono text-xs uppercase tracking-wider"
+              className="inline-flex items-center gap-1 rounded-full border border-border/80 px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider text-muted-foreground transition-colors hover:text-foreground"
             >
-              {copied ? <Check size={13} className="text-moss" /> : <Share2 size={13} strokeWidth={1.5} />}
+              {copied ? <Check size={11} className="text-[#4D694E]" /> : <Share2 size={11} strokeWidth={1.5} />}
               <span>{copied ? "Copied" : "Share"}</span>
             </button>
           </div>
         </header>
 
-        {/* Cover Photo */}
-        <div className="card-flush mt-8 aspect-[16/10] overflow-hidden bg-sand-100">
+        {/* Cover Image */}
+        <div className="mt-4 aspect-[16/9] w-full overflow-hidden rounded-xl bg-sand-100 sm:mt-5">
           <img
             src={coverImage}
             alt={article.title}
@@ -235,19 +237,19 @@ export default function JournalDetailPage() {
           />
         </div>
 
-        {/* Article Body Content */}
-        <div className="mt-10 space-y-6 font-sans text-sm leading-relaxed text-foreground/90 whitespace-pre-line sm:text-base">
+        {/* Body */}
+        <div className="mt-5 space-y-4 font-sans text-xs leading-relaxed text-foreground/90 whitespace-pre-line sm:text-sm">
           {article.content}
         </div>
 
         {/* Tags */}
         {article.tags && article.tags.length > 0 && (
-          <footer className="mt-12 flex flex-wrap items-center gap-2 border-t border-border/80 pt-6">
-            <Tag size={13} strokeWidth={1.5} className="mr-1 text-muted-foreground" />
+          <footer className="mt-8 flex flex-wrap items-center gap-1.5 border-t border-border/70 pt-3.5">
+            <Tag size={11} strokeWidth={1.5} className="mr-1 text-muted-foreground" />
             {article.tags.map((tag) => (
               <span
                 key={tag}
-                className="badge-base badge-bestseller font-mono text-[11px] uppercase tracking-wider text-foreground"
+                className="rounded-full bg-sand-100 px-2 py-0.5 font-mono text-[9.5px] uppercase tracking-wider text-muted-foreground"
               >
                 #{tag}
               </span>
