@@ -282,57 +282,35 @@ export default function Home() {
 
       {/* ================= 1. HERO SECTION (Olive Green #4D694E) ================= */}
       <section
-        className="relative w-full"
+        className="relative w-full text-center"
         style={{ backgroundColor: PALETTE.olive, color: PALETTE.cream }}
       >
-        <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-10 lg:px-8">
-          <div className="grid items-center gap-6 lg:grid-cols-12 lg:gap-8">
-            {/* Left Column: Heading & Narrative */}
-            <div className="z-10 lg:col-span-7">
-              <h1
-                className={`${SERIF} text-2xl font-normal leading-[1.12] tracking-tight sm:text-3xl lg:text-[2.65rem]`}
-                style={{ color: PALETTE.cream }}
-              >
-                {heroHeading}
-              </h1>
+        <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
+          <h1
+            className={`${SERIF} text-2xl font-normal leading-[1.15] tracking-tight sm:text-3xl lg:text-[2.75rem]`}
+            style={{ color: PALETTE.cream }}
+          >
+            {heroHeading}
+          </h1>
 
-              <p
-                className="mt-2.5 max-w-lg text-[11px] leading-relaxed opacity-90 sm:text-xs sm:leading-relaxed"
-                style={{ color: `${PALETTE.cream}D9` }}
-              >
-                {heroSubheading}
-              </p>
+          <p
+            className="mx-auto mt-3 max-w-xl text-[11.5px] leading-relaxed opacity-90 sm:text-xs sm:leading-relaxed"
+            style={{ color: `${PALETTE.cream}D9` }}
+          >
+            {heroSubheading}
+          </p>
 
-              <div className="mt-4">
-                <Link
-                  to="/about"
-                  className="inline-flex rounded-full border px-5 py-1.5 font-mono text-[10px] uppercase tracking-wider transition-colors hover:bg-white/10"
-                  style={{
-                    borderColor: `${PALETTE.cream}59`,
-                    color: PALETTE.cream,
-                  }}
-                >
-                  Our Story
-                </Link>
-              </div>
-            </div>
-
-            {/* Right Column: Hero Visual */}
-            <div className="relative mx-auto w-full max-w-xs lg:col-span-5 lg:max-w-none">
-              <div
-                className="overflow-hidden rounded-xl p-1.5 shadow-md ring-1"
-                style={{
-                  backgroundColor: PALETTE.forest,
-                  borderColor: `${PALETTE.cream}26`,
-                }}
-              >
-                <img
-                  src={landingPageImg}
-                  alt="Nirvana Republic Botanical Essentials"
-                  className="aspect-[16/10] w-full rounded-lg object-cover sm:aspect-[4/3] lg:aspect-square"
-                />
-              </div>
-            </div>
+          <div className="mt-4 flex justify-center">
+            <Link
+              to="/about"
+              className="inline-flex rounded-full border px-5 py-1.5 font-mono text-[10px] uppercase tracking-wider transition-colors hover:bg-white/10"
+              style={{
+                borderColor: `${PALETTE.cream}59`,
+                color: PALETTE.cream,
+              }}
+            >
+              Our Story
+            </Link>
           </div>
         </div>
       </section>

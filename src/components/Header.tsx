@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import {
-  Heart,
   LogOut,
   Menu,
   ShoppingBag,
@@ -15,13 +14,13 @@ import { useStore } from "@/lib/store";
 import { useAuth } from "@/context/AuthContext";
 
 const navLinks = [
-  { label: "Journal", to: "/journal" },
   { label: "About Us", to: "/about" },
-  { label: "Contact Us", to: "/contact" },
+  { label: "Blog", to: "/journal" },
+  { label: "Contact", to: "/contact" },
 ];
 
 export function Header() {
-  const { cartCount, wishlist, setCartOpen } = useStore();
+  const { cartCount, setCartOpen } = useStore();
   const { user, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -73,12 +72,12 @@ export function Header() {
             <Menu size={17} strokeWidth={1.5} />
           </button>
 
-          {/* Desktop Logo (hidden on mobile for absolute centering) */}
+          {/* Desktop Logo */}
           <Link to="/" className="group hidden shrink-0 items-center lg:flex">
             <img
               src={logo}
               alt="Nirvana Republic"
-              className="h-8 w-auto max-w-[145px] object-contain transition-opacity duration-300 group-hover:opacity-90 xl:h-9"
+              className="h-8 w-auto max-w-[150px] object-contain transition-opacity duration-300 group-hover:opacity-90 xl:h-9"
               style={{
                 filter: "invert(1) contrast(200%) brightness(140%)",
                 mixBlendMode: "screen",
@@ -87,13 +86,13 @@ export function Header() {
           </Link>
         </div>
 
-        {/* Mobile Centered Logo (Dead Center in Mobile View Only) */}
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center lg:hidden">
-          <Link to="/" className="pointer-events-auto flex items-center justify-center">
+        {/* Mobile Full Horizontal Logo Corridor */}
+        <div className="flex flex-1 items-center justify-center px-3 lg:hidden">
+          <Link to="/" className="flex w-full items-center justify-center">
             <img
               src={logo}
               alt="Nirvana Republic"
-              className="h-6 w-auto max-w-[125px] object-contain"
+              className="h-auto max-h-10 w-full object-contain"
               style={{
                 filter: "invert(1) contrast(200%) brightness(140%)",
                 mixBlendMode: "screen",
@@ -131,17 +130,6 @@ export function Header() {
 
         {/* Right: Actions */}
         <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
-          <Link
-            to="/wishlist"
-            aria-label="Wishlist"
-            className="relative hidden h-8 w-8 items-center justify-center text-[#FFF3D5]/80 transition-colors hover:text-white md:flex"
-          >
-            <Heart size={17} strokeWidth={1.5} />
-            {wishlist.length > 0 && (
-              <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-[#C87A3E]" />
-            )}
-          </Link>
-
           {user ? (
             <div className="hidden items-center gap-1 sm:flex">
               <Link
@@ -171,7 +159,7 @@ export function Header() {
             </Link>
           )}
 
-          {/* Mobile Bag: Minimal 32x32 matching the Hamburger Menu */}
+          {/* Mobile Bag Button */}
           <button
             type="button"
             aria-label="Open Cart"
@@ -186,7 +174,7 @@ export function Header() {
             )}
           </button>
 
-          {/* Desktop Bag: Styled Full Pill Button */}
+          {/* Desktop Bag Button */}
           <button
             type="button"
             aria-label="Open Cart"
@@ -243,10 +231,10 @@ export function Header() {
               </button>
             </div>
 
-            {/* 1. EXPLORE (Top) */}
+            {/* 1. Navigation Links: About Us -> Blog -> Contact */}
             <div className="space-y-1">
               <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-[#C87A3E]">
-                Explore
+                Menu
               </p>
               <div className="space-y-0.5 pt-1">
                 {navLinks.map((l) => (
@@ -259,25 +247,12 @@ export function Header() {
                     {l.label}
                   </Link>
                 ))}
-                <Link
-                  to="/wishlist"
-                  onClick={() => setMenuOpen(false)}
-                  className="flex items-center justify-between py-1.5 font-mono text-xs uppercase tracking-wider text-[#FFF3D5]/80 hover:text-white transition-colors"
-                >
-                  <span>Saved Wishlist</span>
-                  {wishlist.length > 0 && (
-                    <span className="font-semibold text-[#C87A3E]">
-                      ({wishlist.length})
-                    </span>
-                  )}
-                </Link>
               </div>
             </div>
 
-            {/* Subtle Divider */}
             <div className="h-px w-full bg-[#FFF3D5]/10" />
 
-            {/* 2. COLLECTIONS (Bottom) */}
+            {/* 2. Collections */}
             <div className="space-y-1">
               <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-[#C87A3E]">
                 Collections
